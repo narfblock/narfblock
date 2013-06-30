@@ -7,6 +7,7 @@ set (VERSION_RELEASE "")
 
 find_package (OpenGL REQUIRED)
 find_package (SDL REQUIRED)
+find_package (SDL_image REQUIRED)
 
 include_directories (
 	# cmake's SDL_INCLUDE_DIR incorrectly includes the actual SDL dir;
@@ -28,6 +29,7 @@ add_executable (narfblock
 
 target_link_libraries (narfblock
 	${OPENGL_LIBRARY}
+	${SDL_IMAGE_LIBRARY}
 	${SDL_LIBRARY}
 	# HACK: cmake's SDL_LIBRARY puts the libraries in the wrong order;
 	# there are symbols in libSDLmain that depend on libSDL, but -lSDL is first in SDL_LIBRARY.

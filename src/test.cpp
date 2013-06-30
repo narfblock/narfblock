@@ -1,4 +1,6 @@
 #include <SDL/SDL.h>
+#include <SDL/SDL_opengl.h>
+#include <SDL/SDL_image.h>
 #include <GL/gl.h>
 #include <GL/glu.h>
 
@@ -6,6 +8,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdint.h>
 #include <assert.h>
 #include "test.h"
 
@@ -34,11 +37,7 @@ public:
 
 class Block {
 public:
-	// TODO: for now just store a color for testing purposes
-	float r;
-	float g;
-	float b;
-
+	uint8_t type; // TODO
 	unsigned solid:1;
 };
 
@@ -53,7 +52,8 @@ Block *world;
 #define WORLD_Y_MAX 100
 #define WORLD_Z_MAX 100
 
-GLuint cube_display_list;
+SDL_Surface *tiles_surf;
+GLuint tiles_tex;
 
 Block *get_block(int x, int y, int z)
 {
@@ -100,6 +100,8 @@ bool init_video(int w, int h, int bpp, bool fullscreen)
 
 	glEnable(GL_DEPTH_TEST);
 
+	glEnable(GL_TEXTURE_2D);
+
 	// for drawing outlines
 	glPolygonOffset(1.0, 2);
 	glEnable(GL_POLYGON_OFFSET_FILL);
@@ -108,19 +110,38 @@ bool init_video(int w, int h, int bpp, bool fullscreen)
 }
 
 
-void draw_quad(float r, float g, float b, bool outline, const float *quad)
+void draw_quad(uint8_t tex_id, bool outline, const float *quad)
 {
+	uint8_t tex_x = tex_id % 16;
+	uint8_t tex_y = tex_id / 16;
+
+	float texcoord_tile_size = 1.0f / 16.0f;
+
+	float u1 = (float)tex_x * texcoord_tile_size;
+	float v1 = (float)tex_y * texcoord_tile_size;
+	float u2 = u1 + texcoord_tile_size;
+	float v2 = v1 + texcoord_tile_size;
+
 	// TODO: get rid of GL_QUADS, use triangle strip?
 	glBegin(outline ? GL_LINE_LOOP : GL_QUADS);
+
+	glTexCoord2f(u1, v2);
 	glVertex3fv(&quad[0 * 3]);
+
+	glTexCoord2f(u2, v2);
 	glVertex3fv(&quad[1 * 3]);
+
+	glTexCoord2f(u2, v1);
 	glVertex3fv(&quad[2 * 3]);
+
+	glTexCoord2f(u1, v1);
 	glVertex3fv(&quad[3 * 3]);
+
 	glEnd();
 }
 
 
-void draw_cube(float r, float g, float b, bool outline)
+void draw_cube(uint8_t type, bool outline)
 {
 	static const float cube_quads[][4*3] = {
 		{0,0,0, 1,0,0, 1,1,0, 0,1,0},
@@ -131,21 +152,76 @@ void draw_cube(float r, float g, float b, bool outline)
 		{1,0,0, 1,0,1, 1,1,1, 1,1,0}
 	};
 
-	for (int i = 0; i < 6; i++) {
-		draw_quad(r, g, b, outline, cube_quads[i]);
+	uint8_t tex_id_top, tex_id_side, tex_id_bot;
+	if (type == 3) {
+		tex_id_top = 0;
+		tex_id_side = 3;
+		tex_id_bot = 2;
+	} else {
+		tex_id_top = tex_id_side = tex_id_bot = type;
 	}
+
+	draw_quad(tex_id_side, outline, cube_quads[0]);
+	draw_quad(tex_id_side, outline, cube_quads[1]);
+	draw_quad(tex_id_bot,  outline, cube_quads[2]);
+	draw_quad(tex_id_top,  outline, cube_quads[3]);
+	draw_quad(tex_id_side, outline, cube_quads[4]);
+	draw_quad(tex_id_side, outline, cube_quads[5]);
 }
 
 
-
-/// Load models etc.
-bool init_geom()
+GLuint upload_texture(SDL_Surface *surf)
 {
-	// generate display list for a single cube
-	cube_display_list = glGenLists(1);
-	glNewList(cube_display_list, GL_COMPILE);
-	draw_cube(0, 0, 0, false);
-	glEndList();
+	// TODO: check power of two width and height
+
+	// Create the target alpha surface with correct color component ordering
+	SDL_Surface *surf_copy = SDL_CreateRGBSurface(
+		SDL_SWSURFACE, surf->w, surf->h, 32,
+#if SDL_BYTEORDER == SDL_LIL_ENDIAN // OpenGL RGBA masks 
+		0x000000FF,
+		0x0000FF00,
+		0x00FF0000,
+		0xFF000000
+#else
+		0xFF000000,
+		0x00FF0000,
+		0x0000FF00,
+		0x000000FF
+#endif
+		);
+
+	if (!surf_copy) {
+		return -1; // TODO!
+	}
+
+	// copy the original surface into surf_copy to convert formats
+	SDL_BlitSurface(surf, NULL, surf_copy, NULL);
+
+	GLuint tex;
+	glGenTextures(1, &tex);
+	glBindTexture(GL_TEXTURE_2D, tex);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE_SGIS);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE_SGIS);
+
+	//glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, surf_copy->w, surf_copy->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, surf_copy->pixels);
+
+	SDL_FreeSurface(surf_copy);
+
+	return tex;
+}
+
+
+bool init_textures()
+{
+	tiles_surf = IMG_Load("../data/terrain.png");
+	assert(tiles_surf); // TODO: user-friendly message
+
+	tiles_tex = upload_texture(tiles_surf);
 }
 
 
@@ -162,6 +238,7 @@ void draw()
 	glTranslatef(-cam.x, -cam.y, -cam.z);
 
 	// draw blocks
+	glBindTexture(GL_TEXTURE_2D, tiles_tex);
 	for (int z = 0; z < WORLD_Z_MAX; z++) {
 		for (int y = 0; y < WORLD_Y_MAX; y++) {
 			for (int x = 0; x < WORLD_X_MAX; x++) {
@@ -170,8 +247,7 @@ void draw()
 					glPushMatrix();
 					glTranslatef(x, y, z);
 					// TODO: don't render sides of the cube that are obscured by other solid cubes?
-					glColor3f(b->r, b->g, b->b);
-					glCallList(cube_display_list);
+					draw_cube(b->type, false);
 
 					// TODO: highlight cube selected by mouse
 					//draw_cube(0.0f, 0.0f, 0.0f, true);
@@ -276,22 +352,30 @@ void gen_world()
 	for (int z = 0; z < WORLD_Z_MAX; z++) {
 		for (int x = 0; x < WORLD_X_MAX; x++) {
 			Block *b = get_block(x, 0, z);
-			b->r = randf(0.0f, 0.05f);
-			b->g = randf(0.9f, 1.0f);
-			b->b = randf(0.0f, 0.05f);
+			b->type = 0;
 			b->solid = 1;
 		}
 	}
 
 	// generate some random blocks above the ground
-	for (int i = 0; i < 50; i++) {
+	for (int i = 0; i < 1000; i++) {
 		int x = randi(0, WORLD_X_MAX - 1);
 		int y = randi(1, 10);
 		int z = randi(0, WORLD_Z_MAX - 1);
 		Block *b = get_block(x, y, z);
-		b->r = randf(0.0f, 1.0f);
-		b->g = randf(0.0f, 1.0f);
-		b->b = randf(0.0f, 1.0f);
+		b->type = randi(0, 3);
+		b->solid = 1;
+	}
+
+	for (int i = 0; i < 10; i++) {
+		Block *b = get_block(5 + i, 1, 5);
+		b->type = 16;
+		b->solid = 1;
+		b = get_block(5, 1, 5 + i);
+		b->type = 16;
+		b->solid = 1;
+		b = get_block(5 + i, 1, 15);
+		b->type = 16;
 		b->solid = 1;
 	}
 }
@@ -338,7 +422,7 @@ extern "C" int main(int argc, char **argv)
 	srand(0x1234);
 	gen_world();
 
-	init_geom();
+	init_textures();
 
 	SDL_ShowCursor(0);
 	SDL_WM_GrabInput(SDL_GRAB_ON);
