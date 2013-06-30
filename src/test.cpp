@@ -53,6 +53,8 @@ Block *world;
 #define WORLD_Y_MAX 100
 #define WORLD_Z_MAX 100
 
+GLuint cube_display_list;
+
 Block *get_block(int x, int y, int z)
 {
 	assert(x >= 0 && y >= 0 && z >= 0);
@@ -110,7 +112,6 @@ void draw_quad(float r, float g, float b, bool outline, const float *quad)
 {
 	// TODO: get rid of GL_QUADS, use triangle strip?
 	glBegin(outline ? GL_LINE_LOOP : GL_QUADS);
-	glColor3f(r, g, b);
 	glVertex3fv(&quad[0 * 3]);
 	glVertex3fv(&quad[1 * 3]);
 	glVertex3fv(&quad[2 * 3]);
@@ -136,6 +137,18 @@ void draw_cube(float r, float g, float b, bool outline)
 }
 
 
+
+/// Load models etc.
+bool init_geom()
+{
+	// generate display list for a single cube
+	cube_display_list = glGenLists(1);
+	glNewList(cube_display_list, GL_COMPILE);
+	draw_cube(0, 0, 0, false);
+	glEndList();
+}
+
+
 void draw()
 {
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
@@ -157,7 +170,8 @@ void draw()
 					glPushMatrix();
 					glTranslatef(x, y, z);
 					// TODO: don't render sides of the cube that are obscured by other solid cubes?
-					draw_cube(b->r, b->g, b->b, false);
+					glColor3f(b->r, b->g, b->b);
+					glCallList(cube_display_list);
 
 					// TODO: highlight cube selected by mouse
 					//draw_cube(0.0f, 0.0f, 0.0f, true);
@@ -323,6 +337,8 @@ extern "C" int main(int argc, char **argv)
 
 	srand(0x1234);
 	gen_world();
+
+	init_geom();
 
 	SDL_ShowCursor(0);
 	SDL_WM_GrabInput(SDL_GRAB_ON);
