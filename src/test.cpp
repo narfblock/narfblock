@@ -13,10 +13,12 @@ SDL_Surface *display_surf;
 
 bool init_video(int w, int h, int bpp, bool fullscreen)
 {
-	Uint32 flags = SDL_HWSURFACE | SDL_GL_DOUBLEBUFFER | SDL_OPENGL;
+	Uint32 flags = SDL_HWSURFACE | SDL_OPENGL;
 	if (fullscreen) {
 		flags |= SDL_FULLSCREEN;
 	}
+
+	SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 );
 
 	display_surf = SDL_SetVideoMode(w, h, bpp, flags);
 	if (!display_surf) {
@@ -107,9 +109,9 @@ void event_loop()
 {
 	SDL_Event e;
 
-    while (1) {
-        while (SDL_PollEvent(&e)) {
-            if (e.type == SDL_QUIT) {
+	while (1) {
+		while (SDL_PollEvent(&e)) {
+			if (e.type == SDL_QUIT) {
 				return; // exit event loop
 			}
 
@@ -119,10 +121,10 @@ void event_loop()
 				}
 				// TODO: other keyboard events
 			}
-        }
+		}
 
-        draw();
-    }
+		draw();
+	}
 }
 
 
