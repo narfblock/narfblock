@@ -2,13 +2,71 @@
 #include <GL/gl.h>
 #include <GL/glu.h>
 
+#include <math.h>
+
 #include <stdlib.h>
 #include <stdio.h>
+#include <assert.h>
 #include "test.h"
 
 // TODO: this is all hacky test code - refactor into nicely modularized code
 
-SDL_Surface *display_surf;
+class Display {
+public:
+	SDL_Surface *surf;
+
+	int width;
+	int height;
+};
+
+
+class Camera {
+public:
+	// position
+	float x;
+	float y;
+	float z;
+
+	// view angles in radians
+	float yaw;
+	float pitch;
+};
+
+class Block {
+public:
+	// TODO: for now just store a color for testing purposes
+	float r;
+	float g;
+	float b;
+
+	unsigned solid:1;
+};
+
+Display display;
+Camera cam;
+
+const float movespeed = 0.1f;
+
+Block *world;
+
+#define WORLD_X_MAX	100
+#define WORLD_Y_MAX 100
+#define WORLD_Z_MAX 100
+
+Block *get_block(int x, int y, int z)
+{
+	assert(x >= 0 && y >= 0 && z >= 0);
+	assert(x < WORLD_X_MAX && y < WORLD_Y_MAX && z < WORLD_Z_MAX);
+
+	return &world[z * WORLD_X_MAX * WORLD_Y_MAX + y * WORLD_X_MAX + x];
+}
+
+float clampf(float val, float min, float max)
+{
+	if (val < min) val = min;
+	if (val > max) val = max;
+	return val;
+}
 
 
 bool init_video(int w, int h, int bpp, bool fullscreen)
@@ -18,29 +76,25 @@ bool init_video(int w, int h, int bpp, bool fullscreen)
 		flags |= SDL_FULLSCREEN;
 	}
 
-	SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 );
+	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
-	display_surf = SDL_SetVideoMode(w, h, bpp, flags);
-	if (!display_surf) {
+	display.surf = SDL_SetVideoMode(w, h, bpp, flags);
+	if (!display.surf) {
 		return false;
 	}
 
-	glClearColor(0, 0.0f, 0, 0);
-	glClearDepth(1.0f);
+	display.width = w;
+	display.height = h;
 
 	glViewport(0, 0, w, h);
 
 	// viewer projection
 	glMatrixMode(GL_PROJECTION);
-	gluPerspective(20, 1, 0.1, 20);
-
-	// viewer position
+	float fovx = 90.0f; // degrees
+	float fovy = 60.0f; // degrees
+	float aspect = (float)w / (float)h ; // TODO: include fovx in calculation
+	gluPerspective(fovy, aspect, 0.1, 1000.0f);
 	glMatrixMode(GL_MODELVIEW);
-	glTranslatef(0, 0, -20);
-
-	// object position
-	glRotatef(30.0f, 1.0f, 0.0f, 0.0f);
-	glRotatef(30.0f, 0.0f, 1.0f, 0.0f);
 
 	glEnable(GL_DEPTH_TEST);
 
@@ -84,19 +138,32 @@ void draw_cube(float r, float g, float b, bool outline)
 
 void draw()
 {
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	glClearDepth(1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	for (int z = 0; z < 3; z++) {
-		for (int y = 0; y < 3; y++) {
-			for (int x = 0; x < 3; x++) {
+	// camera
+	glLoadIdentity();
+	glRotatef(cam.pitch * 180.0f / M_PI, 1.0f, 0.0f, 0.0f);
+	glRotatef(cam.yaw * 180.0f / M_PI,   0.0f, 1.0f, 0.0f);
+	glTranslatef(-cam.x, -cam.y, -cam.z);
 
-				glPushMatrix();
-				glTranslatef(x, y, z);
+	// draw blocks
+	for (int z = 0; z < WORLD_Z_MAX; z++) {
+		for (int y = 0; y < WORLD_Y_MAX; y++) {
+			for (int x = 0; x < WORLD_X_MAX; x++) {
+				Block *b = get_block(x, y, z);
+				if (b->solid) {
+					glPushMatrix();
+					glTranslatef(x, y, z);
+					// TODO: don't render sides of the cube that are obscured by other solid cubes?
+					draw_cube(b->r, b->g, b->b, false);
 
-				draw_cube(1.0f, 0.0f, 0.0f, false);
-				draw_cube(1.0f, 1.0f, 1.0f, true);
+					// TODO: highlight cube selected by mouse
+					//draw_cube(0.0f, 0.0f, 0.0f, true);
 
-				glPopMatrix();
+					glPopMatrix();
+				}
 			}
 		}
 	}
@@ -108,22 +175,110 @@ void draw()
 void event_loop()
 {
 	SDL_Event e;
+	bool firstmove = true;
 
 	while (1) {
 		while (SDL_PollEvent(&e)) {
-			if (e.type == SDL_QUIT) {
+			switch (e.type) {
+			case SDL_QUIT:
 				return; // exit event loop
-			}
 
-			if (e.type == SDL_KEYDOWN) {
-				if (e.key.keysym.sym == SDLK_ESCAPE) {
+			case SDL_KEYDOWN:
+				switch (e.key.keysym.sym) {
+				case SDLK_ESCAPE:
 					return; // exit event loop
+
+			// TODO: move all this movement code into a time-dependent movement function
+			// TODO: decouple player direction and camera direction
+
+				case SDLK_w: // move forward
+					cam.x -= cosf(cam.yaw + M_PI / 2) * movespeed;
+					cam.z -= sinf(cam.yaw + M_PI / 2) * movespeed;
+					break;
+
+				case SDLK_s: // move backward
+					cam.x += cosf(cam.yaw + M_PI / 2) * movespeed;
+					cam.z += sinf(cam.yaw + M_PI / 2) * movespeed;
+					break;
+
+				case SDLK_a: // strafe left
+					cam.x -= cosf(cam.yaw) * movespeed;
+					cam.z -= sinf(cam.yaw) * movespeed;
+					break;
+
+				case SDLK_d: // strafe right
+					cam.x += cosf(cam.yaw) * movespeed;
+					cam.z += sinf(cam.yaw) * movespeed;
+					break;
+
+				case SDLK_SPACE: // jump
+					cam.y += 3.0f; // more like jetpack... move to time-dependent function and check for solid ground before jumping
+					break;
 				}
+
 				// TODO: other keyboard events
+				break;
+
+			case SDL_MOUSEMOTION:
+				if (firstmove) {
+					// ignore the initial motion event when the mouse is centered
+					firstmove = false;
+				} else {
+					cam.yaw += ((float)e.motion.xrel / (float)display.width);
+					cam.yaw = fmodf(cam.yaw, M_PI * 2.0f);
+
+					cam.pitch += ((float)e.motion.yrel / (float)display.height);
+					cam.pitch = clampf(cam.pitch, -M_PI / 2, M_PI / 2);
+					break;
+				}
 			}
 		}
 
+		cam.y -= 1.0f; // crappy framerate-dependent gravity
+		if (cam.y < 3.0f) {
+			cam.y = 3.0f;
+		}
+
 		draw();
+	}
+}
+
+float randf(float min, float max)
+{
+	return ((float)rand() / (float)RAND_MAX) * (max - min + 1.0f) + min;
+}
+
+int randi(int min, int max)
+{
+	return (int)randf(min, max); // HAX
+}
+
+
+void gen_world()
+{
+	world = (Block*)calloc(WORLD_X_MAX * WORLD_Y_MAX * WORLD_Z_MAX, sizeof(Block));
+
+	// first fill a plane at y = 0
+	for (int z = 0; z < WORLD_Z_MAX; z++) {
+		for (int x = 0; x < WORLD_X_MAX; x++) {
+			Block *b = get_block(x, 0, z);
+			b->r = randf(0.0f, 0.05f);
+			b->g = randf(0.9f, 1.0f);
+			b->b = randf(0.0f, 0.05f);
+			b->solid = 1;
+		}
+	}
+
+	// generate some random blocks above the ground
+	for (int i = 0; i < 50; i++) {
+		int x = randi(0, WORLD_X_MAX - 1);
+		int y = randi(1, 10);
+		int z = randi(0, WORLD_Z_MAX - 1);
+		Block *b = get_block(x, y, z);
+		b->r = randf(0.0f, 1.0f);
+		b->g = randf(0.0f, 1.0f);
+		b->b = randf(0.0f, 1.0f);
+		b->solid = 1;
 	}
 }
 
@@ -156,6 +311,22 @@ extern "C" int main(int argc, char **argv)
 		SDL_Quit();
 		return 1;
 	}
+
+	// initial camera position
+	cam.x = 15.0f;
+	cam.y = 3.0f;
+	cam.z = 10.0f;
+
+	// initialize camera to look at origin
+	cam.yaw = atan2f(cam.z, cam.x) - M_PI / 2;
+	cam.pitch = 0.0f;
+
+	srand(0x1234);
+	gen_world();
+
+	SDL_ShowCursor(0);
+	SDL_WM_GrabInput(SDL_GRAB_ON);
+	SDL_EnableKeyRepeat(1, 1); // hack
 
 	event_loop();
 
