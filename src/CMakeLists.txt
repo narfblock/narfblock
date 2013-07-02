@@ -43,3 +43,5 @@ target_link_libraries (narfblock
 	# Add them again to get -lSDL after -lSDLmain.
 	${SDL_LIBRARY}
 	)
+
+set(CMAKE_BUILD_TYPE Release)
