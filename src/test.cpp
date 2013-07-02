@@ -46,7 +46,7 @@ public:
 Display display;
 Camera cam;
 
-const float movespeed = 0.1f;
+const float movespeed = 25.0f;
 
 Block *world;
 
@@ -278,8 +278,7 @@ void poll_input(narf::Input *input)
 }
 
 
-// TODO: add parameter for time elapsed since previous frame
-void sim_frame(const narf::Input &input)
+void sim_frame(const narf::Input &input, double t, double dt)
 {
 	// TODO: decouple player direction and camera direction
 	cam.yaw += input.look_rel().x;
@@ -311,7 +310,7 @@ void sim_frame(const narf::Input &input)
 
 	vel_rel += narf::Vector3f(0.0f, -1.0f, 0.0f); // crappy framerate-dependent gravity
 
-	cam.position += vel_rel * movespeed;
+	cam.position += vel_rel * movespeed * dt;
 
 	if (cam.position.y < 3.0f) {
 		cam.position.y = 3.0f;
@@ -319,16 +318,31 @@ void sim_frame(const narf::Input &input)
 }
 
 
+double get_time()
+{
+	static const double SDL_TICKS_TO_SECONDS = 0.001; // SDL tick is a millisecond
+	return (double)SDL_GetTicks() * SDL_TICKS_TO_SECONDS;
+}
+
+
 void game_loop()
 {
 	narf::Input input(display.width, display.height);
+	double t = 0.0;
+	double t1 = get_time();
 
 	while (1) {
+		double t2 = get_time();
+		double dt = t2 - t1;
+		t1 = t2;
+
 		poll_input(&input);
 		if (input.exit()) {
 			break;
 		}
-		sim_frame(input);
+		sim_frame(input, t, dt);
+		t += dt;
+
 		draw();
 	}
 }
