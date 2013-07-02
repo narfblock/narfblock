@@ -9,10 +9,15 @@ find_package (OpenGL REQUIRED)
 find_package (SDL REQUIRED)
 find_package (SDL_image REQUIRED)
 
+if (CMAKE_COMPILER_IS_GNUCXX)
+	SET(CMAKE_CXX_FLAGS "-std=gnu++11 -Wall -Wno-switch")
+endif ()
+
 include_directories (
 	# cmake's SDL_INCLUDE_DIR incorrectly includes the actual SDL dir;
 	# append .. to work around this
 	"${SDL_INCLUDE_DIR}/.."
+	"${PROJECT_SOURCE_DIR}"
 	)
 
 configure_file (
@@ -25,7 +30,9 @@ add_executable (narfblock
 	# (no effect on other platforms)
 	WIN32
 
-	test.cpp)
+	test.cpp
+	narf/input.cpp
+	)
 
 target_link_libraries (narfblock
 	${OPENGL_LIBRARY}

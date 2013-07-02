@@ -12,6 +12,9 @@
 #include <assert.h>
 #include "test.h"
 
+#include "narf/input.h"
+#include "narf/vector.h"
+
 // TODO: this is all hacky test code - refactor into nicely modularized code
 
 class Display {
@@ -37,8 +40,7 @@ public:
 
 class Block {
 public:
-	uint8_t type; // TODO
-	unsigned solid:1;
+	uint8_t id;
 };
 
 Display display;
@@ -92,7 +94,7 @@ bool init_video(int w, int h, int bpp, bool fullscreen)
 
 	// viewer projection
 	glMatrixMode(GL_PROJECTION);
-	float fovx = 90.0f; // degrees
+	//float fovx = 90.0f; // degrees
 	float fovy = 60.0f; // degrees
 	float aspect = (float)w / (float)h ; // TODO: include fovx in calculation
 	gluPerspective(fovy, aspect, 0.1, 1000.0f);
@@ -153,7 +155,7 @@ void draw_cube(uint8_t type, bool outline)
 	};
 
 	uint8_t tex_id_top, tex_id_side, tex_id_bot;
-	if (type == 3) {
+	if (type == 2) {
 		tex_id_top = 0;
 		tex_id_side = 3;
 		tex_id_bot = 2;
@@ -222,6 +224,8 @@ bool init_textures()
 	assert(tiles_surf); // TODO: user-friendly message
 
 	tiles_tex = upload_texture(tiles_surf);
+
+	return true;
 }
 
 
@@ -243,11 +247,11 @@ void draw()
 		for (int y = 0; y < WORLD_Y_MAX; y++) {
 			for (int x = 0; x < WORLD_X_MAX; x++) {
 				Block *b = get_block(x, y, z);
-				if (b->solid) {
+				if (b->id) {
 					glPushMatrix();
 					glTranslatef(x, y, z);
 					// TODO: don't render sides of the cube that are obscured by other solid cubes?
-					draw_cube(b->type, false);
+					draw_cube(b->id, false);
 
 					// TODO: highlight cube selected by mouse
 					//draw_cube(0.0f, 0.0f, 0.0f, true);
@@ -262,76 +266,73 @@ void draw()
 }
 
 
-void event_loop()
+void poll_input(narf::Input *input)
 {
 	SDL_Event e;
-	bool firstmove = true;
+
+	input->begin_sample();
+	while (SDL_PollEvent(&e)) {
+		input->process_event(&e);
+	}
+	input->end_sample();
+}
+
+
+// TODO: add parameter for time elapsed since previous frame
+void sim_frame(const narf::Input &input)
+{
+	// TODO: decouple player direction and camera direction
+	cam.yaw += input.look_rel().x();
+	cam.yaw = fmodf(cam.yaw, M_PI * 2.0f);
+
+	cam.pitch += input.look_rel().y();
+	cam.pitch = clampf(cam.pitch, -M_PI / 2, M_PI / 2);
+
+	narf::Vector2f vel_rel(0.0f, 0.0f);
+
+	if (input.move_forward()) {
+		vel_rel -= narf::Vector2f(cosf(cam.yaw + M_PI / 2), sinf(cam.yaw + M_PI / 2));
+	} else if (input.move_backward()) {
+		vel_rel += narf::Vector2f(cosf(cam.yaw + M_PI / 2), sinf(cam.yaw + M_PI / 2));
+	}
+
+	if (input.strafe_left()) {
+		vel_rel -= narf::Vector2f(cosf(cam.yaw), sinf(cam.yaw));
+	} else if (input.strafe_right()) {
+		vel_rel += narf::Vector2f(cosf(cam.yaw), sinf(cam.yaw));
+	}
+
+	// normalize so that diagonal movement is not faster than cardinal directions
+	vel_rel = vel_rel.normalize();
+
+	cam.x += vel_rel.x() * movespeed;
+	cam.z += vel_rel.y() * movespeed;
+
+	if (input.jump()) {
+		cam.y += 15.0f; // TODO: add impulse to velocity
+	}
+
+	cam.y -= 1.0f; // crappy framerate-dependent gravity
+	if (cam.y < 3.0f) {
+		cam.y = 3.0f;
+	}
+}
+
+
+void game_loop()
+{
+	narf::Input input(display.width, display.height);
 
 	while (1) {
-		while (SDL_PollEvent(&e)) {
-			switch (e.type) {
-			case SDL_QUIT:
-				return; // exit event loop
-
-			case SDL_KEYDOWN:
-				switch (e.key.keysym.sym) {
-				case SDLK_ESCAPE:
-					return; // exit event loop
-
-			// TODO: move all this movement code into a time-dependent movement function
-			// TODO: decouple player direction and camera direction
-
-				case SDLK_w: // move forward
-					cam.x -= cosf(cam.yaw + M_PI / 2) * movespeed;
-					cam.z -= sinf(cam.yaw + M_PI / 2) * movespeed;
-					break;
-
-				case SDLK_s: // move backward
-					cam.x += cosf(cam.yaw + M_PI / 2) * movespeed;
-					cam.z += sinf(cam.yaw + M_PI / 2) * movespeed;
-					break;
-
-				case SDLK_a: // strafe left
-					cam.x -= cosf(cam.yaw) * movespeed;
-					cam.z -= sinf(cam.yaw) * movespeed;
-					break;
-
-				case SDLK_d: // strafe right
-					cam.x += cosf(cam.yaw) * movespeed;
-					cam.z += sinf(cam.yaw) * movespeed;
-					break;
-
-				case SDLK_SPACE: // jump
-					cam.y += 3.0f; // more like jetpack... move to time-dependent function and check for solid ground before jumping
-					break;
-				}
-
-				// TODO: other keyboard events
-				break;
-
-			case SDL_MOUSEMOTION:
-				if (firstmove) {
-					// ignore the initial motion event when the mouse is centered
-					firstmove = false;
-				} else {
-					cam.yaw += ((float)e.motion.xrel / (float)display.width);
-					cam.yaw = fmodf(cam.yaw, M_PI * 2.0f);
-
-					cam.pitch += ((float)e.motion.yrel / (float)display.height);
-					cam.pitch = clampf(cam.pitch, -M_PI / 2, M_PI / 2);
-					break;
-				}
-			}
+		poll_input(&input);
+		if (input.exit()) {
+			break;
 		}
-
-		cam.y -= 1.0f; // crappy framerate-dependent gravity
-		if (cam.y < 3.0f) {
-			cam.y = 3.0f;
-		}
-
+		sim_frame(input);
 		draw();
 	}
 }
+
 
 float randf(float min, float max)
 {
@@ -352,8 +353,7 @@ void gen_world()
 	for (int z = 0; z < WORLD_Z_MAX; z++) {
 		for (int x = 0; x < WORLD_X_MAX; x++) {
 			Block *b = get_block(x, 0, z);
-			b->type = 0;
-			b->solid = 1;
+			b->id = 2; // grass
 		}
 	}
 
@@ -363,20 +363,16 @@ void gen_world()
 		int y = randi(1, 10);
 		int z = randi(0, WORLD_Z_MAX - 1);
 		Block *b = get_block(x, y, z);
-		b->type = randi(0, 3);
-		b->solid = 1;
+		b->id = randi(1, 3);
 	}
 
 	for (int i = 0; i < 10; i++) {
 		Block *b = get_block(5 + i, 1, 5);
-		b->type = 16;
-		b->solid = 1;
+		b->id = 16;
 		b = get_block(5, 1, 5 + i);
-		b->type = 16;
-		b->solid = 1;
+		b->id = 16;
 		b = get_block(5 + i, 1, 15);
-		b->type = 16;
-		b->solid = 1;
+		b->id = 16;
 	}
 }
 
@@ -426,9 +422,8 @@ extern "C" int main(int argc, char **argv)
 
 	SDL_ShowCursor(0);
 	SDL_WM_GrabInput(SDL_GRAB_ON);
-	SDL_EnableKeyRepeat(1, 1); // hack
 
-	event_loop();
+	game_loop();
 
 	SDL_Quit();
 	return 0;
