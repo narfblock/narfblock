@@ -10,7 +10,7 @@ find_package (SDL REQUIRED)
 find_package (SDL_image REQUIRED)
 
 if (CMAKE_COMPILER_IS_GNUCXX)
-	SET(CMAKE_CXX_FLAGS "-std=gnu++11 -Wall -Wno-switch")
+	SET(CMAKE_CXX_FLAGS "-std=gnu++0x -Wall -Wno-switch")
 endif ()
 
 include_directories (
