@@ -8,14 +8,13 @@ namespace narf {
 class Vector2f {
 public:
 
-	Vector2f(float x, float y) : x_(x), y_(y) { }
+	float x, y;
 
-	float x() const { return x_; }
-	float y() const { return y_; }
+	Vector2f(float x, float y) : x(x), y(y) { }
 
 	float length() const
 	{
-		return sqrt(x_ * x_ + y_ * y_);
+		return sqrt(x * x + y * y);
 	}
 
 	const Vector2f normalize() const
@@ -24,52 +23,94 @@ public:
 		if (length == 0) {
 			return *this;
 		} else {
-			return Vector2f(x_ / length, y_ / length);
+			return Vector2f(x / length, y / length);
 		}
 	}
 
 	const Vector2f operator+(const Vector2f &add) const
 	{
-		return Vector2f(x_ + add.x_, y_ + add.y_);
+		return Vector2f(x + add.x, y + add.y);
 	}
 
 	Vector2f &operator +=(const Vector2f &add)
 	{
-		x_ += add.x_;
-		y_ += add.y_;
+		x += add.x;
+		y += add.y;
 		return *this;
 	}
 
 	const Vector2f operator-(const Vector2f &sub) const
 	{
-		return Vector2f(x_ - sub.x_, y_ - sub.y_);
+		return Vector2f(x - sub.x, y - sub.y);
 	}
 
 	Vector2f &operator-=(const Vector2f &sub)
 	{
-		x_ -= sub.x_;
-		y_ -= sub.y_;
+		x -= sub.x;
+		y -= sub.y;
 		return *this;
 	}
 
-private:
+	const Vector2f operator*(float v) const
+	{
+		return Vector2f(x * v, y * v);
+	}
 
-	float x_, y_;
 };
 
 class Vector3f {
 public:
 
-	Vector3f(float x, float y, float z) : x_(x), y_(y), z_(z) { }
+	float x, y, z;
 
-	float length()
+	Vector3f(float x, float y, float z) : x(x), y(y), z(z) { }
+
+	float length() const
 	{
-		return sqrtf(x_ * x_ + y_ * y_ + z_ * z_);
+		return sqrtf(x * x + y * y + z * z);
 	}
 
-private:
+	const Vector3f normalize() const
+	{
+		float length = this->length();
+		if (length == 0) {
+			return *this;
+		} else {
+			return Vector3f(x / length, y / length, z / length);
+		}
+	}
 
-	float x_, y_, z_;
+	const Vector3f operator+(const Vector3f &add) const
+	{
+		return Vector3f(x + add.x, y + add.y, z + add.z);
+	}
+
+	Vector3f &operator +=(const Vector3f &add)
+	{
+		x += add.x;
+		y += add.y;
+		z += add.z;
+		return *this;
+	}
+
+	const Vector3f operator-(const Vector3f &sub) const
+	{
+		return Vector3f(x - sub.x, y - sub.y, z - sub.z);
+	}
+
+	Vector3f &operator-=(const Vector3f &sub)
+	{
+		x -= sub.x;
+		y -= sub.y;
+		z -= sub.z;
+		return *this;
+	}
+
+	const Vector3f operator*(float v) const
+	{
+		return Vector3f(x * v, y * v, z * v);
+	}
+
 };
 
 } // namespace narf

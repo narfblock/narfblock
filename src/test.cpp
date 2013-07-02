@@ -28,10 +28,10 @@ public:
 
 class Camera {
 public:
-	// position
-	float x;
-	float y;
-	float z;
+
+	Camera() : position(0.0f, 0.0f, 0.0f) { }
+
+	narf::Vector3f position;
 
 	// view angles in radians
 	float yaw;
@@ -239,7 +239,7 @@ void draw()
 	glLoadIdentity();
 	glRotatef(cam.pitch * 180.0f / M_PI, 1.0f, 0.0f, 0.0f);
 	glRotatef(cam.yaw * 180.0f / M_PI,   0.0f, 1.0f, 0.0f);
-	glTranslatef(-cam.x, -cam.y, -cam.z);
+	glTranslatef(-cam.position.x, -cam.position.y, -cam.position.z);
 
 	// draw blocks
 	glBindTexture(GL_TEXTURE_2D, tiles_tex);
@@ -282,39 +282,39 @@ void poll_input(narf::Input *input)
 void sim_frame(const narf::Input &input)
 {
 	// TODO: decouple player direction and camera direction
-	cam.yaw += input.look_rel().x();
+	cam.yaw += input.look_rel().x;
 	cam.yaw = fmodf(cam.yaw, M_PI * 2.0f);
 
-	cam.pitch += input.look_rel().y();
+	cam.pitch += input.look_rel().y;
 	cam.pitch = clampf(cam.pitch, -M_PI / 2, M_PI / 2);
 
-	narf::Vector2f vel_rel(0.0f, 0.0f);
+	narf::Vector3f vel_rel(0.0f, 0.0f, 0.0f);
 
 	if (input.move_forward()) {
-		vel_rel -= narf::Vector2f(cosf(cam.yaw + M_PI / 2), sinf(cam.yaw + M_PI / 2));
+		vel_rel -= narf::Vector3f(cosf(cam.yaw + M_PI / 2), 0.0f, sinf(cam.yaw + M_PI / 2));
 	} else if (input.move_backward()) {
-		vel_rel += narf::Vector2f(cosf(cam.yaw + M_PI / 2), sinf(cam.yaw + M_PI / 2));
+		vel_rel += narf::Vector3f(cosf(cam.yaw + M_PI / 2), 0.0f, sinf(cam.yaw + M_PI / 2));
 	}
 
 	if (input.strafe_left()) {
-		vel_rel -= narf::Vector2f(cosf(cam.yaw), sinf(cam.yaw));
+		vel_rel -= narf::Vector3f(cosf(cam.yaw), 0.0f, sinf(cam.yaw));
 	} else if (input.strafe_right()) {
-		vel_rel += narf::Vector2f(cosf(cam.yaw), sinf(cam.yaw));
+		vel_rel += narf::Vector3f(cosf(cam.yaw), 0.0f, sinf(cam.yaw));
 	}
 
 	// normalize so that diagonal movement is not faster than cardinal directions
 	vel_rel = vel_rel.normalize();
 
-	cam.x += vel_rel.x() * movespeed;
-	cam.z += vel_rel.y() * movespeed;
-
 	if (input.jump()) {
-		cam.y += 15.0f; // TODO: add impulse to velocity
+		vel_rel += narf::Vector3f(0.0f, 15.0f, 0.0f);
 	}
 
-	cam.y -= 1.0f; // crappy framerate-dependent gravity
-	if (cam.y < 3.0f) {
-		cam.y = 3.0f;
+	vel_rel += narf::Vector3f(0.0f, -1.0f, 0.0f); // crappy framerate-dependent gravity
+
+	cam.position += vel_rel * movespeed;
+
+	if (cam.position.y < 3.0f) {
+		cam.position.y = 3.0f;
 	}
 }
 
@@ -407,12 +407,10 @@ extern "C" int main(int argc, char **argv)
 	}
 
 	// initial camera position
-	cam.x = 15.0f;
-	cam.y = 3.0f;
-	cam.z = 10.0f;
+	cam.position = narf::Vector3f(15.0f, 3.0f, 10.0f);
 
 	// initialize camera to look at origin
-	cam.yaw = atan2f(cam.z, cam.x) - M_PI / 2;
+	cam.yaw = atan2f(cam.position.z, cam.position.x) - M_PI / 2;
 	cam.pitch = 0.0f;
 
 	srand(0x1234);
