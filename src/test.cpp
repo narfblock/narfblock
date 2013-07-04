@@ -15,16 +15,9 @@
 #include "narf/input.h"
 #include "narf/vector.h"
 
+#include "narf/gl/gl.h"
+
 // TODO: this is all hacky test code - refactor into nicely modularized code
-
-class Display {
-public:
-	SDL_Surface *surf;
-
-	int width;
-	int height;
-};
-
 
 class Camera {
 public:
@@ -43,19 +36,25 @@ public:
 	uint8_t id;
 };
 
-Display display;
 Camera cam;
 
-const float movespeed = 25.0f;
+const float meter = 1.0;
+const float second = 1000.0; // native time unit is milliseconds
+
+const float meters_per_second = meter * (1 / second);
+
+const float movespeed = 25.0f * meters_per_second;
 
 Block *world;
 
-#define WORLD_X_MAX	100
+#define WORLD_X_MAX 100
 #define WORLD_Y_MAX 100
 #define WORLD_Z_MAX 100
 
 SDL_Surface *tiles_surf;
-GLuint tiles_tex;
+
+narf::gl::Context *display;
+narf::gl::Texture *tiles_tex;
 
 Block *get_block(int x, int y, int z)
 {
@@ -75,22 +74,10 @@ float clampf(float val, float min, float max)
 
 bool init_video(int w, int h, int bpp, bool fullscreen)
 {
-	Uint32 flags = SDL_HWSURFACE | SDL_OPENGL;
-	if (fullscreen) {
-		flags |= SDL_FULLSCREEN;
-	}
-
-	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-
-	display.surf = SDL_SetVideoMode(w, h, bpp, flags);
-	if (!display.surf) {
+	display = new narf::gl::Context();
+	if (!display->set_display_mode(w, h, bpp, fullscreen)) {
 		return false;
 	}
-
-	display.width = w;
-	display.height = h;
-
-	glViewport(0, 0, w, h);
 
 	// viewer projection
 	glMatrixMode(GL_PROJECTION);
@@ -172,58 +159,16 @@ void draw_cube(uint8_t type, bool outline)
 }
 
 
-GLuint upload_texture(SDL_Surface *surf)
-{
-	// TODO: check power of two width and height
-
-	// Create the target alpha surface with correct color component ordering
-	SDL_Surface *surf_copy = SDL_CreateRGBSurface(
-		SDL_SWSURFACE, surf->w, surf->h, 32,
-#if SDL_BYTEORDER == SDL_LIL_ENDIAN // OpenGL RGBA masks 
-		0x000000FF,
-		0x0000FF00,
-		0x00FF0000,
-		0xFF000000
-#else
-		0xFF000000,
-		0x00FF0000,
-		0x0000FF00,
-		0x000000FF
-#endif
-		);
-
-	if (!surf_copy) {
-		return -1; // TODO!
-	}
-
-	// copy the original surface into surf_copy to convert formats
-	SDL_BlitSurface(surf, NULL, surf_copy, NULL);
-
-	GLuint tex;
-	glGenTextures(1, &tex);
-	glBindTexture(GL_TEXTURE_2D, tex);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE_SGIS);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE_SGIS);
-
-	//glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, surf_copy->w, surf_copy->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, surf_copy->pixels);
-
-	SDL_FreeSurface(surf_copy);
-
-	return tex;
-}
-
-
 bool init_textures()
 {
 	tiles_surf = IMG_Load("../data/terrain.png");
 	assert(tiles_surf); // TODO: user-friendly message
 
-	tiles_tex = upload_texture(tiles_surf);
+	tiles_tex = new narf::gl::Texture(display);
+	if (!tiles_tex->upload(tiles_surf)) {
+		assert(0);
+		return false;
+	}
 
 	return true;
 }
@@ -242,7 +187,7 @@ void draw()
 	glTranslatef(-cam.position.x, -cam.position.y, -cam.position.z);
 
 	// draw blocks
-	glBindTexture(GL_TEXTURE_2D, tiles_tex);
+	glBindTexture(narf::gl::TEXTURE_2D, tiles_tex);
 	for (int z = 0; z < WORLD_Z_MAX; z++) {
 		for (int y = 0; y < WORLD_Y_MAX; y++) {
 			for (int x = 0; x < WORLD_X_MAX; x++) {
@@ -318,30 +263,45 @@ void sim_frame(const narf::Input &input, double t, double dt)
 }
 
 
-double get_time()
+double get_time_ms()
 {
-	static const double SDL_TICKS_TO_SECONDS = 0.001; // SDL tick is a millisecond
-	return (double)SDL_GetTicks() * SDL_TICKS_TO_SECONDS;
+	return (double)SDL_GetTicks(); // SDL tick is a millisecond
 }
 
 
 void game_loop()
 {
-	narf::Input input(display.width, display.height);
+	narf::Input input(display->width(), display->height());
 	double t = 0.0;
-	double t1 = get_time();
+	double t1 = get_time_ms();
+
+	const double physics_tick_step = 8.3333333333333333333333333333333; // fixed time step
+	const double max_frame_time = 250.0;
+
+	double t_accum = 0.0;
 
 	while (1) {
-		double t2 = get_time();
-		double dt = t2 - t1;
+		double t2 = get_time_ms();
+		double frame_time = t2 - t1;
+
+		if (frame_time > max_frame_time) {
+			frame_time = max_frame_time;
+		}
+
 		t1 = t2;
 
-		poll_input(&input);
-		if (input.exit()) {
-			break;
+		t_accum += frame_time;
+
+		while (t_accum >= physics_tick_step)
+		{
+			poll_input(&input);
+			if (input.exit()) {
+				return;
+			}
+			sim_frame(input, t, physics_tick_step);
+			t_accum -= physics_tick_step;
+			t += physics_tick_step;
 		}
-		sim_frame(input, t, dt);
-		t += dt;
 
 		draw();
 	}

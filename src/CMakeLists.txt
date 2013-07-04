@@ -32,6 +32,8 @@ add_executable (narfblock
 
 	test.cpp
 	narf/input.cpp
+	narf/gl/context.cpp
+	narf/gl/texture.cpp
 	)
 
 target_link_libraries (narfblock
