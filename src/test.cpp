@@ -133,15 +133,15 @@ void draw_quad(uint8_t tex_id, const float *quad)
 }
 
 
-void draw_cube(uint8_t type)
+void draw_cube(float x, float y, float z, uint8_t type)
 {
-	static const float cube_quads[][4*3] = {
-		{0,0,0, 1,0,0, 1,1,0, 0,1,0},
-		{0,0,1, 1,0,1, 1,1,1, 0,1,1},
-		{0,0,0, 1,0,0, 1,0,1, 0,0,1},
-		{0,1,0, 1,1,0, 1,1,1, 0,1,1},
-		{0,0,0, 0,0,1, 0,1,1, 0,1,0},
-		{1,0,0, 1,0,1, 1,1,1, 1,1,0}
+	const float cube_quads[][4*3] = {
+		{x+0,y+0,z+0, x+1,y+0,z+0, x+1,y+1,z+0, x+0,y+1,z+0},
+		{x+0,y+0,z+1, x+1,y+0,z+1, x+1,y+1,z+1, x+0,y+1,z+1},
+		{x+0,y+0,z+0, x+1,y+0,z+0, x+1,y+0,z+1, x+0,y+0,z+1},
+		{x+0,y+1,z+0, x+1,y+1,z+0, x+1,y+1,z+1, x+0,y+1,z+1},
+		{x+0,y+0,z+0, x+0,y+0,z+1, x+0,y+1,z+1, x+0,y+1,z+0},
+		{x+1,y+0,z+0, x+1,y+0,z+1, x+1,y+1,z+1, x+1,y+1,z+0}
 	};
 
 	uint8_t tex_id_top, tex_id_side, tex_id_bot;
@@ -194,15 +194,8 @@ void draw()
 			for (int x = 0; x < WORLD_X_MAX; x++) {
 				Block *b = get_block(x, y, z);
 				if (b->id) {
-					glPushMatrix();
-					glTranslatef(x, y, z);
 					// TODO: don't render sides of the cube that are obscured by other solid cubes?
-					draw_cube(b->id);
-
-					// TODO: highlight cube selected by mouse
-					//draw_cube(0.0f, 0.0f, 0.0f, true);
-
-					glPopMatrix();
+					draw_cube(x, y, z, b->id);
 				}
 			}
 		}
