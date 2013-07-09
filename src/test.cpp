@@ -64,6 +64,17 @@ Block *get_block(int x, int y, int z)
 	return &world[z * WORLD_X_MAX * WORLD_Y_MAX + y * WORLD_X_MAX + x];
 }
 
+Block *get_block_safe(int x, int y, int z)
+{
+	static Block fake_block = {0};
+
+	if (x < 0 || y < 0 || z < 0 || x >= WORLD_X_MAX || y >= WORLD_Y_MAX || z >= WORLD_Z_MAX) {
+		return &fake_block;
+	}
+
+	return get_block(x, y, z);
+}
+
 float clampf(float val, float min, float max)
 {
 	if (val < min) val = min;
@@ -133,7 +144,15 @@ void draw_quad(uint8_t tex_id, const float *quad)
 }
 
 
-void draw_cube(float x, float y, float z, uint8_t type)
+#define DRAW_CUBE_TOP       0x01
+#define DRAW_CUBE_BOTTOM    0x02
+#define DRAW_CUBE_SIDE1     0x04
+#define DRAW_CUBE_SIDE2     0x08
+#define DRAW_CUBE_SIDE3     0x10
+#define DRAW_CUBE_SIDE4     0x20
+
+
+void draw_cube(float x, float y, float z, uint8_t type, unsigned draw_face_mask)
 {
 	const float cube_quads[][4*3] = {
 		{x+0,y+0,z+0, x+1,y+0,z+0, x+1,y+1,z+0, x+0,y+1,z+0},
@@ -153,12 +172,12 @@ void draw_cube(float x, float y, float z, uint8_t type)
 		tex_id_top = tex_id_side = tex_id_bot = type;
 	}
 
-	draw_quad(tex_id_side, cube_quads[0]);
-	draw_quad(tex_id_side, cube_quads[1]);
-	draw_quad(tex_id_bot,  cube_quads[2]);
-	draw_quad(tex_id_top,  cube_quads[3]);
-	draw_quad(tex_id_side, cube_quads[4]);
-	draw_quad(tex_id_side, cube_quads[5]);
+	if (draw_face_mask & DRAW_CUBE_SIDE4)  draw_quad(tex_id_side, cube_quads[0]);
+	if (draw_face_mask & DRAW_CUBE_SIDE3)  draw_quad(tex_id_side, cube_quads[1]);
+	if (draw_face_mask & DRAW_CUBE_BOTTOM) draw_quad(tex_id_bot,  cube_quads[2]);
+	if (draw_face_mask & DRAW_CUBE_TOP)    draw_quad(tex_id_top,  cube_quads[3]);
+	if (draw_face_mask & DRAW_CUBE_SIDE2)  draw_quad(tex_id_side, cube_quads[4]);
+	if (draw_face_mask & DRAW_CUBE_SIDE1)  draw_quad(tex_id_side, cube_quads[5]);
 }
 
 
@@ -194,8 +213,24 @@ void draw()
 			for (int x = 0; x < WORLD_X_MAX; x++) {
 				Block *b = get_block(x, y, z);
 				if (b->id) {
-					// TODO: don't render sides of the cube that are obscured by other solid cubes?
-					draw_cube(x, y, z, b->id);
+					// TODO: optimize these by caching the previous block in this row (x - 1)
+					Block *above = get_block_safe(x, y + 1, z);
+					Block *below = get_block_safe(x, y - 1, z);
+					Block *side1 = get_block_safe(x + 1, y, z);
+					Block *side2 = get_block_safe(x - 1, y, z);
+					Block *side3 = get_block_safe(x, y, z + 1);
+					Block *side4 = get_block_safe(x, y, z - 1);
+
+					// don't render sides of the cube that are obscured by other solid cubes
+					unsigned mask = 0;
+					if (!above->id) mask |= DRAW_CUBE_TOP;
+					if (!below->id) mask |= DRAW_CUBE_BOTTOM;
+					if (!side1->id) mask |= DRAW_CUBE_SIDE1;
+					if (!side2->id) mask |= DRAW_CUBE_SIDE2;
+					if (!side3->id) mask |= DRAW_CUBE_SIDE3;
+					if (!side4->id) mask |= DRAW_CUBE_SIDE4;
+
+					if (mask) draw_cube(x, y, z, b->id, mask);
 				}
 			}
 		}
