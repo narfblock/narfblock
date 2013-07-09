@@ -280,6 +280,10 @@ void game_loop()
 
 	double t_accum = 0.0;
 
+	double fps_t1 = get_time_ms();
+	unsigned physics_steps = 0;
+	unsigned draws = 0;
+
 	while (1) {
 		double t2 = get_time_ms();
 		double frame_time = t2 - t1;
@@ -299,11 +303,22 @@ void game_loop()
 				return;
 			}
 			sim_frame(input, t, physics_tick_step);
+			physics_steps++;
+
 			t_accum -= physics_tick_step;
 			t += physics_tick_step;
 		}
 
+		double fps_dt = get_time_ms() - fps_t1;
+		if (fps_dt >= 1000.0f) {
+			// update fps counter
+			printf("%f physics steps/%f renders per second (dt %f)\n", (double)physics_steps * (1000.0f / fps_dt), (double)draws * (1000.0f / fps_dt), fps_dt);
+			fps_t1 = get_time_ms();
+			draws = physics_steps = 0;
+		}
+
 		draw();
+		draws++;
 	}
 }
 
