@@ -275,7 +275,8 @@ void game_loop()
 	double t = 0.0;
 	double t1 = get_time_ms();
 
-	const double physics_tick_step = 8.3333333333333333333333333333333; // fixed time step
+	const double physics_rate = 120.0;
+	const double physics_tick_step = 1000.0 / physics_rate; // fixed time step
 	const double max_frame_time = 250.0;
 
 	double t_accum = 0.0;
