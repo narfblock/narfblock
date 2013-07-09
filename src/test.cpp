@@ -95,6 +95,9 @@ bool init_video(int w, int h, int bpp, bool fullscreen)
 	glPolygonOffset(1.0, 2);
 	glEnable(GL_POLYGON_OFFSET_FILL);
 
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	glClearDepth(1.0f);
+
 	return true;
 }
 
@@ -176,8 +179,6 @@ bool init_textures()
 
 void draw()
 {
-	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-	glClearDepth(1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	// camera
