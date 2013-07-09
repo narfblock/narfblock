@@ -99,7 +99,7 @@ bool init_video(int w, int h, int bpp, bool fullscreen)
 }
 
 
-void draw_quad(uint8_t tex_id, bool outline, const float *quad)
+void draw_quad(uint8_t tex_id, const float *quad)
 {
 	uint8_t tex_x = tex_id % 16;
 	uint8_t tex_y = tex_id / 16;
@@ -112,7 +112,7 @@ void draw_quad(uint8_t tex_id, bool outline, const float *quad)
 	float v2 = v1 + texcoord_tile_size;
 
 	// TODO: get rid of GL_QUADS, use triangle strip?
-	glBegin(outline ? GL_LINE_LOOP : GL_QUADS);
+	glBegin(GL_QUADS);
 
 	glTexCoord2f(u1, v2);
 	glVertex3fv(&quad[0 * 3]);
@@ -130,7 +130,7 @@ void draw_quad(uint8_t tex_id, bool outline, const float *quad)
 }
 
 
-void draw_cube(uint8_t type, bool outline)
+void draw_cube(uint8_t type)
 {
 	static const float cube_quads[][4*3] = {
 		{0,0,0, 1,0,0, 1,1,0, 0,1,0},
@@ -150,12 +150,12 @@ void draw_cube(uint8_t type, bool outline)
 		tex_id_top = tex_id_side = tex_id_bot = type;
 	}
 
-	draw_quad(tex_id_side, outline, cube_quads[0]);
-	draw_quad(tex_id_side, outline, cube_quads[1]);
-	draw_quad(tex_id_bot,  outline, cube_quads[2]);
-	draw_quad(tex_id_top,  outline, cube_quads[3]);
-	draw_quad(tex_id_side, outline, cube_quads[4]);
-	draw_quad(tex_id_side, outline, cube_quads[5]);
+	draw_quad(tex_id_side, cube_quads[0]);
+	draw_quad(tex_id_side, cube_quads[1]);
+	draw_quad(tex_id_bot,  cube_quads[2]);
+	draw_quad(tex_id_top,  cube_quads[3]);
+	draw_quad(tex_id_side, cube_quads[4]);
+	draw_quad(tex_id_side, cube_quads[5]);
 }
 
 
@@ -196,7 +196,7 @@ void draw()
 					glPushMatrix();
 					glTranslatef(x, y, z);
 					// TODO: don't render sides of the cube that are obscured by other solid cubes?
-					draw_cube(b->id, false);
+					draw_cube(b->id);
 
 					// TODO: highlight cube selected by mouse
 					//draw_cube(0.0f, 0.0f, 0.0f, true);
