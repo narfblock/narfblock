@@ -271,7 +271,7 @@ double get_time_ms()
 
 void game_loop()
 {
-	narf::Input input(display->width(), display->height());
+	narf::Input input(1.0f / 1000.0f, 1.0f / 1000.0f);
 	double t = 0.0;
 	double t1 = get_time_ms();
 

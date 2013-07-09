@@ -10,9 +10,9 @@ class Display;
 class Input {
 public:
 
-	Input(int mouse_x_max, int mouse_y_max) :
-		mouse_x_max_(mouse_x_max),
-		mouse_y_max_(mouse_y_max),
+	Input(float look_sensitivity_x, float look_sensitivity_y) :
+		look_sensitivity_x_(look_sensitivity_x),
+		look_sensitivity_y_(look_sensitivity_y),
 		move_forward_(false),
 		move_backward_(false),
 		last_move_(last_move_neither),
@@ -39,8 +39,8 @@ public:
 	const Vector2f look_rel() const { return look_rel_; }
 
 private:
-	float mouse_x_max_;
-	float mouse_y_max_;
+	float look_sensitivity_x_;
+	float look_sensitivity_y_;
 
 	bool move_forward_;
 	bool move_backward_;
