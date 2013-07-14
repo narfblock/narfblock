@@ -14,6 +14,7 @@
 
 #include "narf/input.h"
 #include "narf/vector.h"
+#include "narf/world.h"
 
 #include "narf/gl/gl.h"
 
@@ -31,11 +32,6 @@ public:
 	float pitch;
 };
 
-class Block {
-public:
-	uint8_t id;
-};
-
 Camera cam;
 
 const float meter = 1.0;
@@ -45,35 +41,17 @@ const float meters_per_second = meter * (1 / second);
 
 const float movespeed = 25.0f * meters_per_second;
 
-Block *world;
+narf::World *world;
 
-#define WORLD_X_MAX 100
-#define WORLD_Y_MAX 100
-#define WORLD_Z_MAX 100
+#define WORLD_X_MAX 64
+#define WORLD_Y_MAX 64
+#define WORLD_Z_MAX 64
 
 SDL_Surface *tiles_surf;
 
 narf::gl::Context *display;
 narf::gl::Texture *tiles_tex;
 
-Block *get_block(int x, int y, int z)
-{
-	assert(x >= 0 && y >= 0 && z >= 0);
-	assert(x < WORLD_X_MAX && y < WORLD_Y_MAX && z < WORLD_Z_MAX);
-
-	return &world[z * WORLD_X_MAX * WORLD_Y_MAX + y * WORLD_X_MAX + x];
-}
-
-Block *get_block_safe(int x, int y, int z)
-{
-	static Block fake_block = {0};
-
-	if (x < 0 || y < 0 || z < 0 || x >= WORLD_X_MAX || y >= WORLD_Y_MAX || z >= WORLD_Z_MAX) {
-		return &fake_block;
-	}
-
-	return get_block(x, y, z);
-}
 
 float clampf(float val, float min, float max)
 {
@@ -211,15 +189,15 @@ void draw()
 	for (int z = 0; z < WORLD_Z_MAX; z++) {
 		for (int y = 0; y < WORLD_Y_MAX; y++) {
 			for (int x = 0; x < WORLD_X_MAX; x++) {
-				Block *b = get_block(x, y, z);
+				const narf::Block *b = world->get_block(x, y, z);
 				if (b->id) {
 					// TODO: optimize these by caching the previous block in this row (x - 1)
-					Block *above = get_block_safe(x, y + 1, z);
-					Block *below = get_block_safe(x, y - 1, z);
-					Block *side1 = get_block_safe(x + 1, y, z);
-					Block *side2 = get_block_safe(x - 1, y, z);
-					Block *side3 = get_block_safe(x, y, z + 1);
-					Block *side4 = get_block_safe(x, y, z - 1);
+					const narf::Block *above = world->get_block(x, y + 1, z);
+					const narf::Block *below = world->get_block(x, y - 1, z);
+					const narf::Block *side1 = world->get_block(x + 1, y, z);
+					const narf::Block *side2 = world->get_block(x - 1, y, z);
+					const narf::Block *side3 = world->get_block(x, y, z + 1);
+					const narf::Block *side4 = world->get_block(x, y, z - 1);
 
 					// don't render sides of the cube that are obscured by other solid cubes
 					unsigned mask = 0;
@@ -366,13 +344,14 @@ int randi(int min, int max)
 
 void gen_world()
 {
-	world = (Block*)calloc(WORLD_X_MAX * WORLD_Y_MAX * WORLD_Z_MAX, sizeof(Block));
+	world = new narf::World(WORLD_X_MAX, WORLD_Y_MAX, WORLD_Z_MAX);
 
 	// first fill a plane at y = 0
 	for (int z = 0; z < WORLD_Z_MAX; z++) {
 		for (int x = 0; x < WORLD_X_MAX; x++) {
-			Block *b = get_block(x, 0, z);
-			b->id = 2; // grass
+			narf::Block b;
+			b.id = 2; // grass
+			world->put_block(&b, x, 0, z);
 		}
 	}
 
@@ -381,17 +360,17 @@ void gen_world()
 		int x = randi(0, WORLD_X_MAX - 1);
 		int y = randi(1, 10);
 		int z = randi(0, WORLD_Z_MAX - 1);
-		Block *b = get_block(x, y, z);
-		b->id = randi(1, 3);
+		narf::Block b;
+		b.id = randi(1, 3);
+		world->put_block(&b, x, y, z);
 	}
 
 	for (int i = 0; i < 10; i++) {
-		Block *b = get_block(5 + i, 1, 5);
-		b->id = 16;
-		b = get_block(5, 1, 5 + i);
-		b->id = 16;
-		b = get_block(5 + i, 1, 15);
-		b->id = 16;
+		narf::Block b;
+		b.id = 16;
+		world->put_block(&b, 5 + i, 1, 5);
+		world->put_block(&b, 5, 1, 5 + i);
+		world->put_block(&b, 5 + i, 1, 15);
 	}
 }
 
