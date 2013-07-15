@@ -344,7 +344,7 @@ int randi(int min, int max)
 
 void gen_world()
 {
-	world = new narf::World(WORLD_X_MAX, WORLD_Y_MAX, WORLD_Z_MAX);
+	world = new narf::World(WORLD_X_MAX, WORLD_Y_MAX, WORLD_Z_MAX, 16, 16, 16);
 
 	// first fill a plane at y = 0
 	for (int z = 0; z < WORLD_Z_MAX; z++) {

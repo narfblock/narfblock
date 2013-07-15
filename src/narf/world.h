@@ -49,12 +49,9 @@ uint32_t ilog2(uint32_t v)
 class World {
 public:
 
-	const uint32_t chunk_size_x = 16;
-	const uint32_t chunk_size_y = 16;
-	const uint32_t chunk_size_z = 16;
-
-	World(uint32_t size_x, uint32_t size_y, uint32_t size_z) :
-		size_x_(size_x), size_y_(size_y), size_z_(size_z)
+	World(uint32_t size_x, uint32_t size_y, uint32_t size_z, uint32_t chunk_size_x, uint32_t chunk_size_y, uint32_t chunk_size_z) :
+		size_x_(size_x), size_y_(size_y), size_z_(size_z),
+		chunk_size_x_(chunk_size_x), chunk_size_y_(chunk_size_y), chunk_size_z_(chunk_size_z)
 	{
 		// TODO: verify size is a multiple of chunk_size and a power of 2
 
@@ -114,6 +111,8 @@ private:
 	uint32_t size_x_, size_y_, size_z_; // size of the world in blocks
 	uint32_t mask_x_, mask_z_;
 
+	uint32_t chunk_size_x_, chunk_size_y_, chunk_size_z_;
+
 	uint32_t chunks_x_, chunks_y_, chunks_z_; // size of the world in chunks
 	uint32_t chunk_shift_x_, chunk_shift_y_, chunk_shift_z_;
 	uint32_t block_mask_x_, block_mask_y_, block_mask_z_;
@@ -149,7 +148,7 @@ private:
 			// get from backing store, or allocate if it doesn't exist yet
 			// for now, no backing store, so just always allocate a new chunk
 			chunk = chunks_[((chunk_z * chunks_y_) + chunk_y) * chunks_x_ + chunk_x] =
-				new Chunk(chunk_size_x, chunk_size_y, chunk_size_z, chunk_x, chunk_y, chunk_z);
+				new Chunk(chunk_size_x_, chunk_size_y_, chunk_size_z_, chunk_x, chunk_y, chunk_z);
 		}
 		return chunk;
 	}
