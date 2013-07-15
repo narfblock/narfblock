@@ -10,6 +10,7 @@ public:
 
 	float x, y;
 
+	Vector2f() : x(0.0f), y(0.0f) { }
 	Vector2f(float x, float y) : x(x), y(y) { }
 
 	float length() const
@@ -63,6 +64,7 @@ public:
 
 	float x, y, z;
 
+	Vector3f() : x(0.0f), y(0.0f), z(0.0f) { }
 	Vector3f(float x, float y, float z) : x(x), y(y), z(z) { }
 
 	float length() const

@@ -40,6 +40,7 @@
 
 #include "narf/chunk.h"
 #include "narf/camera.h"
+#include "narf/vector.h"
 
 #include "narf/gl/gl.h"
 
@@ -128,6 +129,9 @@ public:
 
 	void render(narf::gl::Texture *tiles_tex, const narf::Camera *cam);
 
+	void set_gravity(float g) { gravity_ = g; }
+	float get_gravity() { return gravity_; }
+
 private:
 
 	Chunk **chunks_;
@@ -140,6 +144,9 @@ private:
 	uint32_t chunks_x_, chunks_y_, chunks_z_; // size of the world in chunks
 	uint32_t chunk_shift_x_, chunk_shift_y_, chunk_shift_z_;
 	uint32_t block_mask_x_, block_mask_y_, block_mask_z_;
+
+	float gravity_;
+
 
 	void calc_chunk_coords(
 		uint32_t x, uint32_t y, uint32_t z,

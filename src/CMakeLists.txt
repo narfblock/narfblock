@@ -32,6 +32,7 @@ add_executable (narfblock
 
 	test.cpp
 	narf/chunk.cpp
+	narf/entity.cpp
 	narf/input.cpp
 	narf/world.cpp
 	narf/gl/context.cpp

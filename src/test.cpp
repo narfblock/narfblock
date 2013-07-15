@@ -13,6 +13,7 @@
 #include "test.h"
 
 #include "narf/camera.h"
+#include "narf/entity.h"
 #include "narf/input.h"
 #include "narf/vector.h"
 #include "narf/world.h"
@@ -21,14 +22,12 @@
 
 // TODO: this is all hacky test code - refactor into nicely modularized code
 
+narf::Entity *player;
+narf::Entity *bouncy_block; // temp hack
+
 narf::Camera cam;
 
-const float meter = 1.0;
-const float second = 1000.0; // native time unit is milliseconds
-
-const float meters_per_second = meter * (1 / second);
-
-const float movespeed = 25.0f * meters_per_second;
+const float movespeed = 25.0f;
 
 narf::World *world;
 
@@ -101,6 +100,10 @@ void draw()
 
 	world->render(tiles_tex, &cam);
 
+	// temp hack: draw an entity as a cube for physics demo
+	void draw_cube(float x, float y, float z, uint8_t type, unsigned draw_face_mask);
+	draw_cube(bouncy_block->position.x, bouncy_block->position.y, bouncy_block->position.z, 1, 0xFF);
+
 	SDL_GL_SwapBuffers();
 }
 
@@ -141,25 +144,30 @@ void sim_frame(const narf::Input &input, double t, double dt)
 	}
 
 	// normalize so that diagonal movement is not faster than cardinal directions
-	vel_rel = vel_rel.normalize();
+	vel_rel = vel_rel.normalize() * movespeed;
 
 	if (input.jump()) {
-		vel_rel += narf::Vector3f(0.0f, 15.0f, 0.0f);
+		vel_rel += narf::Vector3f(0.0f, 8.0f, 0.0f);
 	}
 
-	vel_rel += narf::Vector3f(0.0f, -1.0f, 0.0f); // crappy framerate-dependent gravity
+	// hax
+	player->velocity.x = vel_rel.x;
+	player->velocity.y += vel_rel.y;
+	player->velocity.z = vel_rel.z;
 
-	cam.position += vel_rel * movespeed * dt;
+	player->update(t, dt);
 
-	if (cam.position.y < 3.0f) {
-		cam.position.y = 3.0f;
-	}
+	// lock camera to player
+	cam.position = player->position;
+	cam.position.y += 2.0f;
+
+	bouncy_block->update(t, dt);
 }
 
 
-double get_time_ms()
+double get_time()
 {
-	return (double)SDL_GetTicks(); // SDL tick is a millisecond
+	return (double)SDL_GetTicks() * 0.001; // SDL tick is a millisecond; convert to seconds
 }
 
 
@@ -167,20 +175,20 @@ void game_loop()
 {
 	narf::Input input(1.0f / 1000.0f, 1.0f / 1000.0f);
 	double t = 0.0;
-	double t1 = get_time_ms();
+	double t1 = get_time();
 
 	const double physics_rate = 120.0;
-	const double physics_tick_step = 1000.0 / physics_rate; // fixed time step
-	const double max_frame_time = 250.0;
+	const double physics_tick_step = 1.0 / physics_rate; // fixed time step
+	const double max_frame_time = 0.25;
 
 	double t_accum = 0.0;
 
-	double fps_t1 = get_time_ms();
+	double fps_t1 = get_time();
 	unsigned physics_steps = 0;
 	unsigned draws = 0;
 
 	while (1) {
-		double t2 = get_time_ms();
+		double t2 = get_time();
 		double frame_time = t2 - t1;
 
 		if (frame_time > max_frame_time) {
@@ -204,11 +212,11 @@ void game_loop()
 			t += physics_tick_step;
 		}
 
-		double fps_dt = get_time_ms() - fps_t1;
-		if (fps_dt >= 1000.0f) {
+		double fps_dt = get_time() - fps_t1;
+		if (fps_dt >= 1.0) {
 			// update fps counter
-			printf("%f physics steps/%f renders per second (dt %f)\n", (double)physics_steps * (1000.0f / fps_dt), (double)draws * (1000.0f / fps_dt), fps_dt);
-			fps_t1 = get_time_ms();
+			printf("%f physics steps/%f renders per second (dt %f)\n", (double)physics_steps / fps_dt, (double)draws / fps_dt, fps_dt);
+			fps_t1 = get_time();
 			draws = physics_steps = 0;
 		}
 
@@ -259,6 +267,8 @@ void gen_world()
 		world->put_block(&b, 5, 1, 5 + i);
 		world->put_block(&b, 5 + i, 1, 15);
 	}
+
+	world->set_gravity(-9.8);
 }
 
 
@@ -291,15 +301,21 @@ extern "C" int main(int argc, char **argv)
 		return 1;
 	}
 
-	// initial camera position
-	cam.position = narf::Vector3f(15.0f, 3.0f, 10.0f);
+	srand(0x1234);
+	gen_world();
+
+	player = new narf::Entity(world);
+
+	// initial player position
+	player->position = narf::Vector3f(15.0f, 1.0f, 10.0f);
 
 	// initialize camera to look at origin
 	cam.yaw = atan2f(cam.position.z, cam.position.x) - M_PI / 2;
 	cam.pitch = 0.0f;
 
-	srand(0x1234);
-	gen_world();
+	bouncy_block = new narf::Entity(world);
+	bouncy_block->position = narf::Vector3f(10.0f, 5.0f, 10.0f);
+	bouncy_block->bouncy = true;
 
 	init_textures();
 
