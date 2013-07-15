@@ -31,7 +31,9 @@ add_executable (narfblock
 	WIN32
 
 	test.cpp
+	narf/chunk.cpp
 	narf/input.cpp
+	narf/world.cpp
 	narf/gl/context.cpp
 	narf/gl/texture.cpp
 	)

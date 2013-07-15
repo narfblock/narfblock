@@ -33,14 +33,20 @@
 #ifndef NARF_WORLD_H
 #define NARF_WORLD_H
 
+#include <stdint.h>
+#include <stdlib.h>
+#include <assert.h>
 #include <math.h> // TODO: for log; remove later
 
 #include "narf/chunk.h"
+#include "narf/camera.h"
+
+#include "narf/gl/gl.h"
 
 namespace narf {
 
 // TODO: move this to util or something
-uint32_t ilog2(uint32_t v)
+static uint32_t ilog2(uint32_t v)
 {
 	// TODO: do a better implementation
 	return log(v) / log(2);
@@ -104,6 +110,24 @@ public:
 		chunk->put_block(b, bx, by, bz);
 	}
 
+	bool is_opaque(uint32_t x, uint32_t y, uint32_t z)
+	{
+		uint32_t cx, cy, cz, bx, by, bz;
+		calc_chunk_coords(x, y, z, &cx, &cy, &cz, &bx, &by, &bz);
+		Chunk *chunk = get_chunk(cx, cy, cz);
+		return chunk->is_opaque(bx, by, bz);
+	}
+
+	uint32_t size_x() const { return size_x_; }
+	uint32_t size_y() const { return size_y_; }
+	uint32_t size_z() const { return size_z_; }
+
+	uint32_t chunks_x() const { return chunks_x_; }
+	uint32_t chunks_y() const { return chunks_y_; }
+	uint32_t chunks_z() const { return chunks_z_; }
+
+	void render(narf::gl::Texture *tiles_tex, const narf::Camera *cam);
+
 private:
 
 	Chunk **chunks_;
@@ -148,7 +172,8 @@ private:
 			// get from backing store, or allocate if it doesn't exist yet
 			// for now, no backing store, so just always allocate a new chunk
 			chunk = chunks_[((chunk_z * chunks_y_) + chunk_y) * chunks_x_ + chunk_x] =
-				new Chunk(chunk_size_x_, chunk_size_y_, chunk_size_z_, chunk_x, chunk_y, chunk_z);
+				new Chunk(this, chunk_size_x_, chunk_size_y_, chunk_size_z_,
+					chunk_x * chunk_size_x_, chunk_y * chunk_size_y_, chunk_z * chunk_size_z_);
 		}
 		return chunk;
 	}

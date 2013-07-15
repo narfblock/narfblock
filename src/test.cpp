@@ -12,6 +12,7 @@
 #include <assert.h>
 #include "test.h"
 
+#include "narf/camera.h"
 #include "narf/input.h"
 #include "narf/vector.h"
 #include "narf/world.h"
@@ -20,19 +21,7 @@
 
 // TODO: this is all hacky test code - refactor into nicely modularized code
 
-class Camera {
-public:
-
-	Camera() : position(0.0f, 0.0f, 0.0f) { }
-
-	narf::Vector3f position;
-
-	// view angles in radians
-	float yaw;
-	float pitch;
-};
-
-Camera cam;
+narf::Camera cam;
 
 const float meter = 1.0;
 const float second = 1000.0; // native time unit is milliseconds
@@ -91,74 +80,6 @@ bool init_video(int w, int h, int bpp, bool fullscreen)
 }
 
 
-void draw_quad(uint8_t tex_id, const float *quad)
-{
-	uint8_t tex_x = tex_id % 16;
-	uint8_t tex_y = tex_id / 16;
-
-	float texcoord_tile_size = 1.0f / 16.0f;
-
-	float u1 = (float)tex_x * texcoord_tile_size;
-	float v1 = (float)tex_y * texcoord_tile_size;
-	float u2 = u1 + texcoord_tile_size;
-	float v2 = v1 + texcoord_tile_size;
-
-	// TODO: get rid of GL_QUADS, use triangle strip?
-	glBegin(GL_QUADS);
-
-	glTexCoord2f(u1, v2);
-	glVertex3fv(&quad[0 * 3]);
-
-	glTexCoord2f(u2, v2);
-	glVertex3fv(&quad[1 * 3]);
-
-	glTexCoord2f(u2, v1);
-	glVertex3fv(&quad[2 * 3]);
-
-	glTexCoord2f(u1, v1);
-	glVertex3fv(&quad[3 * 3]);
-
-	glEnd();
-}
-
-
-#define DRAW_CUBE_TOP       0x01
-#define DRAW_CUBE_BOTTOM    0x02
-#define DRAW_CUBE_SIDE1     0x04
-#define DRAW_CUBE_SIDE2     0x08
-#define DRAW_CUBE_SIDE3     0x10
-#define DRAW_CUBE_SIDE4     0x20
-
-
-void draw_cube(float x, float y, float z, uint8_t type, unsigned draw_face_mask)
-{
-	const float cube_quads[][4*3] = {
-		{x+0,y+0,z+0, x+1,y+0,z+0, x+1,y+1,z+0, x+0,y+1,z+0},
-		{x+0,y+0,z+1, x+1,y+0,z+1, x+1,y+1,z+1, x+0,y+1,z+1},
-		{x+0,y+0,z+0, x+1,y+0,z+0, x+1,y+0,z+1, x+0,y+0,z+1},
-		{x+0,y+1,z+0, x+1,y+1,z+0, x+1,y+1,z+1, x+0,y+1,z+1},
-		{x+0,y+0,z+0, x+0,y+0,z+1, x+0,y+1,z+1, x+0,y+1,z+0},
-		{x+1,y+0,z+0, x+1,y+0,z+1, x+1,y+1,z+1, x+1,y+1,z+0}
-	};
-
-	uint8_t tex_id_top, tex_id_side, tex_id_bot;
-	if (type == 2) {
-		tex_id_top = 0;
-		tex_id_side = 3;
-		tex_id_bot = 2;
-	} else {
-		tex_id_top = tex_id_side = tex_id_bot = type;
-	}
-
-	if (draw_face_mask & DRAW_CUBE_SIDE4)  draw_quad(tex_id_side, cube_quads[0]);
-	if (draw_face_mask & DRAW_CUBE_SIDE3)  draw_quad(tex_id_side, cube_quads[1]);
-	if (draw_face_mask & DRAW_CUBE_BOTTOM) draw_quad(tex_id_bot,  cube_quads[2]);
-	if (draw_face_mask & DRAW_CUBE_TOP)    draw_quad(tex_id_top,  cube_quads[3]);
-	if (draw_face_mask & DRAW_CUBE_SIDE2)  draw_quad(tex_id_side, cube_quads[4]);
-	if (draw_face_mask & DRAW_CUBE_SIDE1)  draw_quad(tex_id_side, cube_quads[5]);
-}
-
-
 bool init_textures()
 {
 	tiles_surf = IMG_Load("../data/terrain.png");
@@ -178,41 +99,7 @@ void draw()
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	// camera
-	glLoadIdentity();
-	glRotatef(cam.pitch * 180.0f / M_PI, 1.0f, 0.0f, 0.0f);
-	glRotatef(cam.yaw * 180.0f / M_PI,   0.0f, 1.0f, 0.0f);
-	glTranslatef(-cam.position.x, -cam.position.y, -cam.position.z);
-
-	// draw blocks
-	glBindTexture(narf::gl::TEXTURE_2D, tiles_tex);
-	for (int z = 0; z < WORLD_Z_MAX; z++) {
-		for (int y = 0; y < WORLD_Y_MAX; y++) {
-			for (int x = 0; x < WORLD_X_MAX; x++) {
-				const narf::Block *b = world->get_block(x, y, z);
-				if (b->id) {
-					// TODO: optimize these by caching the previous block in this row (x - 1)
-					const narf::Block *above = world->get_block(x, y + 1, z);
-					const narf::Block *below = world->get_block(x, y - 1, z);
-					const narf::Block *side1 = world->get_block(x + 1, y, z);
-					const narf::Block *side2 = world->get_block(x - 1, y, z);
-					const narf::Block *side3 = world->get_block(x, y, z + 1);
-					const narf::Block *side4 = world->get_block(x, y, z - 1);
-
-					// don't render sides of the cube that are obscured by other solid cubes
-					unsigned mask = 0;
-					if (!above->id) mask |= DRAW_CUBE_TOP;
-					if (!below->id) mask |= DRAW_CUBE_BOTTOM;
-					if (!side1->id) mask |= DRAW_CUBE_SIDE1;
-					if (!side2->id) mask |= DRAW_CUBE_SIDE2;
-					if (!side3->id) mask |= DRAW_CUBE_SIDE3;
-					if (!side4->id) mask |= DRAW_CUBE_SIDE4;
-
-					if (mask) draw_cube(x, y, z, b->id, mask);
-				}
-			}
-		}
-	}
+	world->render(tiles_tex, &cam);
 
 	SDL_GL_SwapBuffers();
 }
