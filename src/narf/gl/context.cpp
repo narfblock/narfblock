@@ -1,5 +1,11 @@
 #include "narf/gl/context.h"
 
+narf::gl::Context::Context()
+{
+	load_extensions();
+}
+
+
 bool narf::gl::Context::set_display_mode(int width, int height, int bpp, bool fullscreen)
 {
 	Uint32 flags = SDL_HWSURFACE | SDL_OPENGL;

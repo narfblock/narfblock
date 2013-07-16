@@ -1,8 +1,5 @@
 #include <SDL/SDL.h>
-#include <SDL/SDL_opengl.h>
 #include <SDL/SDL_image.h>
-#include <GL/gl.h>
-#include <GL/glu.h>
 
 #include <math.h>
 

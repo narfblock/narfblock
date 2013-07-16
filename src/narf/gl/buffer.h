@@ -1,5 +1,5 @@
 /*
- * OpenGL context management
+ * OpenGL buffer object management
  *
  * Copyright (c) 2013 Daniel Verkamp
  * All rights reserved.
@@ -30,32 +30,33 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef NARF_GL_CONTEXT_H
-#define NARF_GL_CONTEXT_H
+#ifndef NARF_GL_BUFFER_H
+#define NARF_GL_BUFFER_H
 
 #include "narf/gl/gl.h"
 
 namespace narf {
 namespace gl {
 
-class Texture; // forward decl
-
-class Context {
+class Buffer {
 public:
 
-	Context();
+	Buffer()
+	{
+		glGenBuffers(1, &name_);
+	}
 
-	bool set_display_mode(int width, int height, int bpp, bool fullscreen);
-
-	uint32_t width() const { return surface_->w; }
-	uint32_t height() const { return surface_->h; }
+	~Buffer()
+	{
+		glDeleteBuffers(1, &name_);
+	}
 
 private:
-	SDL_Surface *surface_;
+	GLuint name_;
+
 };
 
 } // namespace gl
 } // namespace narf
 
-
-#endif // NARF_GL_CONTEXT_H
+#endif // NARF_GL_BUFFER_H
