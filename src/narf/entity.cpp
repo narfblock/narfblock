@@ -42,10 +42,11 @@ void narf::Entity::update(double t, double dt)
 
 	// TODO: bogus collision detection
 	if (position.y < 1.0f) {
-		position.y = 1.0f;
 		if (bouncy) {
+			position.y = 2.0f - position.y;
 			velocity.y = -velocity.y;
 		} else {
+			position.y = 1.0f;
 			velocity.y = 0.0f;
 		}
 	}
