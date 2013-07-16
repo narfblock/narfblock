@@ -125,17 +125,17 @@ void sim_frame(const narf::Input &input, double t, double dt)
 {
 	// TODO: decouple player direction and camera direction
 	cam.yaw += input.look_rel().x;
-	cam.yaw = fmodf(cam.yaw, M_PI * 2.0f);
+	cam.yaw = fmodf(cam.yaw, (float)M_PI * 2.0f);
 
 	cam.pitch += input.look_rel().y;
-	cam.pitch = clampf(cam.pitch, -M_PI / 2, M_PI / 2);
+	cam.pitch = clampf(cam.pitch, -(float)M_PI / 2, (float)M_PI / 2);
 
 	narf::Vector3f vel_rel(0.0f, 0.0f, 0.0f);
 
 	if (input.move_forward()) {
-		vel_rel -= narf::Vector3f(cosf(cam.yaw + M_PI / 2), 0.0f, sinf(cam.yaw + M_PI / 2));
+		vel_rel -= narf::Vector3f(cosf(cam.yaw + (float)M_PI / 2), 0.0f, sinf(cam.yaw + (float)M_PI / 2));
 	} else if (input.move_backward()) {
-		vel_rel += narf::Vector3f(cosf(cam.yaw + M_PI / 2), 0.0f, sinf(cam.yaw + M_PI / 2));
+		vel_rel += narf::Vector3f(cosf(cam.yaw + (float)M_PI / 2), 0.0f, sinf(cam.yaw + (float)M_PI / 2));
 	}
 
 	if (input.strafe_left()) {
@@ -269,7 +269,7 @@ void gen_world()
 		world->put_block(&b, 5 + i, 1, 15);
 	}
 
-	world->set_gravity(-9.8);
+	world->set_gravity(-9.8f);
 }
 
 
@@ -311,7 +311,7 @@ extern "C" int main(int argc, char **argv)
 	player->position = narf::Vector3f(15.0f, 1.0f, 10.0f);
 
 	// initialize camera to look at origin
-	cam.yaw = atan2f(cam.position.z, cam.position.x) - M_PI / 2;
+	cam.yaw = atan2f(cam.position.z, cam.position.x) - (float)M_PI / 2;
 	cam.pitch = 0.0f;
 
 	bouncy_block = new narf::Entity(world);
