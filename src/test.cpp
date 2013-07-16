@@ -79,7 +79,11 @@ bool init_video(int w, int h, int bpp, bool fullscreen)
 bool init_textures()
 {
 	tiles_surf = IMG_Load("../data/terrain.png");
-	assert(tiles_surf); // TODO: user-friendly message
+	if (!tiles_surf) tiles_surf = IMG_Load("../../data/terrain.png"); // superhax!
+	if (!tiles_surf) {
+		fprintf(stderr, "data/terrain.png not found!\n");
+		SDL_Quit();
+	}
 
 	tiles_tex = new narf::gl::Texture(display);
 	if (!tiles_tex->upload(tiles_surf)) {

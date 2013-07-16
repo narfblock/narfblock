@@ -13,6 +13,11 @@ if (CMAKE_COMPILER_IS_GNUCXX)
 	SET(CMAKE_CXX_FLAGS "-std=gnu++0x -Wall -Wno-switch -g")
 endif ()
 
+if (MSVC)
+    # ask MSVC to define M_PI and related constants
+    add_definitions( -D_USE_MATH_DEFINES )
+endif ()
+
 include_directories (
 	# cmake's SDL_INCLUDE_DIR incorrectly includes the actual SDL dir;
 	# append .. to work around this
