@@ -12,6 +12,15 @@ find_package (SDL REQUIRED)
 find_package (SDL_image REQUIRED)
 find_package (YamlCpp REQUIRED)
 
+# use Boost autolinking instead of explicit package names on MSVC
+# CMake doesn't generate the correct filenames for the Boost MSVC libraries
+if (MSVC)
+    find_package (Boost REQUIRED)
+else ()
+    find_package (Boost REQUIRED COMPONENTS filesystem)
+endif ()
+
+
 if (CMAKE_COMPILER_IS_GNUCXX)
 	SET(CMAKE_CXX_FLAGS "-std=gnu++0x -Wall -Wno-switch -g")
 endif ()
@@ -25,6 +34,8 @@ include_directories (
 	# cmake's SDL_INCLUDE_DIR incorrectly includes the actual SDL dir;
 	# append .. to work around this
 	"${SDL_INCLUDE_DIR}/.."
+	"${Boost_INCLUDE_DIR}"
+	"${YAMLCPP_INCLUDE_DIR}"
 	"${PROJECT_SOURCE_DIR}"
 	)
 
@@ -61,6 +72,7 @@ target_link_libraries (narfblock
 	# there are symbols in libSDLmain that depend on libSDL, but -lSDL is first in SDL_LIBRARY.
 	# Add them again to get -lSDL after -lSDLmain.
 	${SDL_LIBRARY}
+	${Boost_LIBRARIES}
 	)
 
 set(CMAKE_BUILD_TYPE Release)
