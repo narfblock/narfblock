@@ -5,9 +5,12 @@ set (VERSION_MAJOR 0)
 set (VERSION_MINOR 0)
 set (VERSION_RELEASE "")
 
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/../cmake/Modules/")
+
 find_package (OpenGL REQUIRED)
 find_package (SDL REQUIRED)
 find_package (SDL_image REQUIRED)
+find_package (YamlCpp REQUIRED)
 
 if (CMAKE_COMPILER_IS_GNUCXX)
 	SET(CMAKE_CXX_FLAGS "-std=gnu++0x -Wall -Wno-switch -g")
@@ -43,9 +46,14 @@ add_executable (narfblock
 	narf/gl/context.cpp
 	narf/gl/ext.cpp
 	narf/gl/texture.cpp
+	narf/config/configmanager.cpp
+	narf/config/yamlmanager.cpp
+	narf/config/property.cpp
+	narf/util/tokenize.cpp
 	)
 
 target_link_libraries (narfblock
+	${YAMLCPP_LIBRARY}
 	${OPENGL_LIBRARY}
 	${SDL_IMAGE_LIBRARY}
 	${SDL_LIBRARY}

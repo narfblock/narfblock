@@ -14,6 +14,7 @@
 #include "narf/input.h"
 #include "narf/vector.h"
 #include "narf/world.h"
+#include "narf/config/configmanager.h"
 
 #include "narf/gl/gl.h"
 
@@ -21,6 +22,8 @@
 
 narf::Entity *player;
 narf::Entity *bouncy_block; // temp hack
+
+narf::config::ConfigManager configmanager;
 
 narf::Camera cam;
 
@@ -276,6 +279,9 @@ void gen_world()
 extern "C" int main(int argc, char **argv)
 {
 	printf("Version: %d.%d%s\n", VERSION_MAJOR, VERSION_MINOR, VERSION_RELEASE);
+	// Will explode if things don't exist
+	configmanager.load("test", "test.yaml");
+	printf("ConfigManager test: test.foo.bar = %d\n", configmanager.get<int>("test.foo.bar"));
 
 	if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
 		printf("SDL_Init(SDL_INIT_EVERYTHING) failed: %s\n", SDL_GetError());
