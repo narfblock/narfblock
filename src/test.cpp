@@ -1,6 +1,8 @@
 #include <SDL/SDL.h>
 #include <SDL/SDL_image.h>
 
+#include <boost/filesystem.hpp>
+
 #include <math.h>
 
 #include <stdlib.h>
@@ -39,6 +41,8 @@ SDL_Surface *tiles_surf;
 
 narf::gl::Context *display;
 narf::gl::Texture *tiles_tex;
+
+boost::filesystem::path data_dir;
 
 
 float clampf(float val, float min, float max)
@@ -81,10 +85,9 @@ bool init_video(int w, int h, int bpp, bool fullscreen)
 
 bool init_textures()
 {
-	tiles_surf = IMG_Load("../data/terrain.png");
-	if (!tiles_surf) tiles_surf = IMG_Load("../../data/terrain.png"); // superhax!
+	tiles_surf = IMG_Load((data_dir / "terrain.png").string().c_str());
 	if (!tiles_surf) {
-		fprintf(stderr, "data/terrain.png not found!\n");
+		fprintf(stderr, "terrain.png not found!\n");
 		SDL_Quit();
 	}
 
@@ -279,8 +282,20 @@ void gen_world()
 extern "C" int main(int argc, char **argv)
 {
 	printf("Version: %d.%d%s\n", VERSION_MAJOR, VERSION_MINOR, VERSION_RELEASE);
+
+	data_dir = boost::filesystem::current_path();
+
+	// walk up the path until data directory is found
+	for (auto dir = boost::filesystem::current_path(); dir != dir.root_path(); dir = dir.parent_path()) {
+		data_dir = dir / "data";
+		if (boost::filesystem::is_directory(data_dir)) {
+			printf("Found data directory: %s\n", data_dir.string().c_str());
+			break;
+		}
+	}
+
 	// Will explode if things don't exist
-	configmanager.load("test", "test.yaml");
+	configmanager.load("test", (data_dir / "test.yaml").string());
 	printf("ConfigManager test: test.foo.bar = %d\n", configmanager.get<int>("test.foo.bar"));
 
 	if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
