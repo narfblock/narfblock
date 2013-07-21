@@ -85,9 +85,10 @@ bool init_video(int w, int h, int bpp, bool fullscreen)
 
 bool init_textures()
 {
-	tiles_surf = IMG_Load((data_dir / "terrain.png").string().c_str());
+	const std::string terrain_file = configmanager.get<std::string>("test.terrain");
+	tiles_surf = IMG_Load((data_dir / terrain_file).string().c_str());
 	if (!tiles_surf) {
-		fprintf(stderr, "terrain.png not found!\n");
+		fprintf(stderr, "%s not found!\n", terrain_file.c_str());
 		SDL_Quit();
 	}
 

@@ -16,12 +16,13 @@ bool narf::config::YAMLManager::save() {
 }
 
 YAML::Node narf::config::YAMLManager::getNode(std::vector<std::string> path) {
-	YAML::Node traverse = node;
+	std::vector<YAML::Node> traversal;
+	traversal.push_back(node);
 	for (std::string key : path) {
 		// TODO: Check if exists first
-		traverse = traverse[key];
+		traversal.push_back(traversal.back()[key]);
 	}
-	return traverse;
+	return traversal.back();
 }
 
 // Defined in header
