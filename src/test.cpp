@@ -16,7 +16,7 @@
 #include "narf/input.h"
 #include "narf/vector.h"
 #include "narf/world.h"
-#include "narf/config/configmanager.h"
+#include "narf/config/config.h"
 
 #include "narf/gl/gl.h"
 
@@ -297,7 +297,8 @@ extern "C" int main(int argc, char **argv)
 
 	// Will explode if things don't exist
 	configmanager.load("test", (data_dir / "test.yaml").string());
-	printf("ConfigManager test: test.foo.bar = %d\n", configmanager.get<int>("test.foo.bar"));
+	narf::config::Property bar = configmanager.get("test.foo.bar");
+	printf("ConfigManager test: test.foo.bar = %d\n", bar.as<int>());
 
 	if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
 		printf("SDL_Init(SDL_INIT_EVERYTHING) failed: %s\n", SDL_GetError());

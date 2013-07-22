@@ -5,7 +5,7 @@ bool narf::config::Property::reset() {
 	return false;
 }
 
-const narf::config::ConfigManager& narf::config::Property::getManager() {
+narf::config::ConfigManager& narf::config::Property::getManager() {
 	return manager;
 }
 

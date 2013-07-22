@@ -24,11 +24,6 @@ namespace narf {
 				std::string filename;
 		};
 
-		template <typename T>
-		T YAMLManager::get(std::vector<std::string> path) {
-			return YAMLManager::getNode(path).as<T>();
-		}
-
 	}
 }
 
