@@ -36,6 +36,7 @@
 #include "narf/gl/gl.h"
 
 
+// TODO: remove me - only used for bouncy block
 void draw_quad(uint8_t tex_id, const float *quad)
 {
 	uint8_t tex_x = tex_id % 16;
@@ -67,14 +68,9 @@ void draw_quad(uint8_t tex_id, const float *quad)
 }
 
 
-#define DRAW_CUBE_TOP       0x01
-#define DRAW_CUBE_BOTTOM    0x02
-#define DRAW_CUBE_SIDE1     0x04
-#define DRAW_CUBE_SIDE2     0x08
-#define DRAW_CUBE_SIDE3     0x10
-#define DRAW_CUBE_SIDE4     0x20
 
 
+// TODO: remove me - only used for bouncy block
 void draw_cube(float x, float y, float z, uint8_t type, unsigned draw_face_mask)
 {
 	const float cube_quads[][4*3] = {
@@ -95,18 +91,76 @@ void draw_cube(float x, float y, float z, uint8_t type, unsigned draw_face_mask)
 		tex_id_top = tex_id_side = tex_id_bot = type;
 	}
 
-	if (draw_face_mask & DRAW_CUBE_SIDE4)  draw_quad(tex_id_side, cube_quads[0]);
-	if (draw_face_mask & DRAW_CUBE_SIDE3)  draw_quad(tex_id_side, cube_quads[1]);
-	if (draw_face_mask & DRAW_CUBE_BOTTOM) draw_quad(tex_id_bot,  cube_quads[2]);
-	if (draw_face_mask & DRAW_CUBE_TOP)    draw_quad(tex_id_top,  cube_quads[3]);
-	if (draw_face_mask & DRAW_CUBE_SIDE2)  draw_quad(tex_id_side, cube_quads[4]);
-	if (draw_face_mask & DRAW_CUBE_SIDE1)  draw_quad(tex_id_side, cube_quads[5]);
+	draw_quad(tex_id_side, cube_quads[0]);
+	draw_quad(tex_id_side, cube_quads[1]);
+	draw_quad(tex_id_bot,  cube_quads[2]);
+	draw_quad(tex_id_top,  cube_quads[3]);
+	draw_quad(tex_id_side, cube_quads[4]);
+	draw_quad(tex_id_side, cube_quads[5]);
 }
 
 
-void narf::Chunk::render()
+
+void narf::Chunk::draw_quad(uint8_t tex_id, const float *quad)
 {
-	// precondition: tile texture atlas has already been selected by world::render()
+	uint8_t tex_x = tex_id % 16;
+	uint8_t tex_y = tex_id / 16;
+
+	float texcoord_tile_size = 1.0f / 16.0f;
+
+	float u1 = (float)tex_x * texcoord_tile_size;
+	float v1 = (float)tex_y * texcoord_tile_size;
+	float u2 = u1 + texcoord_tile_size;
+	float v2 = v1 + texcoord_tile_size;
+
+	BlockVertex v[4];
+
+	memcpy(v[0].vertex, &quad[0*3], sizeof(v[0].vertex));
+	memcpy(v[1].vertex, &quad[1*3], sizeof(v[1].vertex));
+	memcpy(v[2].vertex, &quad[2*3], sizeof(v[2].vertex));
+	memcpy(v[3].vertex, &quad[3*3], sizeof(v[3].vertex));
+
+	v[0].texcoord[0] = u1; v[0].texcoord[1] = v2;
+	v[1].texcoord[0] = u2; v[1].texcoord[1] = v2;
+	v[2].texcoord[0] = u2; v[2].texcoord[1] = v1;
+	v[3].texcoord[0] = u1; v[3].texcoord[1] = v1;
+
+	vertex_buffer_.append(v[0]);
+	vertex_buffer_.append(v[1]);
+	vertex_buffer_.append(v[2]);
+	vertex_buffer_.append(v[3]);
+}
+
+
+uint8_t narf::Chunk::get_tex_id(uint8_t type, narf::BlockFace face)
+{
+	// TODO: get rid of this hardcoded stuff
+	uint8_t tex_id_map[][6] = {
+	//  +x -x +z -z +y -y
+		{0, 0, 0, 0, 0, 0},
+		{1, 1, 1, 1, 1, 1},
+		{0, 2, 3, 3, 3, 3},
+		{3, 3, 3, 3, 3, 3},
+		{4, 4, 4, 4, 4, 4},
+		{5, 5, 5, 5, 5, 5},
+	};
+	if (type < sizeof(tex_id_map) / sizeof(tex_id_map[0]) && face < 6) {
+		return tex_id_map[type][face];
+	}
+
+	// HAX: assert here
+	return type;
+}
+
+
+void narf::Chunk::build_vertex_buffer()
+{
+	vertex_buffer_.clear();
+	vertex_buffer_.bind();
+
+	// TODO: move this stuff into Buffer class
+	glVertexPointer(3, GL_FLOAT, sizeof(BlockVertex), (void*)offsetof(BlockVertex, vertex));
+	glTexCoordPointer(2, GL_FLOAT, sizeof(BlockVertex), (void*)offsetof(BlockVertex, texcoord));
 
 	// draw blocks
 	for (uint32_t z = 0; z < size_z_; z++) {
@@ -121,18 +175,71 @@ void narf::Chunk::render()
 
 					// TODO: handle the edges separately so this can use chunk-local accesses for most cases
 
-					// don't render sides of the cube that are obscured by other solid cubes
-					unsigned mask = 0;
-					if (!world_->is_opaque(world_x, world_y + 1, world_z)) mask |= DRAW_CUBE_TOP;
-					if (!world_->is_opaque(world_x, world_y - 1, world_z)) mask |= DRAW_CUBE_BOTTOM;
-					if (!world_->is_opaque(world_x + 1, world_y, world_z)) mask |= DRAW_CUBE_SIDE1;
-					if (!world_->is_opaque(world_x - 1, world_y, world_z)) mask |= DRAW_CUBE_SIDE2;
-					if (!world_->is_opaque(world_x, world_y, world_z + 1)) mask |= DRAW_CUBE_SIDE3;
-					if (!world_->is_opaque(world_x, world_y, world_z - 1)) mask |= DRAW_CUBE_SIDE4;
+					float fx = (float)world_x, fy = (float)world_y, fz = (float)world_z;
 
-					if (mask) draw_cube(world_x, world_y, world_z, b->id, mask);
+					auto type = b->id;
+
+					// don't render sides of the cube that are obscured by other opaque cubes
+					if (!world_->is_opaque(world_x, world_y + 1, world_z)) {
+						float quad[] = {fx+0,fy+1,fz+0, fx+1,fy+1,fz+0, fx+1,fy+1,fz+1, fx+0,fy+1,fz+1};
+						draw_quad(get_tex_id(type, BlockFace::YPos), quad);
+					}
+
+					if (!world_->is_opaque(world_x, world_y - 1, world_z)) {
+						float quad[] = {fx+0,fy+0,fz+0, fx+1,fy+0,fz+0, fx+1,fy+0,fz+1, fx+0,fy+0,fz+1};
+						draw_quad(get_tex_id(type, BlockFace::YNeg), quad);
+					}
+
+					if (!world_->is_opaque(world_x + 1, world_y, world_z)) {
+						float quad[] = {fx+1,fy+0,fz+0, fx+1,fy+0,fz+1, fx+1,fy+1,fz+1, fx+1,fy+1,fz+0};
+						draw_quad(get_tex_id(type, BlockFace::XPos), quad);
+					}
+
+					if (!world_->is_opaque(world_x - 1, world_y, world_z)) {
+						float quad[] = {fx+0,fy+0,fz+0, fx+0,fy+0,fz+1, fx+0,fy+1,fz+1, fx+0,fy+1,fz+0};
+						draw_quad(get_tex_id(type, BlockFace::XNeg), quad);
+					}
+
+					if (!world_->is_opaque(world_x, world_y, world_z + 1)) {
+						float quad[] = {fx+0,fy+0,fz+1, fx+1,fy+0,fz+1, fx+1,fy+1,fz+1, fx+0,fy+1,fz+1};
+						draw_quad(get_tex_id(type, BlockFace::ZPos), quad);
+					}
+
+					if (!world_->is_opaque(world_x, world_y, world_z - 1)) {
+						float quad[] = {fx+0,fy+0,fz+0, fx+1,fy+0,fz+0, fx+1,fy+1,fz+0, fx+0,fy+1,fz+0};
+						draw_quad(get_tex_id(type, BlockFace::ZNeg), quad);
+					}
 				}
 			}
 		}
 	}
+
+	vertex_buffer_.upload();
+	vertex_buffer_.unbind();
+}
+
+
+void narf::Chunk::render()
+{
+	// precondition: tile texture atlas has already been selected by world::render()
+
+	if (rebuild_vertex_buffer_) {
+		build_vertex_buffer();
+		rebuild_vertex_buffer_ = false;
+	}
+
+	vertex_buffer_.bind();
+
+	// TODO: move this stuff into Buffer class
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+
+	glVertexPointer(3, GL_FLOAT, sizeof(BlockVertex), (void*)offsetof(BlockVertex, vertex));
+	glTexCoordPointer(2, GL_FLOAT, sizeof(BlockVertex), (void*)offsetof(BlockVertex, texcoord));
+
+	glDrawArrays(GL_QUADS, 0, vertex_buffer_.count());
+	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+	glDisableClientState(GL_VERTEX_ARRAY);
+
+	vertex_buffer_.unbind();
 }

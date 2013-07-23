@@ -46,5 +46,7 @@ void load_extensions();
 
 extern PFNGLGENBUFFERSARBPROC glGenBuffers;
 extern PFNGLDELETEBUFFERSARBPROC glDeleteBuffers;
+extern PFNGLBINDBUFFERARBPROC glBindBuffer;
+extern PFNGLBUFFERDATAARBPROC glBufferData;
 
 #endif // NARF_GL_EXT_H

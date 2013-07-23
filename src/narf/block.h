@@ -40,6 +40,8 @@ public:
 	uint8_t id;
 };
 
+enum BlockFace { YPos, YNeg, XPos, XNeg, ZPos, ZNeg };
+
 } // namespace narf
 
 #endif // NARF_BLOCK_H

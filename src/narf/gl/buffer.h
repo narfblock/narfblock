@@ -33,15 +33,18 @@
 #ifndef NARF_GL_BUFFER_H
 #define NARF_GL_BUFFER_H
 
+#include <vector>
+
 #include "narf/gl/gl.h"
 
 namespace narf {
 namespace gl {
 
+template <typename T>
 class Buffer {
 public:
 
-	Buffer()
+	Buffer(GLenum target, GLenum usage) : target_(target), usage_(usage)
 	{
 		glGenBuffers(1, &name_);
 	}
@@ -51,8 +54,47 @@ public:
 		glDeleteBuffers(1, &name_);
 	}
 
+	void clear()
+	{
+		data_.clear();
+	}
+
+	void append(const T& obj)
+	{
+		data_.push_back(obj);
+	}
+
+	void bind()
+	{
+		glBindBuffer(target_, name_);
+	}
+
+	void unbind()
+	{
+		glBindBuffer(target_, 0);
+	}
+
+	// must call bind() first
+	void upload()
+	{
+		glBufferData(target_, data_.size() * sizeof(T), data_.data(), usage_);
+	}
+
+	const T *data()
+	{
+		return data_.data();
+	}
+
+	size_t count()
+	{
+		return data_.size();
+	}
+
 private:
+	GLenum target_;
+	GLenum usage_;
 	GLuint name_;
+	std::vector<T> data_;
 
 };
 

@@ -2,7 +2,6 @@
 
 narf::gl::Context::Context()
 {
-	load_extensions();
 }
 
 
@@ -24,6 +23,8 @@ bool narf::gl::Context::set_display_mode(int width, int height, int bpp, bool fu
 	if (!surface_) {
 		return false;
 	}
+
+	load_extensions();
 
 	glViewport(0, 0, width, height);
 
