@@ -1,5 +1,5 @@
 /*
- * NarfBlock chunk class
+ * NarfBlock block class
  *
  * Copyright (c) 2013 Daniel Verkamp
  * All rights reserved.
@@ -30,70 +30,16 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef NARF_CHUNK_H
-#define NARF_CHUNK_H
-
-#include <stdint.h>
-#include <stdlib.h>
-#include <assert.h>
-
-#include "narf/block.h"
-#include "narf/vector.h"
-#include "narf/gl/gl.h"
+#ifndef NARF_BLOCK_H
+#define NARF_BLOCK_H
 
 namespace narf {
 
-class World;
-
-class Chunk {
+class Block {
 public:
-
-	Chunk(
-		World *world,
-		uint32_t size_x, uint32_t size_y, uint32_t size_z,
-		uint32_t pos_x, uint32_t pos_y, uint32_t pos_z) :
-		world_(world),
-		size_x_(size_x), size_y_(size_y), size_z_(size_z),
-		pos_x_(pos_x), pos_y_(pos_y), pos_z_(pos_z)
-	{
-		blocks_ = (Block*)calloc(size_x_ * size_y_ * size_z_, sizeof(Block));
-	}
-
-	~Chunk()
-	{
-		free(blocks_);
-	}
-
-	// coordinates are relative to chunk
-	const Block *get_block(uint32_t x, uint32_t y, uint32_t z) const
-	{
-		assert(x >= 0 && y >= 0 && z >= 0);
-		assert(x < size_x_ && y < size_y_ && z < size_z_);
-
-		return &blocks_[((z * size_y_) + y) * size_x_ + x];
-	}
-
-	void put_block(const Block *b, uint32_t x, uint32_t y, uint32_t z)
-	{
-		blocks_[z * size_x_ * size_y_ + y * size_x_ + x] = *b;
-	}
-
-	bool is_opaque(uint32_t x, uint32_t y, uint32_t z) const
-	{
-		return get_block(x, y, z)->id != 0;
-	}
-
-	void render();
-
-
-private:
-	World *world_;
-	Block *blocks_; // size_x_ by size_y_ by size_z_ 3D array of blocks in this chunk
-
-	uint32_t size_x_, size_y_, size_z_; // size of this chunk in blocks
-	uint32_t pos_x_, pos_y_, pos_z_; // position within the world of this chunk in blocks
+	uint8_t id;
 };
 
 } // namespace narf
 
-#endif // NARF_CHUNK_H
+#endif // NARF_BLOCK_H
