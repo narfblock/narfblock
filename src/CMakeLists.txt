@@ -6,11 +6,15 @@ set (VERSION_MINOR 0)
 set (VERSION_RELEASE "")
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/../cmake/Modules/")
+set(NARFBLOCK_DATA_PATH "${CMAKE_SOURCE_DIR}/../data/")
 
 find_package (OpenGL REQUIRED)
 find_package (SDL REQUIRED)
 find_package (SDL_image REQUIRED)
 find_package (YamlCpp REQUIRED)
+find_package (freetype-gl REQUIRED)
+
+include (DownloadFont)
 
 # use Boost autolinking instead of explicit package names on MSVC
 # CMake doesn't generate the correct filenames for the Boost MSVC libraries
@@ -36,6 +40,7 @@ include_directories (
 	"${SDL_INCLUDE_DIR}/.."
 	"${Boost_INCLUDE_DIR}"
 	"${YAMLCPP_INCLUDE_DIR}"
+	"${FREETYPE_GL_INCLUDE_DIR}"
 	"${PROJECT_SOURCE_DIR}"
 	)
 
@@ -64,7 +69,9 @@ add_executable (narfblock
 	)
 
 target_link_libraries (narfblock
+	freetype-gl
 	${YAMLCPP_LIBRARY}
+	${FREETYPE_GL_LIBRARY}
 	${OPENGL_LIBRARY}
 	${SDL_IMAGE_LIBRARY}
 	${SDL_LIBRARY}
