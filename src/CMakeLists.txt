@@ -13,6 +13,7 @@ find_package (SDL REQUIRED)
 find_package (SDL_image REQUIRED)
 find_package (YamlCpp REQUIRED)
 find_package (freetype-gl REQUIRED)
+find_package (Freetype REQUIRED)
 
 include (DownloadFont)
 
@@ -41,6 +42,7 @@ include_directories (
 	"${Boost_INCLUDE_DIR}"
 	"${YAMLCPP_INCLUDE_DIR}"
 	"${FREETYPE_GL_INCLUDE_DIR}"
+	"${FREETYPE_INCLUDE_DIRS}"
 	"${PROJECT_SOURCE_DIR}"
 	)
 
@@ -66,11 +68,13 @@ add_executable (narfblock
 	narf/config/yamlmanager.cpp
 	narf/config/property.cpp
 	narf/util/tokenize.cpp
+	#narf/font.cpp
 	)
 
 target_link_libraries (narfblock
 	freetype-gl
 	${YAMLCPP_LIBRARY}
+	${FREETYPE_LIBRARY}
 	${FREETYPE_GL_LIBRARY}
 	${OPENGL_LIBRARY}
 	${SDL_IMAGE_LIBRARY}

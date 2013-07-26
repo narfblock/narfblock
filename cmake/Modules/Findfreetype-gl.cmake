@@ -1,18 +1,13 @@
 
 
 set (FREETYPE_GL_REVISION 226)
-set (FREETYPE_GL_URL_BASE = "https://freetype-gl.googlecode.com/svn-history/r${FREETYPE_GL_REVISION}/trunk/")
+set (FREETYPE_GL_URL_BASE "https://freetype-gl.googlecode.com/svn-history/r${FREETYPE_GL_REVISION}/trunk/")
 set (FREETYPE_GL_SRC 
   freetype-gl.h      vec234.h
-  opengl.h           markup.h
-  mat4.c             mat4.h
+  markup.h
   texture-atlas.c    texture-atlas.h
   texture-font.c     texture-font.h
-  vertex-buffer.c    vertex-buffer.h
-  vertex-attribute.c vertex-attribute.h
   font-manager.c     font-manager.h
-  text-buffer.c      text-buffer.h
-  shader.c           shader.h
   vector.c           vector.h
   platform.c         platform.h)
 
@@ -28,7 +23,7 @@ endif()
 
 foreach (i IN LISTS FREETYPE_GL_SRC_LIST)
   if (NOT EXISTS "${FREETYPE_GL_DIR}/${i}")
-    message(STATUS "Downloading ${i}")
+		message(STATUS "Downloading ${i}")
     file(DOWNLOAD "${FREETYPE_GL_URL_BASE}${i}" "${FREETYPE_GL_DIR}/${i}")
   endif()
 endforeach()
