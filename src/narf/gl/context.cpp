@@ -24,7 +24,11 @@ bool narf::gl::Context::set_display_mode(int width, int height, int bpp, bool fu
 		return false;
 	}
 
-	load_extensions();
+	GLenum glew_err = glewInit();
+	if (glew_err != GLEW_OK) {
+		fprintf(stderr, "Error initializing GLEW: %s\n", glewGetErrorString(glew_err));
+		return false;
+	}
 
 	glViewport(0, 0, width, height);
 

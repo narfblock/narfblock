@@ -9,6 +9,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/../cmake/Modules
 set(NARFBLOCK_DATA_PATH "${CMAKE_SOURCE_DIR}/../data/")
 
 find_package (OpenGL REQUIRED)
+find_package (GLEW REQUIRED)
 find_package (SDL REQUIRED)
 find_package (SDL_image REQUIRED)
 find_package (YamlCpp REQUIRED)
@@ -43,6 +44,7 @@ include_directories (
 	"${YAMLCPP_INCLUDE_DIR}"
 	"${FREETYPE_GL_INCLUDE_DIR}"
 	"${FREETYPE_INCLUDE_DIRS}"
+	"${GLEW_INCLUDE_DIR}"
 	"${PROJECT_SOURCE_DIR}"
 	)
 
@@ -76,6 +78,7 @@ target_link_libraries (narfblock
 	${YAMLCPP_LIBRARY}
 	${FREETYPE_LIBRARY}
 	${FREETYPE_GL_LIBRARY}
+	${GLEW_LIBRARY}
 	${OPENGL_LIBRARY}
 	${SDL_IMAGE_LIBRARY}
 	${SDL_LIBRARY}

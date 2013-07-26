@@ -3,13 +3,14 @@
 
 #include <stdint.h>
 
+#include <GL/glew.h>
+
+#define NO_SDL_GLEXT
 #include <SDL/SDL.h>
 #include <SDL/SDL_opengl.h>
 #include <SDL/SDL_image.h>
 
 #include <GL/gl.h>
-
-#include "narf/gl/ext.h"
 
 #include "narf/gl/texture.h"
 #include "narf/gl/context.h"
