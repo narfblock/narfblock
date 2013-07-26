@@ -64,7 +64,6 @@ add_executable (narfblock
 	narf/input.cpp
 	narf/world.cpp
 	narf/gl/context.cpp
-	narf/gl/ext.cpp
 	narf/gl/texture.cpp
 	narf/config/configmanager.cpp
 	narf/config/yamlmanager.cpp
