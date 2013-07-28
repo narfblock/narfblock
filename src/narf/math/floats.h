@@ -1,6 +1,9 @@
 // Borrowed from
 // https://randomascii.wordpress.com/2012/02/25/comparing-floating-point-numbers-2012-edition/
 
+#ifndef NARFBLOCK_MATH_FLOATS_H
+#define NARFBLOCK_MATH_FLOATS_H
+
 #include <float.h>
 #include <stdint.h>
 
@@ -24,3 +27,5 @@ namespace narf {
 		bool AlmostEqualRelativeAndAbs(float A, float B, float maxDiff, float maxRelDiff);
 	}
 }
+
+#endif

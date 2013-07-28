@@ -8,11 +8,11 @@ bool narf::math::coord::Point3f::operator==(Point3f& rhs) const {
 narf::math::coord::Point3f::operator narf::math::coord::Sphericalf () const {
 	float radius = distanceTo(0, 0, 0);
 	float inclination = !narf::math::AlmostEqual(radius, 0) ? acos(z/radius) : 0;
-	float azimuth = !narf::math::AlmostEqual(radius, 0) ? atan2(y, x) : 0;
+	float azimuth = !narf::math::AlmostEqual(x, 0) ? atan2(y, x) : 0;
 	return narf::math::coord::Sphericalf(radius, inclination, azimuth);
 }
 
-float narf::math::coord::Point3f::distanceTo(Point3f& other) const {
+float narf::math::coord::Point3f::distanceTo(Point3f other) const {
 	return narf::math::coord::distance(x, y, z, other.x, other.y, other.z);
 }
 

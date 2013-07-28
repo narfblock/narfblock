@@ -15,10 +15,8 @@ namespace narf {
 					float azimuth;
 					float inclination;
 					Sphericalf(float radius, float inclination, float azimuth) : radius(radius), azimuth(azimuth), inclination(inclination) {};
-					void extend(float distance);
-					void shrink(float distance);
 					float distanceTo(Sphericalf& other);
-					bool operator==(Sphericalf& rhs) const;
+					bool operator==(Sphericalf rhs) const;
 					operator narf::math::coord::Point3f () const;
 			};
 		}

@@ -17,7 +17,7 @@ namespace narf {
 					Point3f(float x, float y, float z) : x(x), y(y), z(z) {};
 					bool operator==(Point3f& rhs) const;
 					operator Sphericalf () const;
-					float distanceTo(Point3f& other) const;
+					float distanceTo(Point3f other) const;
 					float distanceTo(float x2, float y2, float z2) const;
 			};
 		}

@@ -4,7 +4,8 @@
 
 bool narf::math::AlmostEqual(float A, float B) {
 	// Supposedly 4 is good...
-	return narf::math::AlmostEqualUlps(A, B, 4);
+	bool equal = narf::math::AlmostEqualUlps(A, B, 4);
+	return equal;
 }
 
 bool narf::math::AlmostEqualUlps(float A, float B, int maxUlpsDiff) {
