@@ -60,8 +60,13 @@ public:
 		world_(world),
 		size_x_(size_x), size_y_(size_y), size_z_(size_z),
 		pos_x_(pos_x), pos_y_(pos_y), pos_z_(pos_z),
-		rebuild_vertex_buffer_(true),
-		vertex_buffer_(GL_ARRAY_BUFFER, GL_STATIC_DRAW)
+		rebuild_vertex_buffers_(true),
+		vbo_x_pos_(GL_ARRAY_BUFFER, GL_STATIC_DRAW),
+		vbo_x_neg_(GL_ARRAY_BUFFER, GL_STATIC_DRAW),
+		vbo_y_pos_(GL_ARRAY_BUFFER, GL_STATIC_DRAW),
+		vbo_y_neg_(GL_ARRAY_BUFFER, GL_STATIC_DRAW),
+		vbo_z_pos_(GL_ARRAY_BUFFER, GL_STATIC_DRAW),
+		vbo_z_neg_(GL_ARRAY_BUFFER, GL_STATIC_DRAW)
 	{
 		blocks_ = (Block*)calloc(size_x_ * size_y_ * size_z_, sizeof(Block));
 	}
@@ -83,7 +88,7 @@ public:
 	void put_block(const Block *b, uint32_t x, uint32_t y, uint32_t z)
 	{
 		blocks_[z * size_x_ * size_y_ + y * size_x_ + x] = *b;
-		rebuild_vertex_buffer_ = true;
+		rebuild_vertex_buffers_ = true;
 	}
 
 	bool is_opaque(uint32_t x, uint32_t y, uint32_t z) const
@@ -100,14 +105,19 @@ private:
 	uint32_t size_x_, size_y_, size_z_; // size of this chunk in blocks
 	uint32_t pos_x_, pos_y_, pos_z_; // position within the world of this chunk in blocks
 
-	bool rebuild_vertex_buffer_;
+	bool rebuild_vertex_buffers_;
 
-	narf::gl::Buffer<BlockVertex> vertex_buffer_;
+	narf::gl::Buffer<BlockVertex> vbo_x_pos_;
+	narf::gl::Buffer<BlockVertex> vbo_x_neg_;
+	narf::gl::Buffer<BlockVertex> vbo_y_pos_;
+	narf::gl::Buffer<BlockVertex> vbo_y_neg_;
+	narf::gl::Buffer<BlockVertex> vbo_z_pos_;
+	narf::gl::Buffer<BlockVertex> vbo_z_neg_;
 
 	// internal rendering functions
-	void build_vertex_buffer();
+	void build_vertex_buffers();
 	uint8_t get_tex_id(uint8_t type, narf::BlockFace face);
-	void draw_quad(uint8_t tex_id, const float *quad);
+	void draw_quad(narf::gl::Buffer<BlockVertex> &vbo, uint8_t tex_id, const float *quad);
 };
 
 } // namespace narf

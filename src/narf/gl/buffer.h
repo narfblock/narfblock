@@ -74,10 +74,11 @@ public:
 		glBindBuffer(target_, 0);
 	}
 
-	// must call bind() first
 	void upload()
 	{
+		bind();
 		glBufferData(target_, data_.size() * sizeof(T), data_.data(), usage_);
+		unbind();
 	}
 
 	const T *data()
