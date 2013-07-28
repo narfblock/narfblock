@@ -185,7 +185,8 @@ void game_loop()
 	narf::Input input(1.0f / input_divider, 1.0f / input_divider);
 	double t = 0.0;
 	double t1 = get_time();
-	const double physics_tick_step = configmanager.get<double>("test.physics_tick_step"); // fixed time step
+	const double physics_rate = configmanager.get<double>("test.physics_rate");
+	const double physics_tick_step = 1.0 / physics_rate; // fixed time step
 	const double max_frame_time = configmanager.get<double>("test.max_frame_time");
 
 	double t_accum = 0.0;
