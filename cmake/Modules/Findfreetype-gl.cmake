@@ -9,7 +9,12 @@ set (FREETYPE_GL_SRC
   texture-font.c     texture-font.h
   font-manager.c     font-manager.h
   vector.c           vector.h
-  platform.c         platform.h)
+  platform.c         platform.h
+  opengl.h
+  mat4.c             mat4.h
+  shader.c           shader.h
+  vertex-buffer.c    vertex-buffer.h
+  vertex-attribute.c vertex-attribute.h)
 
 
 set(FREETYPE_GL_SRC_LIST ${FREETYPE_GL_SRC})

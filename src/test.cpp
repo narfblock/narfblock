@@ -13,6 +13,7 @@
 
 #include "narf/camera.h"
 #include "narf/entity.h"
+#include "narf/font.h"
 #include "narf/input.h"
 #include "narf/vector.h"
 #include "narf/world.h"
@@ -44,6 +45,10 @@ narf::gl::Texture *tiles_tex;
 
 boost::filesystem::path data_dir;
 
+narf::font::FontManager font_manager;
+narf::font::TextBuffer *console_text_buffer;
+narf::font::TextBuffer *fps_text_buffer;
+
 
 float clampf(float val, float min, float max)
 {
@@ -60,23 +65,7 @@ bool init_video(int w, int h, int bpp, bool fullscreen)
 		return false;
 	}
 
-	// viewer projection
-	glMatrixMode(GL_PROJECTION);
-	//float fovx = 90.0f; // degrees
-	float fovy = 60.0f; // degrees
-	float aspect = (float)w / (float)h ; // TODO: include fovx in calculation
-	gluPerspective(fovy, aspect, 0.1, 1000.0f);
-	glMatrixMode(GL_MODELVIEW);
-
-	glEnable(GL_DEPTH_TEST);
-
-	glEnable(GL_TEXTURE_2D);
-
-	// for drawing outlines
-	glPolygonOffset(1.0, 2);
-	glEnable(GL_POLYGON_OFFSET_FILL);
-
-	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClearDepth(1.0f);
 
 	return true;
@@ -102,15 +91,88 @@ bool init_textures()
 }
 
 
-void draw()
-{
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+void draw3d() {
+	// draw 3d world and objects
+
+	// viewer projection
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+
+	//float fovx = 90.0f; // degrees
+	float fovy = 60.0f; // degrees
+	float aspect = (float)display->width() / (float)display->height() ; // TODO: include fovx in calculation
+	gluPerspective(fovy, aspect, 0.1, 1000.0f);
+
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+
+	glEnable(GL_DEPTH_TEST);
+	//glEnable(GL_CULL_FACE);
+
+	glEnable(GL_TEXTURE_2D);
+
+	// for drawing outlines
+	glPolygonOffset(1.0, 2);
+	glEnable(GL_POLYGON_OFFSET_FILL);
 
 	world->render(tiles_tex, &cam);
 
 	// temp hack: draw an entity as a cube for physics demo
 	void draw_cube(float x, float y, float z, uint8_t type, unsigned draw_face_mask);
 	draw_cube(bouncy_block->position.x, bouncy_block->position.y, bouncy_block->position.z, 1, 0xFF);
+}
+
+
+void draw_cursor() {
+	// draw a cursor thingy
+	float cursor_size = 9.0f; // TODO
+
+	glColor4f(1.0f, 0.5f, 1.0f, 0.7f);
+	glBegin(GL_QUADS);
+	glVertex2f(display->width() / 2.0f - cursor_size / 2.0f, display->height() / 2.0f - cursor_size / 2.0f);
+	glVertex2f(display->width() / 2.0f + cursor_size / 2.0f, display->height() / 2.0f - cursor_size / 2.0f);
+	glVertex2f(display->width() / 2.0f + cursor_size / 2.0f, display->height() / 2.0f + cursor_size / 2.0f);
+	glVertex2f(display->width() / 2.0f - cursor_size / 2.0f, display->height() / 2.0f + cursor_size / 2.0f);
+	glEnd();
+
+	glColor3f(0.0f, 0.0f, 1.0f);
+	glBegin(GL_POINTS);
+	glVertex2f(display->width() / 2.0f, display->height() / 2.0f);
+	glEnd();
+
+	glColor3f(1.0f, 1.0f, 1.0f);
+}
+
+
+void draw2d() {
+	// draw 2d overlays
+
+	glDisable(GL_DEPTH_TEST);
+	glDisable(GL_CULL_FACE);
+	glDisable(GL_LIGHTING);
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glOrtho(0.0, display->width(), 0.0, display->height(), 0.0, 1.0);
+
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+
+	draw_cursor();
+
+	console_text_buffer->render();
+	fps_text_buffer->render();
+}
+
+
+void draw() {
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	draw3d();
+	draw2d();
 
 	SDL_GL_SwapBuffers();
 }
@@ -223,7 +285,11 @@ void game_loop()
 		double fps_dt = get_time() - fps_t1;
 		if (fps_dt >= 1.0) {
 			// update fps counter
-			printf("%f physics steps/%f renders per second (dt %f)\n", (double)physics_steps / fps_dt, (double)draws / fps_dt, fps_dt);
+			std::wstring fps_str = std::to_wstring((double)physics_steps / fps_dt) + L" physics steps/" +
+				std::to_wstring((double)draws / fps_dt) + L" renders per second (dt " + std::to_wstring(fps_dt) + L")";
+			narf::font::Color blue = {0.0f, 0.0f, 1.0f, 1.0f};
+			fps_text_buffer->clear();
+			fps_text_buffer->print(fps_str, 0, display->height() - 30 /* TODO */, blue);
 			fps_t1 = get_time();
 			draws = physics_steps = 0;
 		}
@@ -342,6 +408,18 @@ extern "C" int main(int argc, char **argv)
 	bouncy_block->bouncy = true;
 
 	init_textures();
+
+	auto font = font_manager.addFont("DroidSansMono", (data_dir / "DroidSansMono.ttf").string(), 30);
+	if (!font) {
+		fprintf(stderr, "Error: could not load DroidSansMono\n");
+		return 1;
+	}
+
+	console_text_buffer = new narf::font::TextBuffer(font);
+	fps_text_buffer = new narf::font::TextBuffer(font);
+
+	narf::font::Color red = {1.0f, 0.0f, 0.0f, 1.0f};
+	console_text_buffer->print(L"Testing 123", 0, 10, red);
 
 	SDL_ShowCursor(0);
 	SDL_WM_GrabInput(SDL_GRAB_ON);

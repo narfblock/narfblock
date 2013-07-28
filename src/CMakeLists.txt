@@ -69,7 +69,7 @@ add_executable (narfblock
 	narf/config/yamlmanager.cpp
 	narf/config/property.cpp
 	narf/util/tokenize.cpp
-	#narf/font.cpp
+	narf/font.cpp
 	)
 
 target_link_libraries (narfblock
