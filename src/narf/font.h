@@ -3,6 +3,8 @@
 
 #include "freetype-gl.h"
 
+#include "narf/color.h"
+
 #include "narf/gl/gl.h"
 
 #include <string>
@@ -19,21 +21,6 @@ namespace narf {
 			float r, g, b, a; // color
 		} FontVertex;
 
-		typedef union {
-			float data[4];
-			struct {
-				float red;
-				float green;
-				float blue;
-				float alpha;
-			};
-			struct {
-				float r;
-				float g;
-				float b;
-				float a;
-			};
-		} Color;
 
 
 		class Font {

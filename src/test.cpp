@@ -12,6 +12,7 @@
 #include "test.h"
 
 #include "narf/camera.h"
+#include "narf/color.h"
 #include "narf/entity.h"
 #include "narf/font.h"
 #include "narf/input.h"
@@ -287,7 +288,7 @@ void game_loop()
 			// update fps counter
 			std::wstring fps_str = std::to_wstring((double)physics_steps / fps_dt) + L" physics steps/" +
 				std::to_wstring((double)draws / fps_dt) + L" renders per second (dt " + std::to_wstring(fps_dt) + L")";
-			narf::font::Color blue = {0.0f, 0.0f, 1.0f, 1.0f};
+			auto blue = narf::Color(0.0f, 0.0f, 1.0f);
 			fps_text_buffer->clear();
 			fps_text_buffer->print(fps_str, 0, display->height() - 30 /* TODO */, blue);
 			fps_t1 = get_time();
@@ -418,7 +419,7 @@ extern "C" int main(int argc, char **argv)
 	console_text_buffer = new narf::font::TextBuffer(font);
 	fps_text_buffer = new narf::font::TextBuffer(font);
 
-	narf::font::Color red = {1.0f, 0.0f, 0.0f, 1.0f};
+	auto red = narf::Color(1.0f, 0.0f, 0.0f, 1.0f);
 	console_text_buffer->print(L"Testing 123", 0, 10, red);
 
 	SDL_ShowCursor(0);

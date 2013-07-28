@@ -18,13 +18,13 @@ bool narf::font::Font::load(const std::string &filename, float size) {
 
 
 void narf::font::TextBuffer::print(const std::wstring &text, float x, float y) {
-	Color black = {0, 0, 0, 1};
+	auto black = narf::Color(0.0f, 0.0f, 0.0f);
 	print(text, x, y, black);
 }
 
 
 void narf::font::TextBuffer::print(const std::wstring &text, float x, float y, const Color &color) {
-	float r = color.red, g = color.green, b = color.blue, a = color.alpha;
+	float r = color.r, g = color.g, b = color.b, a = color.a;
 	float pos_x = (float)x;
 	float pos_y = (float)y;
 	for(size_t i = 0; i < text.size(); i++) {
