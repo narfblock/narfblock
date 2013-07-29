@@ -354,6 +354,10 @@ extern "C" int main(int argc, char **argv)
 {
 	printf("Version: %d.%d%s\n", VERSION_MAJOR, VERSION_MINOR, VERSION_RELEASE);
 
+	auto angle = narf::math::Anglef(narf::math::fromDeg(1234.0));
+	auto angle2 = narf::math::Anglef(2.687807048071267548443);
+	printf("Angle1: %f\n", angle.toDeg());
+	printf("Equality: %d\n", angle == angle2 ? 1 : 0);
 
 	/* Should really have some sort of real testing framework
 	auto testpoint = narf::math::coord::Point3f(1, 1, 1);
