@@ -359,7 +359,7 @@ extern "C" int main(int argc, char **argv)
 	printf("Angle1: %f\n", angle.toDeg());
 	printf("Equality: %d\n", angle == angle2 ? 1 : 0);
 
-	/* Should really have some sort of real testing framework
+	 //Should really have some sort of real testing framework
 	auto testpoint = narf::math::coord::Point3f(1, 1, 1);
 	auto testsphere = static_cast<narf::math::coord::Sphericalf>(testpoint);
 	printf("Test Point  : %f, %f, %f\n", testpoint.x, testpoint.y, testpoint.z);
@@ -384,7 +384,7 @@ extern "C" int main(int argc, char **argv)
 	testsphere.azimuth =     0.247218301039533316;
 	printf("Test Point3 : %f, %f, %f\n", testpoint.x, testpoint.y, testpoint.z);
 	printf("Test Sphere4: %f, %f, %f\n", testsphere.radius, testsphere.inclination, testsphere.azimuth);
-	printf("Equality    : %d\n", testsphere == testpoint ? 1 : 0);*/
+	printf("Equality    : %d\n", testsphere == testpoint ? 1 : 0);
 
 	data_dir = boost::filesystem::current_path();
 

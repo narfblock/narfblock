@@ -71,9 +71,6 @@ add_executable (narfblock
 	narf/util/tokenize.cpp
 	narf/font.cpp
 	narf/math/floats.cpp
-	narf/math/coord/sphericalf.cpp
-	narf/math/coord/distance.cpp
-	narf/math/coord/point3f.cpp
 	)
 
 target_link_libraries (narfblock
