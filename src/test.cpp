@@ -54,6 +54,8 @@ narf::font::TextBuffer *fps_text_buffer;
 narf::font::TextBuffer *block_info_buffer;
 narf::font::TextBuffer *location_buffer;
 
+narf::BlockWrapper selected_block_face;
+
 
 float clampf(float val, float min, float max)
 {
@@ -170,6 +172,28 @@ void draw2d() {
 
 	draw_cursor();
 
+	auto blue = narf::Color(0.0f, 0.0f, 1.0f);
+
+	block_info_buffer->clear();
+	if (selected_block_face.block) {
+		std::wstring block_info_str = L"Block info: ";
+
+		const wchar_t *BlockFace_str[] = {L"Top", L"Bottom", L"East", L"West", L"North", L"South", L"Invalid"};
+
+		block_info_str += L"ID: " + std::to_wstring(selected_block_face.block->id) +
+			L" Pos: " + std::to_wstring(selected_block_face.x) +
+			L", " + std::to_wstring(selected_block_face.y) +
+			L", " + std::to_wstring(selected_block_face.z) +
+			L" " + BlockFace_str[selected_block_face.face] +
+			L" (" + std::to_wstring((int)selected_block_face.face) + L")";
+
+		block_info_buffer->print(block_info_str, 0, 35, blue);
+	}
+
+	std::wstring location_str = L"Pos: " + std::to_wstring(player->position.x) + L", " + std::to_wstring(player->position.y) + L", " + std::to_wstring(player->position.z);
+	location_buffer->clear();
+	location_buffer->print(location_str, 0, 70, blue);
+
 	console_text_buffer->render();
 	fps_text_buffer->render();
 	block_info_buffer->render();
@@ -240,6 +264,37 @@ void sim_frame(const narf::Input &input, double t, double dt)
 	cam.position = player->position;
 	cam.position.y += 2.0f;
 
+	// Let's see what we're looking at
+	auto pos = narf::math::coord::Point3f(cam.position.x, cam.position.z, cam.position.y);
+	selected_block_face = world->rayTrace(pos, narf::math::Orientationf(M_PI/2 + cam.pitch, cam.yaw - M_PI/2), 7.5);
+
+	if (selected_block_face.block != nullptr) {
+		if (input.action_primary_begin() || input.action_secondary_begin()) {
+			printf("got left click\n");
+			printf("got non-null block %d %d %d\n", selected_block_face.x, selected_block_face.y, selected_block_face.z);
+			narf::Block b;
+			uint32_t x = selected_block_face.x;
+			uint32_t y = selected_block_face.z;
+			uint32_t z = selected_block_face.y;
+			if (input.action_secondary_begin()) {
+				// remove block at cursor
+				b.id = 0;
+			} else {
+				// add new block next to selected face
+				switch (selected_block_face.face) {
+				case narf::BlockFace::XPos: x++; break;
+				case narf::BlockFace::XNeg: x--; break;
+				case narf::BlockFace::YPos: y++; break;
+				case narf::BlockFace::YNeg: y--; break;
+				case narf::BlockFace::ZPos: z++; break;
+				case narf::BlockFace::ZNeg: z--; break;
+				}
+				b.id = 3;
+			}
+			world->put_block(&b, x, y, z);
+		}
+	}
+
 	bouncy_block->update(t, dt);
 }
 
@@ -302,28 +357,6 @@ void game_loop()
 			fps_t1 = get_time();
 			draws = physics_steps = 0;
 		}
-
-		// Let's see what we're looking at
-		auto blue = narf::Color(0.0f, 0.0f, 1.0f);
-		auto pos = narf::math::coord::Point3f(cam.position.x, cam.position.z, cam.position.y);
-		narf::BlockWrapper blockwrap = world->rayTrace(pos, narf::math::Orientationf(M_PI/2 + cam.pitch, cam.yaw - M_PI/2), 7.5);
-		//printf("Block info: ID: %d Pos: %d, %d, %d\n", blockwrap.block->id, blockwrap.x, blockwrap.y, blockwrap.z);
-		std::wstring block_info_str = L"Block info: ";
-
-		std::vector<std::wstring> BlockFace_str = {L"Top", L"Bottom", L"East", L"West", L"North", L"South", L"Invalid"};
-
-		block_info_str += L"ID: " + std::to_wstring(blockwrap.block->id) +
-			L" Pos: " + std::to_wstring(blockwrap.x) +
-			L", " + std::to_wstring(blockwrap.y) +
-			L", " + std::to_wstring(blockwrap.z) +
-			L" " + BlockFace_str[blockwrap.face] +
-			L" (" + std::to_wstring((int)blockwrap.face) + L")";
-		block_info_buffer->clear();
-		block_info_buffer->print(block_info_str, 0, 35, blue);
-
-		std::wstring location_str = L"Pos: " + std::to_wstring(pos.x) + L", " + std::to_wstring(pos.y) + L", " + std::to_wstring(pos.z);
-		location_buffer->clear();
-		location_buffer->print(location_str, 0, 70, blue);
 
 		draw();
 		draws++;
