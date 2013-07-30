@@ -2,6 +2,11 @@
 #include <cmath>
 #include <float.h>
 
+bool narf::math::AlmostEqualDiff(float A, float B, float maxDiff) {
+	float absDiff = fabs(A - B);
+	return absDiff <= maxDiff;
+}
+
 bool narf::math::AlmostEqual(float A, float B) {
 	// Supposedly 4 is good...
 	bool equal = narf::math::AlmostEqualUlps(A, B, 4);

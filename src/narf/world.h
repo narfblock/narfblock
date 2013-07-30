@@ -137,16 +137,48 @@ public:
 		float distance = 0;
 		auto ray = narf::math::coord::Sphericalf(distance, orientation.inclination, orientation.azimuth);
 		auto rayEnd = narf::math::coord::Point3f(0, 0, 0);
+		int32_t prevX = 0;
+		int32_t prevY = 0;
+		int32_t prevZ = 0;
 		const Block* block;
 		for (; distance < max_distance; distance += 0.05) {
 			ray.radius = distance;
 			rayEnd = baseLocation + ray;
-			block = get_block((int)rayEnd.x, (int)rayEnd.z, (int)rayEnd.y);
+			block = get_block(rayEnd.x, rayEnd.z, rayEnd.y);
 			if (block->id != 0) {
 				break;
 			}
+			prevX = prevX != (int)rayEnd.x ? (int)rayEnd.x : prevX;
+			prevY = prevY != (int)rayEnd.y ? (int)rayEnd.y : prevY;
+			prevZ = prevZ != (int)rayEnd.z ? (int)rayEnd.z : prevZ;
 		}
-		return {block, static_cast<int32_t>(rayEnd.x), static_cast<int32_t>(rayEnd.y), static_cast<int32_t>(rayEnd.z)};
+
+		BlockFace face = narf::Invalid;
+		int32_t xDiff = prevX - (int)rayEnd.x;
+		int32_t yDiff = prevY - (int)rayEnd.y;
+		int32_t zDiff = prevZ - (int)rayEnd.z;
+		if (xDiff != 0) {
+			if (xDiff < 0) {
+				face = narf::XNeg;
+			} else {
+				face = narf::XPos;
+			}
+		} else if (yDiff != 0) {
+			if (yDiff < 0) {
+				face = narf::ZNeg;
+			} else {
+				face = narf::ZPos;
+			}
+		} else if (zDiff != 0) {
+			if (zDiff < 0) {
+				face = narf::YNeg;
+			} else {
+				face = narf::YPos;
+			}
+		}
+
+		BlockWrapper tmp = {block, static_cast<int32_t>(rayEnd.x), static_cast<int32_t>(rayEnd.y), static_cast<int32_t>(rayEnd.z), face};
+		return tmp;
 	}
 
 

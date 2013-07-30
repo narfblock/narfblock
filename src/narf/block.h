@@ -40,13 +40,14 @@ public:
 	uint8_t id;
 };
 
-enum BlockFace { YPos, YNeg, XPos, XNeg, ZPos, ZNeg };
+enum BlockFace { YPos, YNeg, XPos, XNeg, ZPos, ZNeg, Invalid };
 
 typedef struct {
 	const Block* block;
 	int32_t x;
 	int32_t y;
 	int32_t z;
+	BlockFace face;
 } BlockWrapper;
 
 } // namespace narf

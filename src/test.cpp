@@ -18,6 +18,7 @@
 #include "narf/input.h"
 #include "narf/vector.h"
 #include "narf/world.h"
+#include "narf/block.h"
 #include "narf/config/config.h"
 #include "narf/math/math.h"
 
@@ -308,14 +309,15 @@ void game_loop()
 		narf::BlockWrapper blockwrap = world->rayTrace(pos, narf::math::Orientationf(M_PI/2 + cam.pitch, cam.yaw - M_PI/2), 7.5);
 		//printf("Block info: ID: %d Pos: %d, %d, %d\n", blockwrap.block->id, blockwrap.x, blockwrap.y, blockwrap.z);
 		std::wstring block_info_str = L"Block info: ";
-		if (blockwrap.block == NULL) {
-			block_info_str += L"Naaathing";
-		} else {
-			block_info_str += L"ID: " + std::to_wstring(blockwrap.block->id) +
-				L" Pos: " + std::to_wstring(blockwrap.x) +
-				L", " + std::to_wstring(blockwrap.y) +
-				L", " + std::to_wstring(blockwrap.z);
-		}
+
+		std::vector<std::wstring> BlockFace_str = {L"Top", L"Bottom", L"East", L"West", L"North", L"South", L"Invalid"};
+
+		block_info_str += L"ID: " + std::to_wstring(blockwrap.block->id) +
+			L" Pos: " + std::to_wstring(blockwrap.x) +
+			L", " + std::to_wstring(blockwrap.y) +
+			L", " + std::to_wstring(blockwrap.z) +
+			L" " + BlockFace_str[blockwrap.face] +
+			L" (" + std::to_wstring((int)blockwrap.face) + L")";
 		block_info_buffer->clear();
 		block_info_buffer->print(block_info_str, 0, 35, blue);
 

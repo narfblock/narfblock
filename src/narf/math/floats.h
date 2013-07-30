@@ -22,6 +22,7 @@ namespace narf {
 		};
 
 		bool AlmostEqual(float A, float B);
+		bool AlmostEqualDiff(float A, float B, float maxDiff);
 		bool AlmostEqualUlps(float A, float B, int maxUlpsDiff);
 		bool AlmostEqualUlpsAndAbs(float A, float B, float maxDiff, int maxUlpsDiff);
 		bool AlmostEqualRelativeAndAbs(float A, float B, float maxDiff, float maxRelDiff);
