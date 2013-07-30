@@ -37,6 +37,12 @@ void narf::Input::process_event(const SDL_Event *event)
 		case SDLK_SPACE:
 			jump_ = true;
 			break;
+		case SDLK_F1:
+			toggle_wireframe_ = true;
+			break;
+		case SDLK_F2:
+			toggle_backface_culling_ = true;
+			break;
 		}
 		break;
 
@@ -98,6 +104,8 @@ void narf::Input::begin_sample()
 	jump_ = false;
 	action_primary_begin_ = action_primary_end_ = false;
 	action_secondary_begin_ = action_secondary_end_ = false;
+	toggle_wireframe_ = false;
+	toggle_backface_culling_ = false;
 	look_rel_ = Vector2f(0.0f, 0.0f);
 }
 

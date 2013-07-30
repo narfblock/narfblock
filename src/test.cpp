@@ -56,6 +56,10 @@ narf::font::TextBuffer *location_buffer;
 
 narf::BlockWrapper selected_block_face;
 
+// debug options
+bool wireframe = false;
+bool backface_culling = false; // TODO: default to true once winding order is fixed
+
 
 float clampf(float val, float min, float max)
 {
@@ -114,13 +118,18 @@ void draw3d() {
 	glLoadIdentity();
 
 	glEnable(GL_DEPTH_TEST);
-	//glEnable(GL_CULL_FACE);
+
+	if (backface_culling) {
+		glEnable(GL_CULL_FACE);
+	}
+
+	if (wireframe) {
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	} else {
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	}
 
 	glEnable(GL_TEXTURE_2D);
-
-	// for drawing outlines
-	glPolygonOffset(1.0, 2);
-	glEnable(GL_POLYGON_OFFSET_FILL);
 
 	world->render(tiles_tex, &cam);
 
@@ -160,6 +169,8 @@ void draw2d() {
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
@@ -270,8 +281,6 @@ void sim_frame(const narf::Input &input, double t, double dt)
 
 	if (selected_block_face.block != nullptr) {
 		if (input.action_primary_begin() || input.action_secondary_begin()) {
-			printf("got left click\n");
-			printf("got non-null block %d %d %d\n", selected_block_face.x, selected_block_face.y, selected_block_face.z);
 			narf::Block b;
 			uint32_t x = selected_block_face.x;
 			uint32_t y = selected_block_face.z;
@@ -289,10 +298,18 @@ void sim_frame(const narf::Input &input, double t, double dt)
 				case narf::BlockFace::ZPos: z++; break;
 				case narf::BlockFace::ZNeg: z--; break;
 				}
-				b.id = 3;
+				b.id = 2;
 			}
 			world->put_block(&b, x, y, z);
 		}
+	}
+
+	if (input.toggle_wireframe()) {
+		wireframe = !wireframe;
+	}
+
+	if (input.toggle_backface_culling()) {
+		backface_culling = !backface_culling;
 	}
 
 	bouncy_block->update(t, dt);

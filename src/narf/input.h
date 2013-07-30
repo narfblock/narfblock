@@ -27,6 +27,8 @@ public:
 		action_secondary_(false),
 		action_secondary_begin_(false),
 		action_secondary_end_(false),
+		toggle_wireframe_(false),
+		toggle_backface_culling_(false),
 		look_rel_(0.0f, 0.0f) { }
 
 	void begin_sample();
@@ -49,6 +51,9 @@ public:
 	bool action_secondary() const { return action_secondary_; }
 	bool action_secondary_begin() const { return action_secondary_begin_; }
 	bool action_secondary_end() const { return action_secondary_end_; }
+
+	bool toggle_wireframe() const { return toggle_wireframe_; }
+	bool toggle_backface_culling() const { return toggle_backface_culling_; }
 
 	const Vector2f look_rel() const { return look_rel_; }
 
@@ -75,6 +80,9 @@ private:
 	bool action_secondary_; // right click
 	bool action_secondary_begin_;
 	bool action_secondary_end_;
+
+	bool toggle_wireframe_;
+	bool toggle_backface_culling_;
 
 	Vector2f look_rel_;
 };
