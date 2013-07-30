@@ -135,7 +135,7 @@ public:
 
 	BlockWrapper rayTrace(narf::math::coord::Point3f baseLocation, narf::math::Orientationf orientation, float max_distance) {
 		float distance = 0;
-		auto ray = narf::math::coord::Sphericalf(distance, orientation.inclination, orientation.azimuth);
+		auto ray = narf::math::coord::Sphericalf(distance, M_PI/2 - orientation.pitch, -((float)orientation.yaw - M_PI/2));
 		auto rayEnd = narf::math::coord::Point3f(0, 0, 0);
 		int32_t prevX = 0;
 		int32_t prevY = 0;
@@ -144,7 +144,7 @@ public:
 		for (; distance < max_distance; distance += 0.05) {
 			ray.radius = distance;
 			rayEnd = baseLocation + ray;
-			block = get_block(rayEnd.x, rayEnd.z, rayEnd.y);
+			block = get_block(rayEnd.x, rayEnd.y, rayEnd.z);
 			if (block->id != 0) {
 				break;
 			}
@@ -165,15 +165,15 @@ public:
 			}
 		} else if (yDiff != 0) {
 			if (yDiff < 0) {
-				face = narf::ZNeg;
-			} else {
-				face = narf::ZPos;
-			}
-		} else if (zDiff != 0) {
-			if (zDiff < 0) {
 				face = narf::YNeg;
 			} else {
 				face = narf::YPos;
+			}
+		} else if (zDiff != 0) {
+			if (zDiff < 0) {
+				face = narf::ZNeg;
+			} else {
+				face = narf::ZPos;
 			}
 		}
 

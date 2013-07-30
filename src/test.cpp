@@ -56,10 +56,6 @@ narf::font::TextBuffer *location_buffer;
 
 narf::BlockWrapper selected_block_face;
 
-// debug options
-bool wireframe = false;
-bool backface_culling = false; // TODO: default to true once winding order is fixed
-
 
 float clampf(float val, float min, float max)
 {
@@ -189,7 +185,7 @@ void draw2d() {
 	if (selected_block_face.block) {
 		std::wstring block_info_str = L"Block info: ";
 
-		const wchar_t *BlockFace_str[] = {L"Top", L"Bottom", L"East", L"West", L"North", L"South", L"Invalid"};
+		const wchar_t *BlockFace_str[] = {L"East", L"West", L"North", L"South", L"Top", L"Bottom", L"Invalid"};
 
 		block_info_str += L"ID: " + std::to_wstring(selected_block_face.block->id) +
 			L" Pos: " + std::to_wstring(selected_block_face.x) +
@@ -202,6 +198,7 @@ void draw2d() {
 	}
 
 	std::wstring location_str = L"Pos: " + std::to_wstring(player->position.x) + L", " + std::to_wstring(player->position.y) + L", " + std::to_wstring(player->position.z);
+	location_str += L" Yaw: " + std::to_wstring(cam.orientation.yaw) + L" Pitch: " + std::to_wstring(cam.orientation.pitch);
 	location_buffer->clear();
 	location_buffer->print(location_str, 0, 70, blue);
 
@@ -237,54 +234,58 @@ void poll_input(narf::Input *input)
 void sim_frame(const narf::Input &input, double t, double dt)
 {
 	// TODO: decouple player direction and camera direction
-	cam.yaw += input.look_rel().x;
-	cam.yaw = fmodf(cam.yaw, (float)M_PI * 2.0f);
+	cam.orientation.yaw += input.look_rel().x;
+	cam.orientation.yaw = fmodf(cam.orientation.yaw, (float)M_PI * 2.0f);
 
-	cam.pitch += input.look_rel().y;
-	cam.pitch = clampf(cam.pitch, -(float)M_PI / 2, (float)M_PI / 2);
+	cam.orientation.pitch.minimum = -(float)M_PI;
+	cam.orientation.pitch.maximum = (float)M_PI;
+	cam.orientation.pitch -= input.look_rel().y;
+	cam.orientation.pitch = clampf(cam.orientation.pitch, -(float)M_PI/2, (float)M_PI/2);
 
 	narf::Vector3f vel_rel(0.0f, 0.0f, 0.0f);
 
 	if (input.move_forward()) {
-		vel_rel -= narf::Vector3f(cosf(cam.yaw + (float)M_PI / 2), 0.0f, sinf(cam.yaw + (float)M_PI / 2));
+		vel_rel -= narf::Vector3f(cosf(cam.orientation.yaw + (float)M_PI / 2), -sinf(cam.orientation.yaw + (float)M_PI / 2), 0.0f);
 	} else if (input.move_backward()) {
-		vel_rel += narf::Vector3f(cosf(cam.yaw + (float)M_PI / 2), 0.0f, sinf(cam.yaw + (float)M_PI / 2));
+		vel_rel += narf::Vector3f(cosf(cam.orientation.yaw + (float)M_PI / 2), -sinf(cam.orientation.yaw + (float)M_PI / 2), 0.0f);
 	}
 
 	if (input.strafe_left()) {
-		vel_rel -= narf::Vector3f(cosf(cam.yaw), 0.0f, sinf(cam.yaw));
+		vel_rel -= narf::Vector3f(cosf(cam.orientation.yaw), -sinf(cam.orientation.yaw), 0.0f);
 	} else if (input.strafe_right()) {
-		vel_rel += narf::Vector3f(cosf(cam.yaw), 0.0f, sinf(cam.yaw));
+		vel_rel += narf::Vector3f(cosf(cam.orientation.yaw), -sinf(cam.orientation.yaw), 0.0f);
 	}
 
 	// normalize so that diagonal movement is not faster than cardinal directions
 	vel_rel = vel_rel.normalize() * movespeed;
 
 	if (input.jump()) {
-		vel_rel += narf::Vector3f(0.0f, 8.0f, 0.0f);
+		vel_rel += narf::Vector3f(0.0f, 0.0f, 8.0f);
 	}
 
 	// hax
 	player->velocity.x = vel_rel.x;
-	player->velocity.y += vel_rel.y;
-	player->velocity.z = vel_rel.z;
+	player->velocity.y = vel_rel.y;
+	player->velocity.z += vel_rel.z;
 
 	player->update(t, dt);
 
 	// lock camera to player
 	cam.position = player->position;
-	cam.position.y += 2.0f;
+	cam.position.z += 2.0f;
 
 	// Let's see what we're looking at
-	auto pos = narf::math::coord::Point3f(cam.position.x, cam.position.z, cam.position.y);
-	selected_block_face = world->rayTrace(pos, narf::math::Orientationf(M_PI/2 + cam.pitch, cam.yaw - M_PI/2), 7.5);
+	auto pos = narf::math::coord::Point3f(cam.position.x, cam.position.y, cam.position.z);
+	selected_block_face = world->rayTrace(pos, cam.orientation, 7.5);
 
 	if (selected_block_face.block != nullptr) {
 		if (input.action_primary_begin() || input.action_secondary_begin()) {
+			printf("got left click\n");
+			printf("got non-null block %d %d %d\n", selected_block_face.x, selected_block_face.y, selected_block_face.z);
 			narf::Block b;
 			uint32_t x = selected_block_face.x;
-			uint32_t y = selected_block_face.z;
-			uint32_t z = selected_block_face.y;
+			uint32_t y = selected_block_face.y;
+			uint32_t z = selected_block_face.z;
 			if (input.action_secondary_begin()) {
 				// remove block at cursor
 				b.id = 0;
@@ -298,18 +299,10 @@ void sim_frame(const narf::Input &input, double t, double dt)
 				case narf::BlockFace::ZPos: z++; break;
 				case narf::BlockFace::ZNeg: z--; break;
 				}
-				b.id = 2;
+				b.id = 3;
 			}
 			world->put_block(&b, x, y, z);
 		}
-	}
-
-	if (input.toggle_wireframe()) {
-		wireframe = !wireframe;
-	}
-
-	if (input.toggle_backface_culling()) {
-		backface_culling = !backface_culling;
 	}
 
 	bouncy_block->update(t, dt);
@@ -397,19 +390,19 @@ void gen_world()
 	world = new narf::World(WORLD_X_MAX, WORLD_Y_MAX, WORLD_Z_MAX, 16, 16, 16);
 
 	// first fill a plane at y = 0
-	for (int z = 0; z < WORLD_Z_MAX; z++) {
+	for (int y = 0; y < WORLD_Y_MAX; y++) {
 		for (int x = 0; x < WORLD_X_MAX; x++) {
 			narf::Block b;
 			b.id = 2; // grass
-			world->put_block(&b, x, 0, z);
+			world->put_block(&b, x, y, 0);
 		}
 	}
 
 	// generate some random blocks above the ground
 	for (int i = 0; i < 1000; i++) {
 		int x = randi(0, WORLD_X_MAX - 1);
-		int y = randi(1, 10);
-		int z = randi(0, WORLD_Z_MAX - 1);
+		int y = randi(0, WORLD_Y_MAX - 1);
+		int z = randi(1, 10);
 		narf::Block b;
 		b.id = randi(1, 3);
 		world->put_block(&b, x, y, z);
@@ -418,9 +411,9 @@ void gen_world()
 	for (int i = 0; i < 10; i++) {
 		narf::Block b;
 		b.id = 16;
-		world->put_block(&b, 5 + i, 1, 5);
-		world->put_block(&b, 5, 1, 5 + i);
-		world->put_block(&b, 5 + i, 1, 15);
+		world->put_block(&b, 5 + i, 5, 1);
+		world->put_block(&b, 5, 5 + i, 1);
+		world->put_block(&b, 5 + i, 15, 1);
 	}
 
 	world->set_gravity(-9.8f);
@@ -510,14 +503,14 @@ extern "C" int main(int argc, char **argv)
 	player = new narf::Entity(world);
 
 	// initial player position
-	player->position = narf::Vector3f(15.0f, 1.0f, 10.0f);
+	player->position = narf::Vector3f(15.0f, 10.0f, 1.0f);
 
 	// initialize camera to look at origin
-	cam.yaw = atan2f(cam.position.z, cam.position.x) - (float)M_PI / 2;
-	cam.pitch = 0.0f;
+	cam.orientation.yaw = atan2f(cam.position.y, cam.position.x);
+	cam.orientation.pitch = 0.0f;
 
 	bouncy_block = new narf::Entity(world);
-	bouncy_block->position = narf::Vector3f(10.0f, 5.0f, 10.0f);
+	bouncy_block->position = narf::Vector3f(10.0f, 10.0f, 5.0f);
 	bouncy_block->bouncy = true;
 
 	init_textures();

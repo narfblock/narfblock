@@ -1,5 +1,5 @@
-#ifndef NARFBLOCK_MATH_COORD_SPHERICALF_H
-#define NARFBLOCK_MATH_COORD_SPHERICALF_H
+#ifndef NARFBLOCK_MATH_COORD_3D_H
+#define NARFBLOCK_MATH_COORD_3D_H
 
 #include <math.h>
 #include "narf/math/floats.h"
@@ -42,9 +42,9 @@ namespace narf {
 						T z = radius * cos(inclination);
 						return Point3<T>(x, y, z);
 					}
-					Orientation<T> getOrientation() const {
-						return Orientation<T>(inclination, azimuth);
-					}
+					//narf::math::Orientation<T> getOrientation() const {
+						//return narf::math::Orientation<T>(inclination, azimuth);
+					//}
 			};
 
 			template<class T>

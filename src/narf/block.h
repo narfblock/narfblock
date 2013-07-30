@@ -40,7 +40,7 @@ public:
 	uint8_t id;
 };
 
-enum BlockFace { YPos, YNeg, XPos, XNeg, ZPos, ZNeg, Invalid };
+enum BlockFace { XPos, XNeg, YPos, YNeg, ZPos, ZNeg, Invalid };
 
 typedef struct {
 	const Block* block;

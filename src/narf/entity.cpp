@@ -35,19 +35,19 @@
 void narf::Entity::update(double t, double dt)
 {
 	// cheesy Euler integration
-	Vector3f acceleration = Vector3f(0.0f, world_->get_gravity(), 0.0f);
+	Vector3f acceleration = Vector3f(0.0f, 0.0f, world_->get_gravity());
 
 	velocity += acceleration * dt;
 	position += velocity * dt;
 
 	// TODO: bogus collision detection
-	if (position.y < 1.0f) {
+	if (position.z < 1.0f) {
 		if (bouncy) {
-			position.y = 2.0f - position.y;
-			velocity.y = -velocity.y;
+			position.z = 2.0f - position.z;
+			velocity.z = -velocity.z;
 		} else {
-			position.y = 1.0f;
-			velocity.y = 0.0f;
+			position.z = 1.0f;
+			velocity.z = 0.0f;
 		}
 	}
 }

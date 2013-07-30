@@ -34,6 +34,7 @@
 #define NARF_CAMERA_H
 
 #include "narf/vector.h"
+#include "narf/math/orientation.h"
 
 namespace narf {
 
@@ -44,9 +45,7 @@ public:
 
 	narf::Vector3f position;
 
-	// view angles in radians
-	float yaw;
-	float pitch;
+	narf::math::Orientationf orientation;
 };
 
 } // namespace narf

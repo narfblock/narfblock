@@ -36,8 +36,8 @@ void narf::World::render(narf::gl::Texture *tiles_tex, const narf::Camera *cam)
 {
 	// camera
 	glLoadIdentity();
-	glRotatef(cam->pitch * 180.0f / (float)M_PI, 1.0f, 0.0f, 0.0f);
-	glRotatef(cam->yaw   * 180.0f / (float)M_PI, 0.0f, 1.0f, 0.0f);
+	glRotatef(-((float)cam->orientation.pitch + M_PI/2) * 180.0f / (float)M_PI, 1.0f, 0.0f, 0.0f);
+	glRotatef(cam->orientation.yaw   * 180.0f / (float)M_PI, 0.0f, 0.0f, 1.0f);
 	glTranslatef(-cam->position.x, -cam->position.y, -cam->position.z);
 
 	// draw chunks
