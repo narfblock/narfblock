@@ -69,6 +69,15 @@ namespace narf {
 					float distanceTo(T x2, T y2, T z2) const {
 						return distance(x, y, z, x2, y2, z2);
 					}
+					Point3<T> &operator +=(const Point3<T> &add) {
+						x += add.x;
+						y += add.y;
+						z += add.z;
+						return *this;
+					}
+					const Point3<T> operator+(const Point3<T> &add) const {
+						return Point3<T>(x + add.x, y + add.y, z + add.z);
+					}
 			};
 
 			typedef Spherical<float> Sphericalf;

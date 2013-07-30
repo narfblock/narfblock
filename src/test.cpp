@@ -50,6 +50,8 @@ boost::filesystem::path data_dir;
 narf::font::FontManager font_manager;
 narf::font::TextBuffer *console_text_buffer;
 narf::font::TextBuffer *fps_text_buffer;
+narf::font::TextBuffer *block_info_buffer;
+narf::font::TextBuffer *location_buffer;
 
 
 float clampf(float val, float min, float max)
@@ -169,6 +171,8 @@ void draw2d() {
 
 	console_text_buffer->render();
 	fps_text_buffer->render();
+	block_info_buffer->render();
+	location_buffer->render();
 }
 
 
@@ -297,6 +301,27 @@ void game_loop()
 			fps_t1 = get_time();
 			draws = physics_steps = 0;
 		}
+
+		// Let's see what we're looking at
+		auto blue = narf::Color(0.0f, 0.0f, 1.0f);
+		auto pos = narf::math::coord::Point3f(cam.position.x, cam.position.z, cam.position.y);
+		narf::BlockWrapper blockwrap = world->rayTrace(pos, narf::math::Orientationf(M_PI/2 + cam.pitch, cam.yaw - M_PI/2), 7.5);
+		//printf("Block info: ID: %d Pos: %d, %d, %d\n", blockwrap.block->id, blockwrap.x, blockwrap.y, blockwrap.z);
+		std::wstring block_info_str = L"Block info: ";
+		if (blockwrap.block == NULL) {
+			block_info_str += L"Naaathing";
+		} else {
+			block_info_str += L"ID: " + std::to_wstring(blockwrap.block->id) +
+				L" Pos: " + std::to_wstring(blockwrap.x) +
+				L", " + std::to_wstring(blockwrap.y) +
+				L", " + std::to_wstring(blockwrap.z);
+		}
+		block_info_buffer->clear();
+		block_info_buffer->print(block_info_str, 0, 35, blue);
+
+		std::wstring location_str = L"Pos: " + std::to_wstring(pos.x) + L", " + std::to_wstring(pos.y) + L", " + std::to_wstring(pos.z);
+		location_buffer->clear();
+		location_buffer->print(location_str, 0, 70, blue);
 
 		draw();
 		draws++;
@@ -453,6 +478,8 @@ extern "C" int main(int argc, char **argv)
 
 	console_text_buffer = new narf::font::TextBuffer(font);
 	fps_text_buffer = new narf::font::TextBuffer(font);
+	block_info_buffer = new narf::font::TextBuffer(font);
+	location_buffer = new narf::font::TextBuffer(font);
 
 	auto red = narf::Color(1.0f, 0.0f, 0.0f, 1.0f);
 	console_text_buffer->print(L"Testing 123", 0, 10, red);

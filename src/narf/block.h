@@ -42,6 +42,13 @@ public:
 
 enum BlockFace { YPos, YNeg, XPos, XNeg, ZPos, ZNeg };
 
+typedef struct {
+	const Block* block;
+	int32_t x;
+	int32_t y;
+	int32_t z;
+} BlockWrapper;
+
 } // namespace narf
 
 #endif // NARF_BLOCK_H

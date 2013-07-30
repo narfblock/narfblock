@@ -41,6 +41,7 @@
 #include "narf/chunk.h"
 #include "narf/camera.h"
 #include "narf/vector.h"
+#include "narf/math/math.h"
 
 #include "narf/gl/gl.h"
 
@@ -131,6 +132,23 @@ public:
 
 	void set_gravity(float g) { gravity_ = g; }
 	float get_gravity() { return gravity_; }
+
+	BlockWrapper rayTrace(narf::math::coord::Point3f baseLocation, narf::math::Orientationf orientation, float max_distance) {
+		float distance = 0;
+		auto ray = narf::math::coord::Sphericalf(distance, orientation.inclination, orientation.azimuth);
+		auto rayEnd = narf::math::coord::Point3f(0, 0, 0);
+		const Block* block;
+		for (; distance < max_distance; distance += 0.05) {
+			ray.radius = distance;
+			rayEnd = baseLocation + ray;
+			block = get_block((int)rayEnd.x, (int)rayEnd.z, (int)rayEnd.y);
+			if (block->id != 0) {
+				break;
+			}
+		}
+		return {block, static_cast<int32_t>(rayEnd.x), static_cast<int32_t>(rayEnd.y), static_cast<int32_t>(rayEnd.z)};
+	}
+
 
 private:
 

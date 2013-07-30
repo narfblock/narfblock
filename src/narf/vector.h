@@ -5,115 +5,127 @@
 
 namespace narf {
 
-class Vector2f {
-public:
+	template<class T>
+		class Vector2 {
+			public:
 
-	float x, y;
+				T x, y;
 
-	Vector2f() : x(0.0f), y(0.0f) { }
-	Vector2f(float x, float y) : x(x), y(y) { }
+				Vector2() : x(0.0f), y(0.0f) { }
+				Vector2(T x, T y) : x(x), y(y) { }
 
-	float length() const
-	{
-		return sqrt(x * x + y * y);
-	}
+				T length() const
+				{
+					return sqrt(x * x + y * y);
+				}
 
-	const Vector2f normalize() const
-	{
-		float length = this->length();
-		if (length == 0) {
-			return *this;
-		} else {
-			return Vector2f(x / length, y / length);
-		}
-	}
+				const Vector2<T> normalize() const
+				{
+					T length = this->length();
+					if (length == 0) {
+						return *this;
+					} else {
+						return Vector2<T>(x / length, y / length);
+					}
+				}
 
-	const Vector2f operator+(const Vector2f &add) const
-	{
-		return Vector2f(x + add.x, y + add.y);
-	}
+				const Vector2<T> operator+(const Vector2<T> &add) const
+				{
+					return Vector2<T>(x + add.x, y + add.y);
+				}
 
-	Vector2f &operator +=(const Vector2f &add)
-	{
-		x += add.x;
-		y += add.y;
-		return *this;
-	}
+				Vector2<T> &operator +=(const Vector2<T> &add)
+				{
+					x += add.x;
+					y += add.y;
+					return *this;
+				}
 
-	const Vector2f operator-(const Vector2f &sub) const
-	{
-		return Vector2f(x - sub.x, y - sub.y);
-	}
+				const Vector2<T> operator-(const Vector2<T> &sub) const
+				{
+					return Vector2<T>(x - sub.x, y - sub.y);
+				}
 
-	Vector2f &operator-=(const Vector2f &sub)
-	{
-		x -= sub.x;
-		y -= sub.y;
-		return *this;
-	}
+				Vector2<T> &operator-=(const Vector2<T> &sub)
+				{
+					x -= sub.x;
+					y -= sub.y;
+					return *this;
+				}
 
-	const Vector2f operator*(float v) const
-	{
-		return Vector2f(x * v, y * v);
-	}
+				const Vector2<T> operator*(T v) const
+				{
+					return Vector2<T>(x * v, y * v);
+				}
 
-};
+				T dot(Vector2<T> vec) const {
+					return x * vec.x + y * vec.y;
+				}
 
-class Vector3f {
-public:
+		};
 
-	float x, y, z;
+	template<class T>
+		class Vector3 {
+			public:
 
-	Vector3f() : x(0.0f), y(0.0f), z(0.0f) { }
-	Vector3f(float x, float y, float z) : x(x), y(y), z(z) { }
+				T x, y, z;
 
-	float length() const
-	{
-		return sqrtf(x * x + y * y + z * z);
-	}
+				Vector3() : x(0), y(0), z(0) { }
+				Vector3(T x, T y, T z) : x(x), y(y), z(z) { }
 
-	const Vector3f normalize() const
-	{
-		float length = this->length();
-		if (length == 0) {
-			return *this;
-		} else {
-			return Vector3f(x / length, y / length, z / length);
-		}
-	}
+				T length() const {
+					return sqrtf(x * x + y * y + z * z);
+				}
 
-	const Vector3f operator+(const Vector3f &add) const
-	{
-		return Vector3f(x + add.x, y + add.y, z + add.z);
-	}
+				const Vector3<T> normalize() const {
+					T length = this->length();
+					if (length == 0) {
+						return *this;
+					} else {
+						return Vector3<T>(x / length, y / length, z / length);
+					}
+				}
 
-	Vector3f &operator +=(const Vector3f &add)
-	{
-		x += add.x;
-		y += add.y;
-		z += add.z;
-		return *this;
-	}
+				const Vector3<T> operator+(const Vector3<T> &add) const {
+					return Vector3<T>(x + add.x, y + add.y, z + add.z);
+				}
 
-	const Vector3f operator-(const Vector3f &sub) const
-	{
-		return Vector3f(x - sub.x, y - sub.y, z - sub.z);
-	}
+				Vector3<T> &operator +=(const Vector3<T> &add) {
+					x += add.x;
+					y += add.y;
+					z += add.z;
+					return *this;
+				}
 
-	Vector3f &operator-=(const Vector3f &sub)
-	{
-		x -= sub.x;
-		y -= sub.y;
-		z -= sub.z;
-		return *this;
-	}
+				const Vector3<T> operator-(const Vector3<T> &sub) const {
+					return Vector3<T>(x - sub.x, y - sub.y, z - sub.z);
+				}
 
-	const Vector3f operator*(float v) const
-	{
-		return Vector3f(x * v, y * v, z * v);
-	}
+				Vector3<T> &operator-=(const Vector3<T> &sub) {
+					x -= sub.x;
+					y -= sub.y;
+					z -= sub.z;
+					return *this;
+				}
 
-};
+				const Vector3<T> operator*(T v) const {
+					return Vector3<T>(x * v, y * v, z * v);
+				}
+
+				T dot(Vector3<T> vec) const {
+					return x * vec.x + y * vec.y + z * vec.z;
+				}
+
+				const Vector3<T> cross(Vector3<T> vec) const {
+					return Vector3<T>(
+							y * vec.z - z * vec.y,
+							z * vec.x - x * vec.z,
+							x * vec.y - y * vec.x);
+				}
+		};
+
+	typedef Vector2<float> Vector2f;
+	typedef Vector3<float> Vector3f;
 
 } // namespace narf
 
