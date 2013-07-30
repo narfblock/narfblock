@@ -21,6 +21,12 @@ public:
 		last_strafe_(last_strafe_neither),
 		jump_(false),
 		exit_(false),
+		action_primary_(false),
+		action_primary_begin_(false),
+		action_primary_end_(false),
+		action_secondary_(false),
+		action_secondary_begin_(false),
+		action_secondary_end_(false),
 		look_rel_(0.0f, 0.0f) { }
 
 	void begin_sample();
@@ -35,6 +41,14 @@ public:
 
 	bool jump() const { return jump_; }
 	bool exit() const { return exit_; }
+
+	bool action_primary() const { return action_primary_; }
+	bool action_primary_begin() const { return action_primary_begin_; }
+	bool action_primary_end() const { return action_primary_end_; }
+
+	bool action_secondary() const { return action_secondary_; }
+	bool action_secondary_begin() const { return action_secondary_begin_; }
+	bool action_secondary_end() const { return action_secondary_end_; }
 
 	const Vector2f look_rel() const { return look_rel_; }
 
@@ -53,6 +67,14 @@ private:
 	bool jump_;
 
 	bool exit_;
+
+	bool action_primary_; // left click
+	bool action_primary_begin_;
+	bool action_primary_end_;
+
+	bool action_secondary_; // right click
+	bool action_secondary_begin_;
+	bool action_secondary_end_;
 
 	Vector2f look_rel_;
 };

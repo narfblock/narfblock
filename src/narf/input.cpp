@@ -61,6 +61,33 @@ void narf::Input::process_event(const SDL_Event *event)
 		look_rel_ = Vector2f((float)event->motion.xrel * look_sensitivity_x_,
 		                     (float)event->motion.yrel * look_sensitivity_y_);
 		break;
+
+	case SDL_MOUSEBUTTONDOWN:
+		switch (event->button.button) {
+		case SDL_BUTTON_LEFT:
+			action_primary_begin_ = !action_primary_;
+			action_primary_ = true;
+			break;
+		case SDL_BUTTON_RIGHT:
+			action_secondary_begin_ = !action_secondary_;
+			action_secondary_ = true;
+			break;
+		}
+		break;
+
+	case SDL_MOUSEBUTTONUP:
+		switch (event->button.button) {
+		case SDL_BUTTON_LEFT:
+			action_primary_ = false;
+			action_primary_end_ = true;
+			break;
+		case SDL_BUTTON_RIGHT:
+			action_secondary_ = false;
+			action_secondary_end_ = true;
+			break;
+		}
+		break;
+
 	}
 }
 
@@ -69,6 +96,8 @@ void narf::Input::begin_sample()
 {
 	// reset one-shot events and relative measurements
 	jump_ = false;
+	action_primary_begin_ = action_primary_end_ = false;
+	action_secondary_begin_ = action_secondary_end_ = false;
 	look_rel_ = Vector2f(0.0f, 0.0f);
 }
 
