@@ -82,12 +82,12 @@ public:
 		assert(x >= 0 && y >= 0 && z >= 0);
 		assert(x < size_x_ && y < size_y_ && z < size_z_);
 
-		return &blocks_[((y * size_z_) + z) * size_x_ + x];
+		return &blocks_[((z * size_y_) + y) * size_x_ + x];
 	}
 
 	void put_block(const Block *b, uint32_t x, uint32_t y, uint32_t z)
 	{
-		blocks_[y * size_y_ * size_z_ + z * size_x_ + x] = *b;
+		blocks_[z * size_x_ * size_y_ + y * size_x_ + x] = *b;
 		rebuild_vertex_buffers_ = true;
 	}
 

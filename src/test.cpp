@@ -56,6 +56,9 @@ narf::font::TextBuffer *location_buffer;
 
 narf::BlockWrapper selected_block_face;
 
+// debug options
+bool wireframe = false;
+bool backface_culling = false; // TODO: default to true once winding order is fixed
 
 float clampf(float val, float min, float max)
 {
