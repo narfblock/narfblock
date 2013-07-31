@@ -21,9 +21,9 @@ include (DownloadFont)
 # use Boost autolinking instead of explicit package names on MSVC
 # CMake doesn't generate the correct filenames for the Boost MSVC libraries
 if (MSVC)
-    find_package (Boost REQUIRED)
+	find_package (Boost REQUIRED)
 else ()
-    find_package (Boost REQUIRED COMPONENTS filesystem)
+	find_package (Boost REQUIRED COMPONENTS filesystem)
 endif ()
 
 
@@ -32,8 +32,8 @@ if (CMAKE_COMPILER_IS_GNUCXX)
 endif ()
 
 if (MSVC)
-    # ask MSVC to define M_PI and related constants
-    add_definitions( -D_USE_MATH_DEFINES )
+	# ask MSVC to define M_PI and related constants
+	add_definitions( -D_USE_MATH_DEFINES )
 endif ()
 
 include_directories (
@@ -53,10 +53,21 @@ configure_file (
 	"${PROJECT_BINARY_DIR}/test.h"
 	)
 
+# source files used by both client and server
+set (NARFBLOCK_COMMON_SOURCE_FILES
+	narf/config/configmanager.cpp
+	narf/config/yamlmanager.cpp
+	narf/config/property.cpp
+	narf/util/tokenize.cpp
+	)
+
+# client executable
 add_executable (narfblock
 	# Mark as a "windowed" program (rather than console) on Windows
 	# (no effect on other platforms)
 	WIN32
+
+	${NARFBLOCK_COMMON_SOURCE_FILES}
 
 	test.cpp
 	narf/chunk.cpp
@@ -65,10 +76,6 @@ add_executable (narfblock
 	narf/world.cpp
 	narf/gl/context.cpp
 	narf/gl/texture.cpp
-	narf/config/configmanager.cpp
-	narf/config/yamlmanager.cpp
-	narf/config/property.cpp
-	narf/util/tokenize.cpp
 	narf/font.cpp
 	narf/math/floats.cpp
 	)
@@ -86,6 +93,18 @@ target_link_libraries (narfblock
 	# there are symbols in libSDLmain that depend on libSDL, but -lSDL is first in SDL_LIBRARY.
 	# Add them again to get -lSDL after -lSDLmain.
 	${SDL_LIBRARY}
+	${Boost_LIBRARIES}
+	)
+
+# server executable
+add_executable (narfblock-server
+	${NARFBLOCK_COMMON_SOURCE_FILES}
+
+	narf/server/main.cpp
+	)
+
+target_link_libraries (narfblock-server
+	${YAMLCPP_LIBRARY}
 	${Boost_LIBRARIES}
 	)
 
