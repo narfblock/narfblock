@@ -305,7 +305,7 @@ void sim_frame(const narf::Input &input, double t, double dt)
 				case narf::BlockFace::ZPos: z++; break;
 				case narf::BlockFace::ZNeg: z--; break;
 				}
-				b.id = 3;
+				b.id = 5;
 			}
 			world->put_block(&b, x, y, z);
 		}
@@ -398,36 +398,42 @@ int randi(int min, int max)
 	return (int)randf(min, max); // HAX
 }
 
+void fill_plane(uint32_t z, uint8_t block_id)
+{
+	for (int y = 0; y < WORLD_Y_MAX; y++) {
+		for (int x = 0; x < WORLD_X_MAX; x++) {
+			narf::Block b;
+			b.id = block_id;
+			world->put_block(&b, x, y, z);
+		}
+	}
+}
+
 
 void gen_world()
 {
 	world = new narf::client::World(WORLD_X_MAX, WORLD_Y_MAX, WORLD_Z_MAX, 16, 16, 16);
 
-	// first fill a plane at y = 0
-	for (int y = 0; y < WORLD_Y_MAX; y++) {
-		for (int x = 0; x < WORLD_X_MAX; x++) {
-			narf::Block b;
-			b.id = 2; // grass
-			world->put_block(&b, x, y, 0);
-		}
-	}
+	fill_plane(0, 1); // adminium
+	fill_plane(1, 2); // dirt
+	fill_plane(2, 3); // dirt with grass
 
 	// generate some random blocks above the ground
 	for (int i = 0; i < 1000; i++) {
 		int x = randi(0, WORLD_X_MAX - 1);
 		int y = randi(0, WORLD_Y_MAX - 1);
-		int z = randi(1, 10);
+		int z = randi(3, 10);
 		narf::Block b;
-		b.id = randi(1, 3);
+		b.id = randi(2, 3);
 		world->put_block(&b, x, y, z);
 	}
 
 	for (int i = 0; i < 10; i++) {
 		narf::Block b;
 		b.id = 16;
-		world->put_block(&b, 5 + i, 5, 1);
-		world->put_block(&b, 5, 5 + i, 1);
-		world->put_block(&b, 5 + i, 15, 1);
+		world->put_block(&b, 5 + i, 5, 3);
+		world->put_block(&b, 5, 5 + i, 3);
+		world->put_block(&b, 5 + i, 15, 3);
 	}
 
 	world->set_gravity(-9.8f);
@@ -485,14 +491,14 @@ extern "C" int main(int argc, char **argv)
 	player = new narf::Entity(world);
 
 	// initial player position
-	player->position = narf::Vector3f(15.0f, 10.0f, 1.0f);
+	player->position = narf::Vector3f(15.0f, 10.0f, 3.0f);
 
 	// initialize camera to look at origin
 	cam.orientation.yaw = atan2f(cam.position.y, cam.position.x);
 	cam.orientation.pitch = 0.0f;
 
 	bouncy_block = new narf::Entity(world);
-	bouncy_block->position = narf::Vector3f(10.0f, 10.0f, 5.0f);
+	bouncy_block->position = narf::Vector3f(10.0f, 10.0f, 8.0f);
 	bouncy_block->bouncy = true;
 
 	init_textures();

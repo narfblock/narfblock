@@ -137,10 +137,10 @@ uint8_t narf::client::Chunk::get_tex_id(uint8_t type, narf::BlockFace face)
 	// TODO: get rid of this hardcoded stuff
 	uint8_t tex_id_map[][6] = {
 	//  +x -x +y -y +z -z
-		{0, 0, 0, 0, 0, 0},
-		{1, 1, 1, 1, 1, 1},
-		{3, 3, 3, 3, 0, 2},
-		{3, 3, 3, 3, 3, 3},
+		{0, 0, 0, 0, 0, 0}, // air
+		{4, 4, 4, 4, 4, 4}, // adminium
+		{2, 2, 2, 2, 2, 2}, // dirt
+		{3, 3, 3, 3, 0, 2}, // dirt with grass top
 		{4, 4, 4, 4, 4, 4},
 		{5, 5, 5, 5, 5, 5},
 	};
