@@ -75,6 +75,12 @@ public:
 	{
 	}
 
+	void put_block(const Block *b, uint32_t x, uint32_t y, uint32_t z)
+	{
+		narf::Chunk::put_block(b, x, y, z);
+		rebuild_vertex_buffers_ = true;
+	}
+
 	void render();
 
 private:

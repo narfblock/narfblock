@@ -71,7 +71,7 @@ public:
 		return &blocks_[((z * size_y_) + y) * size_x_ + x];
 	}
 
-	void put_block(const Block *b, uint32_t x, uint32_t y, uint32_t z)
+	virtual void put_block(const Block *b, uint32_t x, uint32_t y, uint32_t z)
 	{
 		blocks_[z * size_x_ * size_y_ + y * size_x_ + x] = *b;
 	}
