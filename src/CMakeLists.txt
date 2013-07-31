@@ -112,4 +112,16 @@ target_link_libraries (narfblock-server
 	${Boost_LIBRARIES}
 	)
 
+# unit test executable
+add_executable (narfblock-test
+	${NARFBLOCK_COMMON_SOURCE_FILES}
+
+	narf/test/main.cpp
+	)
+
+target_link_libraries (narfblock-test
+	${YAMLCPP_LIBRARY}
+	${Boost_LIBRARIES}
+	)
+
 set(CMAKE_BUILD_TYPE Release)
