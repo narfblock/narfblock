@@ -185,7 +185,7 @@ void narf::client::Chunk::build_vertex_buffers()
 						draw_quad(vbo_y_pos_, get_tex_id(type, BlockFace::YPos), quad);
 					}
 
-					if (world_y != 0 && !world_->is_opaque(world_x, world_y - 1, world_z)) {
+					if (!world_->is_opaque(world_x, world_y - 1, world_z)) {
 						float quad[] = {fx+0,fy+0,fz+0, fx+1,fy+0,fz+0, fx+1,fy+0,fz+1, fx+0,fy+0,fz+1};
 						draw_quad(vbo_y_neg_, get_tex_id(type, BlockFace::YNeg), quad);
 					}
@@ -205,7 +205,7 @@ void narf::client::Chunk::build_vertex_buffers()
 						draw_quad(vbo_z_pos_, get_tex_id(type, BlockFace::ZPos), quad);
 					}
 
-					if (!world_->is_opaque(world_x, world_y, world_z - 1)) {
+					if (world_z != 0 && !world_->is_opaque(world_x, world_y, world_z - 1)) {
 						float quad[] = {fx+0,fy+0,fz+0, fx+1,fy+0,fz+0, fx+1,fy+1,fz+0, fx+0,fy+1,fz+0};
 						draw_quad(vbo_z_neg_, get_tex_id(type, BlockFace::ZNeg), quad);
 					}
