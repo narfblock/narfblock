@@ -17,10 +17,12 @@
 #include "narf/font.h"
 #include "narf/input.h"
 #include "narf/vector.h"
-#include "narf/world.h"
 #include "narf/block.h"
 #include "narf/config/config.h"
 #include "narf/math/math.h"
+
+#include "narf/client/world.h"
+#include "narf/client/chunk.h"
 
 #include "narf/gl/gl.h"
 
@@ -35,7 +37,7 @@ narf::Camera cam;
 
 const float movespeed = 25.0f;
 
-narf::World *world;
+narf::client::World *world;
 
 #define WORLD_X_MAX 64
 #define WORLD_Y_MAX 64
@@ -398,7 +400,7 @@ int randi(int min, int max)
 
 void gen_world()
 {
-	world = new narf::World(WORLD_X_MAX, WORLD_Y_MAX, WORLD_Z_MAX, 16, 16, 16);
+	world = new narf::client::World(WORLD_X_MAX, WORLD_Y_MAX, WORLD_Z_MAX, 16, 16, 16);
 
 	// first fill a plane at y = 0
 	for (int y = 0; y < WORLD_Y_MAX; y++) {

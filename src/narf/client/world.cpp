@@ -1,5 +1,5 @@
 /*
- * NarfBlock chunk class
+ * NarfBlock client world class
  *
  * Copyright (c) 2013 Daniel Verkamp
  * All rights reserved.
@@ -30,5 +30,23 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "narf/chunk.h"
-#include "narf/world.h"
+#include "narf/client/world.h"
+
+void narf::client::World::render(narf::gl::Texture *tiles_tex, const narf::Camera *cam)
+{
+	// camera
+	glLoadIdentity();
+	glRotatef(-((float)cam->orientation.pitch + M_PI/2) * 180.0f / (float)M_PI, 1.0f, 0.0f, 0.0f);
+	glRotatef(cam->orientation.yaw   * 180.0f / (float)M_PI, 0.0f, 0.0f, 1.0f);
+	glTranslatef(-cam->position.x, -cam->position.y, -cam->position.z);
+
+	// draw chunks
+	glBindTexture(narf::gl::TEXTURE_2D, tiles_tex);
+	for (uint32_t z = 0; z < chunks_z_; z++) {
+		for (uint32_t y = 0; y < chunks_y_; y++) {
+			for (uint32_t x = 0; x < chunks_x_; x++) {
+				get_chunk(x, y, z)->render();
+			}
+		}
+	}
+}

@@ -78,6 +78,9 @@ add_executable (narfblock
 	narf/gl/texture.cpp
 	narf/font.cpp
 	narf/math/floats.cpp
+
+	narf/client/chunk.cpp
+	narf/client/world.cpp
 	)
 
 target_link_libraries (narfblock

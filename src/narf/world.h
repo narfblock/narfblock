@@ -39,11 +39,8 @@
 #include <math.h> // TODO: for log; remove later
 
 #include "narf/chunk.h"
-#include "narf/camera.h"
 #include "narf/vector.h"
 #include "narf/math/math.h"
-
-#include "narf/gl/gl.h"
 
 namespace narf {
 
@@ -86,7 +83,7 @@ public:
 		chunks_ = (Chunk**)calloc(chunks_x_ * chunks_y_ * chunks_z_, sizeof(Chunk*));
 	}
 
-	~World()
+	virtual ~World()
 	{
 		for (uint32_t i = 0; i < size_x_ * size_y_ * size_z_; i++) {
 			if (chunks_[i]) {
@@ -127,8 +124,6 @@ public:
 	uint32_t chunks_x() const { return chunks_x_; }
 	uint32_t chunks_y() const { return chunks_y_; }
 	uint32_t chunks_z() const { return chunks_z_; }
-
-	void render(narf::gl::Texture *tiles_tex, const narf::Camera *cam);
 
 	void set_gravity(float g) { gravity_ = g; }
 	float get_gravity() { return gravity_; }
@@ -182,7 +177,7 @@ public:
 	}
 
 
-private:
+protected:
 
 	Chunk **chunks_;
 
@@ -222,6 +217,13 @@ private:
 		*block_z = z & block_mask_z_;
 	}
 
+	virtual Chunk *new_chunk(uint32_t chunk_x, uint32_t chunk_y, uint32_t chunk_z) {
+		return new Chunk(
+			this,
+			chunk_size_x_, chunk_size_y_, chunk_size_z_,
+			chunk_x * chunk_size_x_, chunk_y * chunk_size_y_, chunk_z * chunk_size_z_);
+	}
+
 	Chunk *get_chunk(uint32_t chunk_x, uint32_t chunk_y, uint32_t chunk_z)
 	{
 		Chunk *chunk = chunks_[((chunk_z * chunks_y_) + chunk_y) * chunks_x_ + chunk_x];
@@ -229,8 +231,7 @@ private:
 			// get from backing store, or allocate if it doesn't exist yet
 			// for now, no backing store, so just always allocate a new chunk
 			chunk = chunks_[((chunk_z * chunks_y_) + chunk_y) * chunks_x_ + chunk_x] =
-				new Chunk(this, chunk_size_x_, chunk_size_y_, chunk_size_z_,
-					chunk_x * chunk_size_x_, chunk_y * chunk_size_y_, chunk_z * chunk_size_z_);
+				new_chunk(chunk_x, chunk_y, chunk_z);
 		}
 		return chunk;
 	}
