@@ -136,16 +136,23 @@ public:
 		int32_t prevY = 0;
 		int32_t prevZ = 0;
 		const Block* block;
+		bool found = false;
 		for (; distance < max_distance; distance += 0.05) {
 			ray.radius = distance;
 			rayEnd = baseLocation + ray;
 			block = get_block(rayEnd.x, rayEnd.y, rayEnd.z);
 			if (block->id != 0) {
+				found = true;
 				break;
 			}
 			prevX = prevX != (int)rayEnd.x ? (int)rayEnd.x : prevX;
 			prevY = prevY != (int)rayEnd.y ? (int)rayEnd.y : prevY;
 			prevZ = prevZ != (int)rayEnd.z ? (int)rayEnd.z : prevZ;
+		}
+
+		if (!found) {
+			BlockWrapper tmp = {nullptr};
+			return tmp;
 		}
 
 		BlockFace face = narf::Invalid;
