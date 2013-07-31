@@ -94,6 +94,17 @@ void narf::Input::process_event(const SDL_Event *event)
 		}
 		break;
 
+	case SDL_ACTIVEEVENT:
+		if (event->active.state & (SDL_APPACTIVE | SDL_APPINPUTFOCUS)) {
+			if (event->active.gain) {
+				SDL_ShowCursor(0);
+				SDL_WM_GrabInput(SDL_GRAB_ON);
+			} else {
+				SDL_ShowCursor(1);
+				SDL_WM_GrabInput(SDL_GRAB_OFF);
+			}
+		}
+		break;
 	}
 }
 
