@@ -308,6 +308,14 @@ void sim_frame(const narf::Input &input, double t, double dt)
 		}
 	}
 
+	if (input.toggle_wireframe()) {
+		wireframe = !wireframe;
+	}
+
+	if (input.toggle_backface_culling()) {
+		backface_culling = !backface_culling;
+	}
+
 	bouncy_block->update(t, dt);
 }
 
