@@ -9,7 +9,8 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <assert.h>
-#include "test.h"
+
+#include "narf/version.h"
 
 #include "narf/camera.h"
 #include "narf/color.h"

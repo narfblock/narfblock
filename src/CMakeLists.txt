@@ -2,7 +2,7 @@ cmake_minimum_required (VERSION 2.6)
 project (NarfBlock)
 
 set (VERSION_MAJOR 0)
-set (VERSION_MINOR 0)
+set (VERSION_MINOR 1)
 set (VERSION_RELEASE "")
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/../cmake/Modules/")
@@ -46,11 +46,12 @@ include_directories (
 	"${FREETYPE_INCLUDE_DIRS}"
 	"${GLEW_INCLUDE_DIR}"
 	"${PROJECT_SOURCE_DIR}"
+	"${PROJECT_BINARY_DIR}"
 	)
 
 configure_file (
-	"${PROJECT_SOURCE_DIR}/test.h.in"
-	"${PROJECT_BINARY_DIR}/test.h"
+	"${PROJECT_SOURCE_DIR}/narf/version.h.in"
+	"${PROJECT_BINARY_DIR}/narf/version.h"
 	)
 
 # source files used by both client and server
