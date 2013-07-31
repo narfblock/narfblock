@@ -69,7 +69,6 @@ add_executable (narfblock
 
 	${NARFBLOCK_COMMON_SOURCE_FILES}
 
-	test.cpp
 	narf/chunk.cpp
 	narf/entity.cpp
 	narf/input.cpp
@@ -79,6 +78,7 @@ add_executable (narfblock
 	narf/font.cpp
 	narf/math/floats.cpp
 
+	narf/client/main.cpp
 	narf/client/chunk.cpp
 	narf/client/world.cpp
 	)
