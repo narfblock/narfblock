@@ -496,7 +496,7 @@ extern "C" int main(int argc, char **argv)
 	int w = vid_info->current_w;
 	int h = vid_info->current_h;
 	int bpp = vid_info->vfmt->BitsPerPixel;
-	bool fullscreen = true;
+	bool fullscreen = configmanager.get("test.video.fullscreen").as<bool>();
 
 	// TODO: read w, h, bpp from config file to override defaults
 

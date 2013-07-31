@@ -5,4 +5,5 @@ physics_rate: 60
 max_frame_time: 0.25
 input_divider: 1000
 
-
+video:
+  fullscreen: false
