@@ -56,9 +56,13 @@ configure_file (
 
 # source files used by both client and server
 set (NARFBLOCK_COMMON_SOURCE_FILES
+	narf/chunk.cpp
+	narf/entity.cpp
+	narf/world.cpp
 	narf/config/configmanager.cpp
 	narf/config/yamlmanager.cpp
 	narf/config/property.cpp
+	narf/math/floats.cpp
 	narf/util/tokenize.cpp
 	)
 
@@ -70,14 +74,10 @@ add_executable (narfblock
 
 	${NARFBLOCK_COMMON_SOURCE_FILES}
 
-	narf/chunk.cpp
-	narf/entity.cpp
 	narf/input.cpp
-	narf/world.cpp
 	narf/gl/context.cpp
 	narf/gl/texture.cpp
 	narf/font.cpp
-	narf/math/floats.cpp
 
 	narf/client/main.cpp
 	narf/client/chunk.cpp
