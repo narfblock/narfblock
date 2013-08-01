@@ -62,6 +62,7 @@ narf::BlockWrapper selected_block_face;
 // debug options
 bool wireframe = false;
 bool backface_culling = false; // TODO: default to true once winding order is fixed
+int screenshot = 0;
 
 float clampf(float val, float min, float max)
 {
@@ -222,6 +223,27 @@ void draw() {
 	draw2d();
 
 	SDL_GL_SwapBuffers();
+
+	if (screenshot == 1) {
+		// http://stackoverflow.com/questions/5862097/sdl-opengl-screenshot-is-black hax hax
+		SDL_Surface* image = SDL_CreateRGBSurface(SDL_SWSURFACE, display->width(), display->height(), 24, 0x000000FF, 0x0000FF00, 0x00FF0000, 0);
+		SDL_Surface* result = SDL_CreateRGBSurface(SDL_SWSURFACE, display->width(), display->height(), 24, 0x000000FF, 0x0000FF00, 0x00FF0000, 0);
+		glReadPixels(0, 0, display->width(), display->height(), GL_RGB, GL_UNSIGNED_BYTE, image->pixels);
+		printf("Taking a screenshot. %dx%dx24\n", image->w, image->h);
+
+		// Flip upside down
+		for(int32_t y = 0; y < image->h; ++y) {
+			for(int32_t x = 0; x < image->w; ++x) {
+				for(int32_t b = 0; b < 3; ++b) {
+					((uint8_t*)result->pixels)[3 * (y * image->w + x) + b] = ((uint8_t*)image->pixels)[3 * ((image->h - y - 1) * image->w + x) + b];
+				}
+			}
+     }
+		SDL_SaveBMP(result, "pic.bmp");
+		SDL_FreeSurface(image);
+		SDL_FreeSurface(result);
+		screenshot = 2;
+	}
 }
 
 
@@ -317,6 +339,14 @@ void sim_frame(const narf::Input &input, double t, double dt)
 
 	if (input.toggle_backface_culling()) {
 		backface_culling = !backface_culling;
+	}
+
+	if (input.screenshot()) { // Hack in a screenshot function
+		if (screenshot == 0) {
+			screenshot = 1;
+		}
+	} else {
+		screenshot = 0;
 	}
 
 	bouncy_block->update(t, dt);

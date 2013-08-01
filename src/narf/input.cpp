@@ -43,6 +43,9 @@ void narf::Input::process_event(const SDL_Event *event)
 		case SDLK_F2:
 			toggle_backface_culling_ = true;
 			break;
+		case SDLK_F3:
+			screenshot_ = true;
+			break;
 		}
 		break;
 
@@ -117,6 +120,7 @@ void narf::Input::begin_sample()
 	action_secondary_begin_ = action_secondary_end_ = false;
 	toggle_wireframe_ = false;
 	toggle_backface_culling_ = false;
+	screenshot_ = false;
 	look_rel_ = Vector2f(0.0f, 0.0f);
 }
 

@@ -54,6 +54,7 @@ public:
 
 	bool toggle_wireframe() const { return toggle_wireframe_; }
 	bool toggle_backface_culling() const { return toggle_backface_culling_; }
+	bool screenshot() const { return screenshot_; }
 
 	const Vector2f look_rel() const { return look_rel_; }
 
@@ -83,6 +84,7 @@ private:
 
 	bool toggle_wireframe_;
 	bool toggle_backface_culling_;
+	bool screenshot_;
 
 	Vector2f look_rel_;
 };
