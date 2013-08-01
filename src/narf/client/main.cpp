@@ -474,6 +474,24 @@ extern "C" int main(int argc, char **argv)
 	int h = vid_info->current_h;
 	int bpp = vid_info->vfmt->BitsPerPixel;
 	bool fullscreen = configmanager.get("test.video.fullscreen").as<bool>();
+	float width_cfg = configmanager.get("test.video.width").as<float>();
+	float height_cfg = configmanager.get("test.video.height").as<float>();
+	printf("Setting video to ");
+	if (!fullscreen) {
+		if (width_cfg > 1) {
+			w = (int)width_cfg;
+		} else {
+			w *= width_cfg;
+		}
+		if (height_cfg > 1) {
+			h = (int)height_cfg;
+		} else {
+			h *= height_cfg;
+		}
+		printf("%dx%d\n", w, h);
+	} else {
+		printf("fullscreen\n");
+	}
 
 	// TODO: read w, h, bpp from config file to override defaults
 
