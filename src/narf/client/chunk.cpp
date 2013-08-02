@@ -74,12 +74,12 @@ void draw_quad(uint8_t tex_id, const float *quad)
 void draw_cube(float x, float y, float z, uint8_t type, unsigned draw_face_mask)
 {
 	const float cube_quads[][4*3] = {
-		{x+0,y+0,z+0, x+1,y+0,z+0, x+1,y+1,z+0, x+0,y+1,z+0},
+		{x+0,y+1,z+0, x+1,y+1,z+0, x+1,y+0,z+0, x+0,y+0,z+0},
 		{x+0,y+0,z+1, x+1,y+0,z+1, x+1,y+1,z+1, x+0,y+1,z+1},
-		{x+0,y+0,z+0, x+1,y+0,z+0, x+1,y+0,z+1, x+0,y+0,z+1},
-		{x+0,y+1,z+0, x+1,y+1,z+0, x+1,y+1,z+1, x+0,y+1,z+1},
+		{x+1,y+0,z+0, x+1,y+0,z+1, x+0,y+0,z+1, x+0,y+0,z+0},
+		{x+1,y+1,z+0, x+0,y+1,z+0, x+0,y+1,z+1, x+1,y+1,z+1},
 		{x+0,y+0,z+0, x+0,y+0,z+1, x+0,y+1,z+1, x+0,y+1,z+0},
-		{x+1,y+0,z+0, x+1,y+0,z+1, x+1,y+1,z+1, x+1,y+1,z+0}
+		{x+1,y+0,z+0, x+1,y+1,z+0, x+1,y+1,z+1, x+1,y+0,z+1}
 	};
 
 	uint8_t tex_id_top, tex_id_side, tex_id_bot;
@@ -181,7 +181,7 @@ void narf::client::Chunk::build_vertex_buffers()
 
 					// don't render sides of the cube that are obscured by other opaque cubes
 					if (!world_->is_opaque(world_x, world_y + 1, world_z)) {
-						float quad[] = {fx+0,fy+1,fz+0, fx+1,fy+1,fz+0, fx+1,fy+1,fz+1, fx+0,fy+1,fz+1};
+						float quad[] = {fx+1,fy+1,fz+0, fx+0,fy+1,fz+0, fx+0,fy+1,fz+1, fx+1,fy+1,fz+1};
 						draw_quad(vbo_y_pos_, get_tex_id(type, BlockFace::YPos), quad);
 					}
 
@@ -191,7 +191,7 @@ void narf::client::Chunk::build_vertex_buffers()
 					}
 
 					if (!world_->is_opaque(world_x + 1, world_y, world_z)) {
-						float quad[] = {fx+1,fy+1,fz+0, fx+1,fy+0,fz+0, fx+1,fy+0,fz+1, fx+1,fy+1,fz+1};
+						float quad[] = {fx+1,fy+0,fz+0, fx+1,fy+1,fz+0, fx+1,fy+1,fz+1, fx+1,fy+0,fz+1};
 						draw_quad(vbo_x_pos_, get_tex_id(type, BlockFace::XPos), quad);
 					}
 
@@ -206,7 +206,7 @@ void narf::client::Chunk::build_vertex_buffers()
 					}
 
 					if (world_z != 0 && !world_->is_opaque(world_x, world_y, world_z - 1)) {
-						float quad[] = {fx+0,fy+0,fz+0, fx+1,fy+0,fz+0, fx+1,fy+1,fz+0, fx+0,fy+1,fz+0};
+						float quad[] = {fx+0,fy+1,fz+0, fx+1,fy+1,fz+0, fx+1,fy+0,fz+0, fx+0,fy+0,fz+0};
 						draw_quad(vbo_z_neg_, get_tex_id(type, BlockFace::ZNeg), quad);
 					}
 				}

@@ -61,7 +61,7 @@ narf::BlockWrapper selected_block_face;
 
 // debug options
 bool wireframe = false;
-bool backface_culling = false; // TODO: default to true once winding order is fixed
+bool backface_culling = true;
 int screenshot = 0;
 
 float clampf(float val, float min, float max)
