@@ -37,21 +37,21 @@ void narf::Entity::update(double t, double dt)
 	// cheesy Euler integration
 	Vector3f acceleration = Vector3f(0.0f, 0.0f, world_->get_gravity());
 
-	velocity += acceleration * dt;
-	position += velocity * dt;
+	velocity += acceleration * (float)dt;
+	position += velocity * (float)dt;
 
 	// wrap around
 	// TODO: ensure position can't go beyond one extra world size with extreme velocity
 	if (position.x < 0) {
-		position.x = world_->size_x() + position.x;
+		position.x = (float)world_->size_x() + position.x;
 	} else if (position.x > world_->size_x()) {
-		position.x = position.x - world_->size_x();
+		position.x = position.x - (float)world_->size_x();
 	}
 
 	if (position.y < 0) {
-		position.y = world_->size_y() + position.y;
+		position.y = (float)world_->size_y() + position.y;
 	} else if (position.y > world_->size_y()) {
-		position.y = position.y - world_->size_y();
+		position.y = position.y - (float)world_->size_y();
 	}
 
 	// TODO: bogus collision detection

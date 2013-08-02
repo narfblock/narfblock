@@ -60,12 +60,12 @@ void narf::client::World::renderSlice(narf::gl::Texture *tiles_tex, uint32_t cx_
 void narf::client::World::render(narf::gl::Texture *tiles_tex, const narf::Camera *cam) {
 	// camera
 	glLoadIdentity();
-	glRotatef(-((float)cam->orientation.pitch + M_PI/2) * 180.0f / (float)M_PI, 1.0f, 0.0f, 0.0f);
+	glRotatef(-((float)cam->orientation.pitch + (float)M_PI/2) * 180.0f / (float)M_PI, 1.0f, 0.0f, 0.0f);
 	glRotatef(cam->orientation.yaw   * 180.0f / (float)M_PI, 0.0f, 0.0f, 1.0f);
 	glTranslatef(-cam->position.x, -cam->position.y, -cam->position.z);
 
-	int32_t cx = cam->position.x / chunk_size_x_;
-	int32_t cy = cam->position.y / chunk_size_y_;
+	int32_t cx = (int32_t)(cam->position.x / (float)chunk_size_x_);
+	int32_t cy = (int32_t)(cam->position.y / (float)chunk_size_y_);
 
 	/*
 	 * Render up to 9 slices around the camera
@@ -94,19 +94,19 @@ void narf::client::World::render(narf::gl::Texture *tiles_tex, const narf::Camer
 
 	renderSlice(tiles_tex, mid_cx_min, mid_cx_max, mid_cy_min, mid_cy_max);
 
-	if (cx_max > chunks_x_) {
+	if ((uint32_t)cx_max > chunks_x_) {
 		uint32_t a_cx_min = 0;
 		uint32_t a_cx_max = cx_max - chunks_x_;
 		glPushMatrix();
-		glTranslatef(size_x_, 0.0f, 0.0f);
+		glTranslatef((float)size_x_, 0.0f, 0.0f);
 		renderSlice(tiles_tex, a_cx_min, a_cx_max, mid_cy_min, mid_cy_max);
 		glPopMatrix();
 
-		if (cy_max > chunks_y_) {
+		if ((uint32_t)cy_max > chunks_y_) {
 			uint32_t b_cy_min = 0;
 			uint32_t b_cy_max = cy_max - chunks_y_;
 			glPushMatrix();
-			glTranslatef(size_x_, size_y_, 0.0f);
+			glTranslatef((float)size_x_, (float)size_y_, 0.0f);
 			renderSlice(tiles_tex, a_cx_min, a_cx_max, b_cy_min, b_cy_max);
 			glPopMatrix();
 		}
@@ -115,7 +115,7 @@ void narf::client::World::render(narf::gl::Texture *tiles_tex, const narf::Camer
 			uint32_t h_cy_min = cy_min + chunks_y_;
 			uint32_t h_cy_max = chunks_y_;
 			glPushMatrix();
-			glTranslatef(size_x_, -(float)size_y_, 0.0f);
+			glTranslatef((float)size_x_, -(float)size_y_, 0.0f);
 			renderSlice(tiles_tex, a_cx_min, a_cx_max, h_cy_min, h_cy_max);
 			glPopMatrix();
 		}
@@ -129,11 +129,11 @@ void narf::client::World::render(narf::gl::Texture *tiles_tex, const narf::Camer
 		renderSlice(tiles_tex, e_cx_min, e_cx_max, mid_cy_min, mid_cy_max);
 		glPopMatrix();
 
-		if (cy_max > chunks_y_) {
+		if ((uint32_t)cy_max > chunks_y_) {
 			uint32_t d_cy_min = 0;
 			uint32_t d_cy_max = cy_max - chunks_y_;
 			glPushMatrix();
-			glTranslatef(-(float)size_x_, size_y_, 0.0f);
+			glTranslatef(-(float)size_x_, (float)size_y_, 0.0f);
 			renderSlice(tiles_tex, e_cx_min, e_cx_max, d_cy_min, d_cy_max);
 			glPopMatrix();
 		}
@@ -148,7 +148,7 @@ void narf::client::World::render(narf::gl::Texture *tiles_tex, const narf::Camer
 		}
 	}
 
-	if (cy_max > chunks_y_) {
+	if ((uint32_t)cy_max > chunks_y_) {
 		uint32_t c_cy_min = 0;
 		uint32_t c_cy_max = cy_max - chunks_y_;
 		glPushMatrix();

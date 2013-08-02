@@ -13,19 +13,19 @@ namespace narf {
 		T toDeg(T angle) {
 			static_assert(
 					std::is_same<T, double>::value || std::is_same<T, float>::value, "toDeg requires float or double type");
-			return angle * (180.0 / M_PI);
+			return angle * static_cast<T>((180.0 / M_PI));
 		}
 
 		template <class T>
 		T fromDeg(T angle) {
 			static_assert(
 					std::is_same<T, double>::value || std::is_same<T, float>::value, "fromDeg requires float or double type");
-			return angle * (M_PI / 180.0);
+			return angle * static_cast<T>((M_PI / 180.0));
 		}
 
 		template <class T>
 		T reduceAngle(T angle) {
-			return reduceAngle<T>(angle, 0, 2*M_PI);
+			return reduceAngle<T>(angle, 0, static_cast<T>(2*M_PI));
 		}
 
 		template <class T>
@@ -34,9 +34,9 @@ namespace narf {
 					std::is_same<T, double>::value || std::is_same<T, float>::value, "reduceAngle requires float or double type");
 			while (angle < minimum || angle > maximum) {
 				if (angle < minimum) {
-				angle += 2*M_PI;
+				angle += static_cast<T>(2*M_PI);
 				} else if (angle > maximum) {
-					angle -= 2*M_PI;
+					angle -= static_cast<T>(2*M_PI);
 				} else if (AlmostEqual(angle, minimum)) {
 					return minimum;
 				} else if (AlmostEqual(angle, maximum)) {
@@ -54,7 +54,7 @@ namespace narf {
 				T angle;
 				T minimum;
 				T maximum;
-				Angle(T angle) : angle(angle), minimum(0.0), maximum(2*M_PI) {};
+				Angle(T angle) : angle(angle), minimum(0.0), maximum(static_cast<T>(2*M_PI)) {};
 				Angle(T angle, T minimum, T maximum) : angle(angle), minimum(minimum), maximum(maximum) {};
 				Angle<T> operator+(const T add) const {
 					return Angle<T>(reduceAngle<T>(angle + add, minimum, maximum), minimum, maximum);

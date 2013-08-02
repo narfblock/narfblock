@@ -4,6 +4,7 @@
 #ifndef NARFBLOCK_MATH_FLOATS_H
 #define NARFBLOCK_MATH_FLOATS_H
 
+#include <tgmath.h>
 #include <float.h>
 #include <stdint.h>
 

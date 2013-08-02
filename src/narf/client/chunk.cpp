@@ -235,7 +235,7 @@ void draw_vbo(narf::gl::Buffer<narf::client::BlockVertex> &vbo)
 	glVertexPointer(3, GL_FLOAT, sizeof(narf::client::BlockVertex), (void*)offsetof(narf::client::BlockVertex, vertex));
 	glTexCoordPointer(2, GL_FLOAT, sizeof(narf::client::BlockVertex), (void*)offsetof(narf::client::BlockVertex, texcoord));
 
-	glDrawArrays(GL_QUADS, 0, vbo.count());
+	glDrawArrays(GL_QUADS, 0, (int)vbo.count());
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 	glDisableClientState(GL_VERTEX_ARRAY);
 

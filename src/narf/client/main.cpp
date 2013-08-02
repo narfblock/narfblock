@@ -148,15 +148,15 @@ void draw_cursor() {
 
 	glColor4f(1.0f, 0.5f, 1.0f, 0.7f);
 	glBegin(GL_QUADS);
-	glVertex2f(display->width() / 2.0f - cursor_size / 2.0f, display->height() / 2.0f - cursor_size / 2.0f);
-	glVertex2f(display->width() / 2.0f + cursor_size / 2.0f, display->height() / 2.0f - cursor_size / 2.0f);
-	glVertex2f(display->width() / 2.0f + cursor_size / 2.0f, display->height() / 2.0f + cursor_size / 2.0f);
-	glVertex2f(display->width() / 2.0f - cursor_size / 2.0f, display->height() / 2.0f + cursor_size / 2.0f);
+	glVertex2f((float)display->width() / 2.0f - cursor_size / 2.0f, (float)display->height() / 2.0f - cursor_size / 2.0f);
+	glVertex2f((float)display->width() / 2.0f + cursor_size / 2.0f, (float)display->height() / 2.0f - cursor_size / 2.0f);
+	glVertex2f((float)display->width() / 2.0f + cursor_size / 2.0f, (float)display->height() / 2.0f + cursor_size / 2.0f);
+	glVertex2f((float)display->width() / 2.0f - cursor_size / 2.0f, (float)display->height() / 2.0f + cursor_size / 2.0f);
 	glEnd();
 
 	glColor3f(0.0f, 0.0f, 1.0f);
 	glBegin(GL_POINTS);
-	glVertex2f(display->width() / 2.0f, display->height() / 2.0f);
+	glVertex2f((float)display->width() / 2.0f, (float)display->height() / 2.0f);
 	glEnd();
 
 	glColor3f(1.0f, 1.0f, 1.0f);
@@ -361,7 +361,7 @@ double get_time()
 
 void game_loop()
 {
-	const double input_divider = configmanager.get<double>("test.input_divider");
+	const float input_divider = configmanager.get<float>("test.input_divider");
 	narf::Input input(1.0f / input_divider, 1.0f / input_divider);
 	double t = 0.0;
 	double t1 = get_time();
@@ -407,7 +407,7 @@ void game_loop()
 				std::to_wstring((double)draws / fps_dt) + L" renders per second (dt " + std::to_wstring(fps_dt) + L")";
 			auto blue = narf::Color(0.0f, 0.0f, 1.0f);
 			fps_text_buffer->clear();
-			fps_text_buffer->print(fps_str, 0, display->height() - 30 /* TODO */, blue);
+			fps_text_buffer->print(fps_str, 0.0f, (float)display->height() - 30 /* TODO */, blue);
 			fps_t1 = get_time();
 			draws = physics_steps = 0;
 		}
@@ -425,7 +425,7 @@ float randf(float min, float max)
 
 int randi(int min, int max)
 {
-	return (int)randf(min, max); // HAX
+	return (int)randf((float)min, (float)max); // HAX
 }
 
 void fill_plane(uint32_t z, uint8_t block_id)
@@ -454,7 +454,7 @@ void gen_world()
 		int y = randi(0, WORLD_Y_MAX - 1);
 		int z = randi(3, 10);
 		narf::Block b;
-		b.id = randi(2, 3);
+		b.id = (uint8_t)randi(2, 3);
 		world->put_block(&b, x, y, z);
 	}
 
@@ -511,12 +511,12 @@ extern "C" int main(int argc, char **argv)
 		if (width_cfg > 1) {
 			w = (int)width_cfg;
 		} else {
-			w *= width_cfg;
+			w = (int)((float)w * width_cfg);
 		}
 		if (height_cfg > 1) {
 			h = (int)height_cfg;
 		} else {
-			h *= height_cfg;
+			h = (int)((float)h * height_cfg);
 		}
 		printf("%dx%d\n", w, h);
 	} else {

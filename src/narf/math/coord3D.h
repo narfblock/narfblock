@@ -2,6 +2,7 @@
 #define NARFBLOCK_MATH_COORD_3D_H
 
 #include <math.h>
+#include <ctgmath>
 #include "narf/math/floats.h"
 #include "narf/math/orientation.h"
 
@@ -37,9 +38,9 @@ namespace narf {
 							narf::math::AlmostEqual(azimuth, rhs.azimuth);
 					}
 					operator Point3<T> () const {
-						T x = radius * sin(inclination) * cos(azimuth);
-						T y = radius * sin(inclination) * sin(azimuth);
-						T z = radius * cos(inclination);
+						T x = static_cast<T>(radius * sin(inclination) * cos(azimuth));
+						T y = static_cast<T>(radius * sin(inclination) * sin(azimuth));
+						T z = static_cast<T>(radius * cos(inclination));
 						return Point3<T>(x, y, z);
 					}
 					//narf::math::Orientation<T> getOrientation() const {
@@ -59,8 +60,8 @@ namespace narf {
 					}
 					operator Spherical<T> () const {
 						float radius = distanceTo(0, 0, 0);
-						float inclination = !narf::math::AlmostEqual(radius, 0) ? acos(z/radius) : 0;
-						float azimuth = !narf::math::AlmostEqual(x, 0) ? atan2(y, x) : 0;
+						float inclination = !narf::math::AlmostEqual(radius, 0) ? static_cast<T>(acos(z/radius)) : 0;
+						float azimuth = !narf::math::AlmostEqual(x, 0) ? static_cast<T>(atan2(y, x)) : 0;
 						return Spherical<T>(radius, inclination, azimuth);
 					}
 					float distanceTo(Point3<T> other) const {

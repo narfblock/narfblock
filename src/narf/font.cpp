@@ -34,10 +34,10 @@ void narf::font::TextBuffer::print(const std::wstring &text, float x, float y, c
 				pos_x += texture_glyph_get_kerning(glyph, text[i - 1]);
 			}
 
-			float x0  = floor(pos_x + glyph->offset_x);
-			float y0  = floor(pos_y + glyph->offset_y);
-			float x1  = floor(x0 + glyph->width);
-			float y1  = floor(y0 - glyph->height);
+			float x0  = (float)floor(pos_x + (float)glyph->offset_x);
+			float y0  = (float)floor(pos_y + (float)glyph->offset_y);
+			float x1  = (float)floor(x0 + (float)glyph->width);
+			float y1  = (float)floor(y0 - (float)glyph->height);
 			float s0 = glyph->s0;
 			float t0 = glyph->t0;
 			float s1 = glyph->s1;
@@ -78,7 +78,7 @@ void narf::font::TextBuffer::render() {
 	glTexCoordPointer(2, GL_FLOAT, sizeof(FontVertex), (void*)offsetof(FontVertex, s));
 	glColorPointer(4, GL_FLOAT, sizeof(FontVertex), (void*)offsetof(FontVertex, r));
 
-	glDrawArrays(GL_TRIANGLES, 0, buffer_.count());
+	glDrawArrays(GL_TRIANGLES, 0, (int)buffer_.count());
 
 	glDisableClientState(GL_COLOR_ARRAY);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);

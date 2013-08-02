@@ -28,7 +28,8 @@ endif ()
 
 
 if (CMAKE_COMPILER_IS_GNUCXX)
-	SET(CMAKE_CXX_FLAGS "-std=gnu++0x -Wall -Wno-switch -g")
+	SET(CMAKE_CXX_FLAGS
+		"-std=gnu++0x -Wpointer-arith -Wtype-limits -Wwrite-strings -Wuninitialized -Wno-pmf-conversions -Werror=redundant-decls -Wsign-compare -Wconversion -g")
 endif ()
 
 if (MSVC)
