@@ -69,11 +69,11 @@ public:
 
 		// update neighboring chunk meshes since they may have holes exposed by removing this block
 		// or extra faces that are obstructed by adding this block
-		if (bx == 0 && cx > 0) get_chunk(cx - 1, cy, cz)->rebuild_vertex_buffers();
-		if (by == 0 && cy > 0) get_chunk(cx, cy - 1, cz)->rebuild_vertex_buffers();
+		if (bx == 0) get_chunk((cx - 1) & mask_x_, cy, cz)->rebuild_vertex_buffers();
+		if (by == 0) get_chunk(cx, (cy - 1) & mask_y_, cz)->rebuild_vertex_buffers();
 		if (bz == 0 && cz > 0) get_chunk(cx, cy, cz - 1)->rebuild_vertex_buffers();
-		if (bx == chunk_size_x_ - 1 && cx < chunks_x_ - 1) get_chunk(cx + 1, cy, cz)->rebuild_vertex_buffers();
-		if (by == chunk_size_y_ - 1 && cy < chunks_y_ - 1) get_chunk(cx, cy + 1, cz)->rebuild_vertex_buffers();
+		if (bx == chunk_size_x_ - 1) get_chunk((cx + 1) & mask_x_, cy, cz)->rebuild_vertex_buffers();
+		if (by == chunk_size_y_ - 1) get_chunk(cx, (cy + 1) & mask_y_, cz)->rebuild_vertex_buffers();
 		if (bz == chunk_size_z_ - 1 && cz < chunks_z_ - 1) get_chunk(cx, cy, cz + 1)->rebuild_vertex_buffers();
 	}
 

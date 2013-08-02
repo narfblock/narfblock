@@ -80,6 +80,9 @@ public:
 		chunks_y_ = size_y_ / chunk_size_y;
 		chunks_z_ = size_z_ / chunk_size_z;
 
+		chunk_mask_x_ = chunks_x_ - 1;
+		chunk_mask_y_ = chunks_y_ - 1;
+
 		chunks_ = (Chunk**)calloc(chunks_x_ * chunks_y_ * chunks_z_, sizeof(Chunk*));
 	}
 
@@ -193,6 +196,7 @@ protected:
 	uint32_t chunk_size_x_, chunk_size_y_, chunk_size_z_;
 
 	uint32_t chunks_x_, chunks_y_, chunks_z_; // size of the world in chunks
+	uint32_t chunk_mask_x_, chunk_mask_y_;
 	uint32_t chunk_shift_x_, chunk_shift_y_, chunk_shift_z_;
 	uint32_t block_mask_x_, block_mask_y_, block_mask_z_;
 
@@ -232,6 +236,9 @@ protected:
 
 	Chunk *get_chunk(uint32_t chunk_x, uint32_t chunk_y, uint32_t chunk_z)
 	{
+		chunk_x &= chunk_mask_x_;
+		chunk_y &= chunk_mask_y_;
+		assert(chunk_z < chunks_z_);
 		Chunk *chunk = chunks_[((chunk_z * chunks_y_) + chunk_y) * chunks_x_ + chunk_x];
 		if (!chunk) {
 			// get from backing store, or allocate if it doesn't exist yet
