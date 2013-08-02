@@ -61,9 +61,9 @@ public:
 		// TODO: verify size is a multiple of chunk_size and a power of 2
 
 		// world coordinate masks for wraparound
-		// y does not wrap around
+		// z does not wrap around
 		mask_x_ = size_x_ - 1;
-		mask_z_ = size_z_ - 1;
+		mask_y_ = size_y_ - 1;
 
 		// chunk shifts to get chunk coords from world coords
 		chunk_shift_x_ = ilog2(chunk_size_x);
@@ -188,7 +188,7 @@ protected:
 	Chunk **chunks_;
 
 	uint32_t size_x_, size_y_, size_z_; // size of the world in blocks
-	uint32_t mask_x_, mask_z_;
+	uint32_t mask_x_, mask_y_;
 
 	uint32_t chunk_size_x_, chunk_size_y_, chunk_size_z_;
 
@@ -206,12 +206,12 @@ protected:
 	{
 		// wrap around
 		x = x & mask_x_;
-		z = z & mask_z_;
+		y = y & mask_y_;
 
-		// clamp y to world height
+		// clamp z to world height
 		// TODO
-		if (y >= size_y_) {
-			y = size_y_ - 1;
+		if (z >= size_z_) {
+			z = size_z_ - 1;
 		}
 
 		*chunk_x = x >> chunk_shift_x_;
