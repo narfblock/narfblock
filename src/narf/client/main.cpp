@@ -300,7 +300,7 @@ void sim_frame(const narf::Input &input, double t, double dt)
 
 	// lock camera to player
 	cam.position = player->position;
-	cam.position.z += 2.0f;
+	cam.position.z += 1.6f;
 
 	// Let's see what we're looking at
 	auto pos = narf::math::coord::Point3f(cam.position.x, cam.position.y, cam.position.z);
