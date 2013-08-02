@@ -101,8 +101,7 @@ public:
 		return chunk->get_block(bx, by, bz);
 	}
 
-	void put_block(const Block *b, uint32_t x, uint32_t y, uint32_t z)
-	{
+	virtual void put_block(const Block *b, uint32_t x, uint32_t y, uint32_t z) {
 		uint32_t cx, cy, cz, bx, by, bz;
 		calc_chunk_coords(x, y, z, &cx, &cy, &cz, &bx, &by, &bz);
 		Chunk *chunk = get_chunk(cx, cy, cz);
