@@ -40,8 +40,8 @@ const float movespeed = 25.0f;
 
 narf::client::World *world;
 
-#define WORLD_X_MAX 64
-#define WORLD_Y_MAX 64
+#define WORLD_X_MAX 512
+#define WORLD_Y_MAX 512
 #define WORLD_Z_MAX 64
 
 SDL_Surface *tiles_surf;
@@ -535,6 +535,8 @@ extern "C" int main(int argc, char **argv)
 
 	srand(0x1234);
 	gen_world();
+
+	world->renderDistance = configmanager.get("test.video.render_distance").as<int32_t>();
 
 	player = new narf::Entity(world);
 

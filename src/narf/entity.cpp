@@ -40,6 +40,20 @@ void narf::Entity::update(double t, double dt)
 	velocity += acceleration * dt;
 	position += velocity * dt;
 
+	// wrap around
+	// TODO: ensure position can't go beyond one extra world size with extreme velocity
+	if (position.x < 0) {
+		position.x = world_->size_x() + position.x;
+	} else if (position.x > world_->size_x()) {
+		position.x = position.x - world_->size_x();
+	}
+
+	if (position.y < 0) {
+		position.y = world_->size_y() + position.y;
+	} else if (position.y > world_->size_y()) {
+		position.y = position.y - world_->size_y();
+	}
+
 	// TODO: bogus collision detection
 	if (position.z < 3.0f) {
 		if (bouncy) {

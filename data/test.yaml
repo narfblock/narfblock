@@ -9,3 +9,4 @@ video:
   fullscreen: true
   width: 0.8
   height: 0.8
+  render_distance: 2 # radius in chunks

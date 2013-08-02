@@ -54,7 +54,7 @@ class World : public narf::World {
 public:
 
 	World(uint32_t size_x, uint32_t size_y, uint32_t size_z, uint32_t chunk_size_x, uint32_t chunk_size_y, uint32_t chunk_size_z) :
-		narf::World(size_x, size_y, size_z, chunk_size_x, chunk_size_y, chunk_size_z)
+		narf::World(size_x, size_y, size_z, chunk_size_x, chunk_size_y, chunk_size_z), renderDistance(1)
 	{
 	}
 
@@ -77,6 +77,8 @@ public:
 		if (bz == chunk_size_z_ - 1 && cz < chunks_z_ - 1) get_chunk(cx, cy, cz + 1)->rebuild_vertex_buffers();
 	}
 
+	int32_t renderDistance; // radius in chunks
+
 protected:
 	Chunk *new_chunk(uint32_t chunk_x, uint32_t chunk_y, uint32_t chunk_z) {
 		return new narf::client::Chunk(this,
@@ -87,6 +89,8 @@ protected:
 	Chunk *get_chunk(uint32_t chunk_x, uint32_t chunk_y, uint32_t chunk_z) {
 		return static_cast<narf::client::Chunk*>(narf::World::get_chunk(chunk_x, chunk_y, chunk_z));
 	}
+
+	void renderSlice(narf::gl::Texture *tiles_tex, uint32_t cx_min, uint32_t cx_max, uint32_t cy_min, uint32_t cy_max);
 };
 
 } // namespace client
