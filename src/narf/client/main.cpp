@@ -474,7 +474,7 @@ void gen_world()
 		world->put_block(&b, 5 + i, 15, 3);
 	}
 
-	world->set_gravity(-32.0f);
+	world->set_gravity(-24.0f);
 }
 
 
