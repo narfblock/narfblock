@@ -428,17 +428,21 @@ int randi(int min, int max)
 	return (int)randf((float)min, (float)max); // HAX
 }
 
-void fill_plane(uint32_t z, uint8_t block_id)
-{
-	for (int y = 0; y < WORLD_Y_MAX; y++) {
-		for (int x = 0; x < WORLD_X_MAX; x++) {
-			narf::Block b;
-			b.id = block_id;
-			world->put_block(&b, x, y, z);
+void fill_rect_prism(uint32_t x1, uint32_t x2, uint32_t y1, uint32_t y2, uint32_t z1, uint32_t z2, uint8_t block_id) {
+	for (uint32_t z = z1; z < z2; z++) {
+		for (uint32_t y = y1; y < y2; y++) {
+			for (uint32_t x = x1; x < x2; x++) {
+				narf::Block b;
+				b.id = block_id;
+				world->put_block(&b, x, y, z);
+			}
 		}
 	}
 }
 
+void fill_plane(uint32_t z, uint8_t block_id) {
+	fill_rect_prism(0, WORLD_X_MAX, 0, WORLD_Y_MAX, z, z + 1, block_id);
+}
 
 void gen_world()
 {
@@ -447,6 +451,10 @@ void gen_world()
 	fill_plane(0, 1); // adminium
 	fill_plane(1, 2); // dirt
 	fill_plane(2, 3); // dirt with grass
+
+	for (int z = 3; z < 10; z++) {
+		fill_rect_prism(30 + z, 35 + (10 - z), 30 + z, 35 + (10 - z), z, z + 1, 16);
+	}
 
 	// generate some random blocks above the ground
 	for (int i = 0; i < 1000; i++) {
