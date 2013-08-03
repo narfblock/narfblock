@@ -32,3 +32,27 @@
 
 #include "narf/chunk.h"
 #include "narf/world.h"
+
+void narf::Chunk::fillRectPrism(uint32_t x1, uint32_t x2, uint32_t y1, uint32_t y2, uint32_t z1, uint32_t z2, uint8_t block_id) {
+	for (uint32_t z = z1; z < z2; z++) {
+		for (uint32_t y = y1; y < y2; y++) {
+			for (uint32_t x = x1; x < x2; x++) {
+				narf::Block b;
+				b.id = block_id;
+				put_block(&b, x, y, z);
+			}
+		}
+	}
+}
+
+void narf::Chunk::fillPlane(uint32_t z, uint8_t block_id) {
+	fillRectPrism(0, size_x_, 0, size_y_, z, z + 1, block_id);
+}
+
+void narf::Chunk::generate() {
+	if (pos_z_ == 0) {
+		fillPlane(0, 1); // adminium
+		fillRectPrism(0, size_x_, 0, size_y_, 1, size_z_ - 1, 2); // dirt
+		fillPlane(size_z_ - 1, 3); // dirt with grass
+	}
+}

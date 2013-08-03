@@ -448,11 +448,7 @@ void gen_world()
 {
 	world = new narf::client::World(WORLD_X_MAX, WORLD_Y_MAX, WORLD_Z_MAX, 16, 16, 16);
 
-	fill_plane(0, 1); // adminium
-	fill_plane(1, 2); // dirt
-	fill_plane(2, 3); // dirt with grass
-
-	for (int z = 3; z < 10; z++) {
+	for (int z = 16; z < 23; z++) {
 		fill_rect_prism(30 + z, 35 + (10 - z), 30 + z, 35 + (10 - z), z, z + 1, 16);
 	}
 
@@ -460,7 +456,7 @@ void gen_world()
 	for (int i = 0; i < 1000; i++) {
 		int x = randi(0, WORLD_X_MAX - 1);
 		int y = randi(0, WORLD_Y_MAX - 1);
-		int z = randi(3, 10);
+		int z = randi(16, 23);
 		narf::Block b;
 		b.id = (uint8_t)randi(2, 3);
 		world->put_block(&b, x, y, z);
@@ -469,9 +465,9 @@ void gen_world()
 	for (int i = 0; i < 10; i++) {
 		narf::Block b;
 		b.id = 16;
-		world->put_block(&b, 5 + i, 5, 3);
-		world->put_block(&b, 5, 5 + i, 3);
-		world->put_block(&b, 5 + i, 15, 3);
+		world->put_block(&b, 5 + i, 5, 16);
+		world->put_block(&b, 5, 5 + i, 16);
+		world->put_block(&b, 5 + i, 15, 16);
 	}
 
 	world->set_gravity(-24.0f);
@@ -549,14 +545,14 @@ extern "C" int main(int argc, char **argv)
 	player = new narf::Entity(world);
 
 	// initial player position
-	player->position = narf::Vector3f(15.0f, 10.0f, 3.0f);
+	player->position = narf::Vector3f(15.0f, 10.0f, 16.0f);
 
 	// initialize camera to look at origin
 	cam.orientation.yaw = atan2f(cam.position.y, cam.position.x);
 	cam.orientation.pitch = 0.0f;
 
 	bouncy_block = new narf::Entity(world);
-	bouncy_block->position = narf::Vector3f(10.0f, 10.0f, 8.0f);
+	bouncy_block->position = narf::Vector3f(10.0f, 10.0f, 21.0f);
 	bouncy_block->bouncy = true;
 
 	init_textures();

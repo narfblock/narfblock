@@ -245,6 +245,7 @@ protected:
 			// for now, no backing store, so just always allocate a new chunk
 			chunk = chunks_[((chunk_z * chunks_y_) + chunk_y) * chunks_x_ + chunk_x] =
 				new_chunk(chunk_x, chunk_y, chunk_z);
+			chunk->generate();
 		}
 		return chunk;
 	}

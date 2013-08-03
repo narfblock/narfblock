@@ -62,6 +62,8 @@ public:
 		free(blocks_);
 	}
 
+	void generate(); // generate terrain for a fresh chunk
+
 	// coordinates are relative to chunk
 	const Block *get_block(uint32_t x, uint32_t y, uint32_t z) const
 	{
@@ -89,6 +91,9 @@ protected:
 
 	uint32_t size_x_, size_y_, size_z_; // size of this chunk in blocks
 	uint32_t pos_x_, pos_y_, pos_z_; // position within the world of this chunk in blocks
+
+	void fillRectPrism(uint32_t x1, uint32_t x2, uint32_t y1, uint32_t y2, uint32_t z1, uint32_t z2, uint8_t block_id);
+	void fillPlane(uint32_t z, uint8_t block_id);
 };
 
 } // namespace narf
