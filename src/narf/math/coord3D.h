@@ -2,7 +2,6 @@
 #define NARFBLOCK_MATH_COORD_3D_H
 
 #include <math.h>
-#include <ctgmath>
 #include "narf/math/floats.h"
 #include "narf/math/orientation.h"
 
