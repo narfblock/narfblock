@@ -55,12 +55,15 @@ void narf::Entity::update(double t, double dt)
 	}
 
 	// TODO: bogus collision detection
-	if (position.z < 3.0f) {
+	uint32_t bx = (uint32_t)position.x;
+	uint32_t by = (uint32_t)position.y;
+	uint32_t bz = (uint32_t)position.z;
+	if (world_->get_block(bx, by, bz)->id != 0) {
 		if (bouncy) {
-			position.z = 6.0f - position.z;
+			position.z = ceilf(position.z) + (ceilf(position.z) - position.z);
 			velocity.z = -velocity.z;
 		} else {
-			position.z = 3.0f;
+			position.z = ceilf(position.z);
 			velocity.z = 0.0f;
 		}
 	}
