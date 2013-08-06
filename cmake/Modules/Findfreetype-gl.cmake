@@ -2,7 +2,7 @@
 
 set (FREETYPE_GL_REVISION 226)
 set (FREETYPE_GL_URL_BASE "https://freetype-gl.googlecode.com/svn-history/r${FREETYPE_GL_REVISION}/trunk/")
-set (FREETYPE_GL_SRC 
+set (FREETYPE_GL_SRC
   freetype-gl.h      vec234.h
   markup.h
   texture-atlas.c    texture-atlas.h

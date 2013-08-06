@@ -1,7 +1,8 @@
 #include <SDL/SDL.h>
 #include <SDL/SDL_image.h>
 
-#include <boost/filesystem.hpp>
+#include <Poco/Path.h>
+#include <Poco/File.h>
 
 #include <math.h>
 
@@ -49,7 +50,7 @@ SDL_Surface *tiles_surf;
 narf::gl::Context *display;
 narf::gl::Texture *tiles_tex;
 
-boost::filesystem::path data_dir;
+Poco::Path data_dir;
 
 narf::font::FontManager font_manager;
 narf::font::TextBuffer *console_text_buffer;
@@ -89,7 +90,7 @@ bool init_video(int w, int h, int bpp, bool fullscreen)
 bool init_textures()
 {
 	const std::string terrain_file = configmanager.get<std::string>("test.terrain");
-	tiles_surf = IMG_Load((data_dir / terrain_file).string().c_str());
+	tiles_surf = IMG_Load((Poco::Path(data_dir, terrain_file)).toString().c_str());
 	if (!tiles_surf) {
 		fprintf(stderr, "%s not found!\n", terrain_file.c_str());
 		SDL_Quit();
@@ -478,19 +479,23 @@ extern "C" int main(int argc, char **argv)
 {
 	printf("Version: %d.%d%s\n", VERSION_MAJOR, VERSION_MINOR, VERSION_RELEASE);
 
-	data_dir = boost::filesystem::current_path();
-
 	// walk up the path until data directory is found
-	for (auto dir = boost::filesystem::current_path(); dir != dir.root_path(); dir = dir.parent_path()) {
-		data_dir = dir / "data";
-		if (boost::filesystem::is_directory(data_dir)) {
-			printf("Found data directory: %s\n", data_dir.string().c_str());
+	printf("Current Dir: %s\n", Poco::Path::current().c_str());
+	Poco::File tmp;
+	for (Poco::Path dir = Poco::Path::current(); dir.toString() != dir.parent().toString(); dir = dir.parent()) {
+		data_dir = Poco::Path(dir, "data/");
+		printf("Checking %s (%s)\n", data_dir.toString().c_str(), dir.toString().c_str());
+		tmp = data_dir;
+		if (tmp.exists()) {
+			printf("Found data directory: %s\n", data_dir.toString().c_str());
 			break;
 		}
 	}
 
 	// Will explode if things don't exist
-	configmanager.load("test", (data_dir / "test.yaml").string());
+	auto config_file = Poco::Path(data_dir, "test.yaml").toString();
+	printf("Config File: %s\n", config_file.c_str());
+	configmanager.load("test", config_file);
 	narf::config::Property bar = configmanager.get("test.foo.bar");
 	printf("ConfigManager test: test.foo.bar = %d\n", bar.as<int>());
 
@@ -556,8 +561,10 @@ extern "C" int main(int argc, char **argv)
 	bouncy_block->bouncy = true;
 
 	init_textures();
+	auto font_file = Poco::Path(data_dir, "DroidSansMono.ttf").toString();
+	printf("Loading font from %s\n", font_file.c_str());
 
-	auto font = font_manager.addFont("DroidSansMono", (data_dir / "DroidSansMono.ttf").string(), 30);
+	auto font = font_manager.addFont("DroidSansMono", font_file, 30);
 	if (!font) {
 		fprintf(stderr, "Error: could not load DroidSansMono\n");
 		return 1;
