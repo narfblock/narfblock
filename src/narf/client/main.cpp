@@ -547,7 +547,7 @@ extern "C" int main(int argc, char **argv)
 
 	world->renderDistance = configmanager.get("test.video.render_distance").as<int32_t>();
 
-	player = new narf::Entity(world);
+	player = world->newEntity();
 
 	// initial player position
 	player->position = narf::Vector3f(15.0f, 10.0f, 16.0f);
@@ -556,7 +556,7 @@ extern "C" int main(int argc, char **argv)
 	cam.orientation.yaw = atan2f(cam.position.y, cam.position.x);
 	cam.orientation.pitch = 0.0f;
 
-	bouncy_block = new narf::Entity(world);
+	bouncy_block = world->newEntity();
 	bouncy_block->position = narf::Vector3f(10.0f, 10.0f, 21.0f);
 	bouncy_block->bouncy = true;
 

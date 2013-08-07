@@ -34,9 +34,10 @@
 #define NARF_ENTITY_H
 
 #include "narf/vector.h"
-#include "narf/world.h"
 
 namespace narf {
+
+class World;
 
 class Entity {
 public:

@@ -38,7 +38,10 @@
 #include <assert.h>
 #include <math.h> // TODO: for log; remove later
 
+#include <vector>
+
 #include "narf/chunk.h"
+#include "narf/entity.h"
 #include "narf/vector.h"
 #include "narf/math/math.h"
 
@@ -185,6 +188,11 @@ public:
 		return tmp;
 	}
 
+	Entity* newEntity() {
+		auto ent = new Entity(this);
+		entities_.push_back(ent);
+		return ent;
+	}
 
 protected:
 
@@ -201,6 +209,8 @@ protected:
 	uint32_t block_mask_x_, block_mask_y_, block_mask_z_;
 
 	float gravity_;
+
+	std::vector<narf::Entity*> entities_;
 
 
 	void calc_chunk_coords(

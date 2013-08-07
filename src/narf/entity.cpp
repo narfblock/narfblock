@@ -31,6 +31,7 @@
  */
 
 #include "narf/entity.h"
+#include "narf/world.h"
 
 void narf::Entity::update(double t, double dt)
 {
