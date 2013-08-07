@@ -41,12 +41,13 @@ class World;
 
 class Entity {
 public:
-	Entity(World *world) : bouncy(false), world_(world) { }
+	Entity(World *world) : bouncy(false), model(false), world_(world) { }
 
 	Vector3f position;
 	Vector3f velocity;
 
 	bool bouncy;
+	bool model; // TODO: replace with 3d model object; for now, indicates whether to draw a cube
 
 	void update(double t, double dt);
 

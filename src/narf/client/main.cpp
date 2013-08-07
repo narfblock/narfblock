@@ -136,10 +136,6 @@ void draw3d() {
 	glEnable(GL_TEXTURE_2D);
 
 	world->render(tiles_tex, &cam);
-
-	// temp hack: draw an entity as a cube for physics demo
-	void draw_cube(float x, float y, float z, uint8_t type, unsigned draw_face_mask);
-	draw_cube(bouncy_block->position.x, bouncy_block->position.y, bouncy_block->position.z, 1, 0xFF);
 }
 
 
@@ -559,6 +555,7 @@ extern "C" int main(int argc, char **argv)
 	bouncy_block = world->newEntity();
 	bouncy_block->position = narf::Vector3f(10.0f, 10.0f, 21.0f);
 	bouncy_block->bouncy = true;
+	bouncy_block->model = true;
 
 	init_textures();
 	auto font_file = Poco::Path(data_dir, "DroidSansMono.ttf").toString();

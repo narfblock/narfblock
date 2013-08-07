@@ -35,6 +35,8 @@
 
 #include "narf/client/world.h"
 
+void draw_cube(float x, float y, float z, uint8_t type, unsigned draw_face_mask);
+
 void narf::client::World::renderSlice(narf::gl::Texture *tiles_tex, uint32_t cx_min, uint32_t cx_max, uint32_t cy_min, uint32_t cy_max) {
 	assert(cx_min <= cx_max);
 	assert(cy_min <= cy_max);
@@ -53,7 +55,15 @@ void narf::client::World::renderSlice(narf::gl::Texture *tiles_tex, uint32_t cx_
 		}
 	}
 
-	// TODO: render entities in this slice
+	// TODO: only render entities in this slice
+	for (auto entp = entities_.begin(); entp != entities_.end(); ++entp) {
+		auto ent = *entp;
+		// TODO: move this code to an Entity method
+		if (ent->model) {
+			// temp hack: draw an entity as a cube for physics demo
+			::draw_cube(ent->position.x, ent->position.y, ent->position.z, 1, 0xFF);
+		}
+	}
 }
 
 
