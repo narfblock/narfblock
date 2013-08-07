@@ -293,7 +293,7 @@ void sim_frame(const narf::Input &input, double t, double dt)
 	player->velocity.y = vel_rel.y;
 	player->velocity.z += vel_rel.z;
 
-	player->update(t, dt);
+	world->update(t, dt);
 
 	// lock camera to player
 	cam.position = player->position;
@@ -345,8 +345,6 @@ void sim_frame(const narf::Input &input, double t, double dt)
 	} else {
 		screenshot = 0;
 	}
-
-	bouncy_block->update(t, dt);
 }
 
 

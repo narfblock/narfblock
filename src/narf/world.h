@@ -194,6 +194,8 @@ public:
 		return ent;
 	}
 
+	void update(double t, double dt);
+
 protected:
 
 	Chunk **chunks_;

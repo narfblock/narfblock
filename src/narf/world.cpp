@@ -31,3 +31,11 @@
  */
 
 #include "narf/world.h"
+
+void narf::World::update(double t, double dt)
+{
+	for (auto entp = entities_.begin(); entp != entities_.end(); ++entp) {
+		auto ent = *entp;
+		ent->update(t, dt);
+	}
+}
