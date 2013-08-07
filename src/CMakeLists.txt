@@ -5,6 +5,10 @@ set (VERSION_MAJOR 0)
 set (VERSION_MINOR 1)
 set (VERSION_RELEASE "")
 
+if (NOT DEFINED PATCH_COMMAND)
+  set(PATCH_COMMAND "patch")
+endif()
+
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/../cmake/Modules/")
 set(NARFBLOCK_DATA_PATH "${CMAKE_SOURCE_DIR}/../data/")
 
@@ -19,8 +23,18 @@ find_package (Freetype REQUIRED)
 set(PocoFoundation_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../poco/Foundation)
 configure_file ("${CMAKE_SOURCE_DIR}/../cmake/PocoFoundationConfig.cmake" "${PocoFoundation_DIR}/PocoFoundationConfig.cmake" COPYONLY)
 find_package (PocoFoundation REQUIRED)
+#add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../poco/Foundation"
+	#"${CMAKE_BINARY_DIR}/PocoFoundation")
 
 include (DownloadFont)
+
+# use Boost autolinking instead of explicit package names on MSVC
+# CMake doesn't generate the correct filenames for the Boost MSVC libraries
+if (MSVC)
+	find_package (Boost REQUIRED)
+else ()
+	find_package (Boost REQUIRED COMPONENTS filesystem)
+endif ()
 
 if (CMAKE_COMPILER_IS_GNUCXX)
 	SET(CMAKE_CXX_FLAGS
@@ -36,6 +50,7 @@ include_directories (
 	# cmake's SDL_INCLUDE_DIR incorrectly includes the actual SDL dir;
 	# append .. to work around this
 	"${SDL_INCLUDE_DIR}/.."
+	"${Boost_INCLUDE_DIR}"
 	"${YAMLCPP_INCLUDE_DIR}"
 	"${FREETYPE_GL_INCLUDE_DIR}"
 	"${FREETYPE_INCLUDE_DIRS}"
@@ -93,6 +108,7 @@ target_link_libraries (narfblock
 	# there are symbols in libSDLmain that depend on libSDL, but -lSDL is first in SDL_LIBRARY.
 	# Add them again to get -lSDL after -lSDLmain.
 	${SDL_LIBRARY}
+	${Boost_LIBRARIES}
 	)
 
 # server executable
@@ -104,6 +120,7 @@ add_executable (narfblock-server
 
 target_link_libraries (narfblock-server
 	${YAMLCPP_LIBRARY}
+	${Boost_LIBRARIES}
 	)
 
 # unit test executable
@@ -115,6 +132,7 @@ add_executable (narfblock-test
 
 target_link_libraries (narfblock-test
 	${YAMLCPP_LIBRARY}
+	${Boost_LIBRARIES}
 	)
 
 set(CMAKE_BUILD_TYPE Release)
