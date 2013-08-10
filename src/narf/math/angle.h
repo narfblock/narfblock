@@ -2,7 +2,7 @@
 #define NARFBLOCK_MATH_ANGLE_H
 
 #include <math.h>
-#include "narf/math/math.h"
+#include "narf/math/floats.h"
 #include <type_traits>
 #include <stdio.h>
 
