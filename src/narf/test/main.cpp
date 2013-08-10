@@ -4,6 +4,12 @@
 
 #include "narf/math/math.h"
 
+void testPlanePoint(const narf::math::Plane<float> &plane, const narf::math::coord::Point3f &point) {
+	auto distance = plane.distanceTo(point);
+	auto closest = plane.nearestPoint(point);
+	printf("(%f,%f,%f) distance: %+f closest point: (%f,%f,%f) on plane: %s\n", point.x, point.y, point.z, distance, closest.x, closest.y, closest.z, plane.containsPoint(point) ? "y" : "n");
+}
+
 int main(int argc, char **argv)
 {
 	printf("NarfBlock unit tests\n");
@@ -41,5 +47,11 @@ int main(int argc, char **argv)
 	printf("Test Sphere4: %f, %f, %f\n", testsphere.radius, testsphere.inclination, testsphere.azimuth);
 	printf("Equality    : %d\n", testsphere == testpoint ? 1 : 0);
 
+	auto testplane = narf::math::Plane<float>::fromPointNormal(narf::math::coord::Point3f(1, 0, 0), narf::math::Vector3f(1, 0, 0));
+	printf("Test plane: (%f, %f, %f), %f\n", testplane.normal().x, testplane.normal().y, testplane.normal().z, testplane.distanceToOrigin());
+	testPlanePoint(testplane, narf::math::coord::Point3f(0, 0, 0));
+	testPlanePoint(testplane, narf::math::coord::Point3f(1, 0, 0));
+	testPlanePoint(testplane, narf::math::coord::Point3f(2, 0, 0));
+	testPlanePoint(testplane, narf::math::coord::Point3f(0, 1, 0));
 	return 0;
 }

@@ -6,5 +6,6 @@
 #include "narf/math/angle.h"
 #include "narf/math/orientation.h"
 #include "narf/math/vector.h"
+#include "narf/math/plane.h"
 
 #endif
