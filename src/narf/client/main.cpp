@@ -18,7 +18,6 @@
 #include "narf/entity.h"
 #include "narf/font.h"
 #include "narf/input.h"
-#include "narf/vector.h"
 #include "narf/block.h"
 #include "narf/config/config.h"
 #include "narf/math/math.h"
@@ -267,25 +266,25 @@ void sim_frame(const narf::Input &input, double t, double dt)
 	cam.orientation.pitch -= input.look_rel().y;
 	cam.orientation.pitch = clampf(cam.orientation.pitch, -(float)M_PI/2, (float)M_PI/2);
 
-	narf::Vector3f vel_rel(0.0f, 0.0f, 0.0f);
+	narf::math::Vector3f vel_rel(0.0f, 0.0f, 0.0f);
 
 	if (input.move_forward()) {
-		vel_rel -= narf::Vector3f(cosf(cam.orientation.yaw + (float)M_PI / 2), -sinf(cam.orientation.yaw + (float)M_PI / 2), 0.0f);
+		vel_rel -= narf::math::Vector3f(cosf(cam.orientation.yaw + (float)M_PI / 2), -sinf(cam.orientation.yaw + (float)M_PI / 2), 0.0f);
 	} else if (input.move_backward()) {
-		vel_rel += narf::Vector3f(cosf(cam.orientation.yaw + (float)M_PI / 2), -sinf(cam.orientation.yaw + (float)M_PI / 2), 0.0f);
+		vel_rel += narf::math::Vector3f(cosf(cam.orientation.yaw + (float)M_PI / 2), -sinf(cam.orientation.yaw + (float)M_PI / 2), 0.0f);
 	}
 
 	if (input.strafe_left()) {
-		vel_rel -= narf::Vector3f(cosf(cam.orientation.yaw), -sinf(cam.orientation.yaw), 0.0f);
+		vel_rel -= narf::math::Vector3f(cosf(cam.orientation.yaw), -sinf(cam.orientation.yaw), 0.0f);
 	} else if (input.strafe_right()) {
-		vel_rel += narf::Vector3f(cosf(cam.orientation.yaw), -sinf(cam.orientation.yaw), 0.0f);
+		vel_rel += narf::math::Vector3f(cosf(cam.orientation.yaw), -sinf(cam.orientation.yaw), 0.0f);
 	}
 
 	// normalize so that diagonal movement is not faster than cardinal directions
 	vel_rel = vel_rel.normalize() * movespeed;
 
 	if (input.jump()) {
-		vel_rel += narf::Vector3f(0.0f, 0.0f, 8.0f);
+		vel_rel += narf::math::Vector3f(0.0f, 0.0f, 8.0f);
 	}
 
 	// hax
@@ -544,14 +543,14 @@ extern "C" int main(int argc, char **argv)
 	player = world->newEntity();
 
 	// initial player position
-	player->position = narf::Vector3f(15.0f, 10.0f, 16.0f);
+	player->position = narf::math::Vector3f(15.0f, 10.0f, 16.0f);
 
 	// initialize camera to look at origin
 	cam.orientation.yaw = atan2f(cam.position.y, cam.position.x);
 	cam.orientation.pitch = 0.0f;
 
 	bouncy_block = world->newEntity();
-	bouncy_block->position = narf::Vector3f(10.0f, 10.0f, 21.0f);
+	bouncy_block->position = narf::math::Vector3f(10.0f, 10.0f, 21.0f);
 	bouncy_block->bouncy = true;
 	bouncy_block->model = true;
 

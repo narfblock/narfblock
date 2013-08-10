@@ -4,6 +4,7 @@
 #include <math.h>
 
 namespace narf {
+namespace math {
 
 	template<class T>
 		class Vector2 {
@@ -127,6 +128,7 @@ namespace narf {
 	typedef Vector2<float> Vector2f;
 	typedef Vector3<float> Vector3f;
 
+} // namespace math
 } // namespace narf
 
 #endif // NARFBLOCK_VECTOR_H

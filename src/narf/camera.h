@@ -33,7 +33,7 @@
 #ifndef NARF_CAMERA_H
 #define NARF_CAMERA_H
 
-#include "narf/vector.h"
+#include "narf/math/vector.h"
 #include "narf/math/orientation.h"
 
 namespace narf {
@@ -43,7 +43,7 @@ public:
 
 	Camera() : position(0.0f, 0.0f, 0.0f) { }
 
-	narf::Vector3f position;
+	math::Vector3f position;
 
 	narf::math::Orientationf orientation;
 };

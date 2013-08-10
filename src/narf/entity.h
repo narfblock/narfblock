@@ -33,7 +33,7 @@
 #ifndef NARF_ENTITY_H
 #define NARF_ENTITY_H
 
-#include "narf/vector.h"
+#include "narf/math/vector.h"
 
 namespace narf {
 
@@ -43,8 +43,8 @@ class Entity {
 public:
 	Entity(World *world) : bouncy(false), model(false), world_(world) { }
 
-	Vector3f position;
-	Vector3f velocity;
+	math::Vector3f position;
+	math::Vector3f velocity;
 
 	bool bouncy;
 	bool model; // TODO: replace with 3d model object; for now, indicates whether to draw a cube

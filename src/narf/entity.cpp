@@ -36,7 +36,7 @@
 void narf::Entity::update(double t, double dt)
 {
 	// cheesy Euler integration
-	Vector3f acceleration = Vector3f(0.0f, 0.0f, world_->get_gravity());
+	auto acceleration = narf::math::Vector3f(0.0f, 0.0f, world_->get_gravity());
 
 	velocity += acceleration * (float)dt;
 	position += velocity * (float)dt;

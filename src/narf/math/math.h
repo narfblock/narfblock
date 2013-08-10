@@ -5,5 +5,6 @@
 #include "narf/math/coord3D.h"
 #include "narf/math/angle.h"
 #include "narf/math/orientation.h"
+#include "narf/math/vector.h"
 
 #endif

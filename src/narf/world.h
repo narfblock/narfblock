@@ -42,7 +42,6 @@
 
 #include "narf/chunk.h"
 #include "narf/entity.h"
-#include "narf/vector.h"
 #include "narf/math/math.h"
 
 namespace narf {

@@ -41,7 +41,7 @@
 
 #include "narf/block.h"
 #include "narf/chunk.h"
-#include "narf/vector.h"
+#include "narf/math/vector.h"
 #include "narf/gl/gl.h"
 
 namespace narf {

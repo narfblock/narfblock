@@ -42,7 +42,6 @@
 
 #include "narf/client/chunk.h"
 #include "narf/camera.h"
-#include "narf/vector.h"
 #include "narf/math/math.h"
 
 #include "narf/gl/gl.h"

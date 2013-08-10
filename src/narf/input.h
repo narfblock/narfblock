@@ -1,7 +1,7 @@
 #ifndef NARFBLOCK_INPUT_H
 #define NARFBLOCK_INPUT_H
 
-#include "narf/vector.h"
+#include "narf/math/vector.h"
 
 namespace narf {
 
@@ -56,7 +56,7 @@ public:
 	bool toggle_backface_culling() const { return toggle_backface_culling_; }
 	bool screenshot() const { return screenshot_; }
 
-	const Vector2f look_rel() const { return look_rel_; }
+	const math::Vector2f look_rel() const { return look_rel_; }
 
 private:
 	float look_sensitivity_x_;
@@ -86,7 +86,7 @@ private:
 	bool toggle_backface_culling_;
 	bool screenshot_;
 
-	Vector2f look_rel_;
+	math::Vector2f look_rel_;
 };
 
 } // namespace nar
