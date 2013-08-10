@@ -3,6 +3,8 @@
 
 #include <math.h>
 
+#include "narf/math/coord3D.h"
+
 namespace narf {
 namespace math {
 
@@ -73,6 +75,10 @@ namespace math {
 
 				Vector3() : x(0), y(0), z(0) { }
 				Vector3(T x, T y, T z) : x(x), y(y), z(z) { }
+
+				operator coord::Point3<T>() const {
+					return coord::Point3<T>(x, y, z);
+				}
 
 				T length() const {
 					return sqrtf(x * x + y * y + z * z);
