@@ -258,7 +258,7 @@ void poll_input(narf::Input *input)
 void sim_frame(const narf::Input &input, double t, double dt)
 {
 	// TODO: decouple player direction and camera direction
-	cam.orientation.yaw += input.look_rel().x;
+	cam.orientation.yaw -= input.look_rel().x;
 	cam.orientation.yaw = fmodf(cam.orientation.yaw, (float)M_PI * 2.0f);
 
 	cam.orientation.pitch.minimum = -(float)M_PI;
@@ -269,15 +269,15 @@ void sim_frame(const narf::Input &input, double t, double dt)
 	narf::math::Vector3f vel_rel(0.0f, 0.0f, 0.0f);
 
 	if (input.move_forward()) {
-		vel_rel -= narf::math::Vector3f(cosf(cam.orientation.yaw + (float)M_PI / 2), -sinf(cam.orientation.yaw + (float)M_PI / 2), 0.0f);
+		vel_rel += narf::math::Orientationf(0.0f, cam.orientation.yaw);
 	} else if (input.move_backward()) {
-		vel_rel += narf::math::Vector3f(cosf(cam.orientation.yaw + (float)M_PI / 2), -sinf(cam.orientation.yaw + (float)M_PI / 2), 0.0f);
+		vel_rel -= narf::math::Orientationf(0.0f, cam.orientation.yaw);
 	}
 
 	if (input.strafe_left()) {
-		vel_rel -= narf::math::Vector3f(cosf(cam.orientation.yaw), -sinf(cam.orientation.yaw), 0.0f);
+		vel_rel += narf::math::Orientationf(0.0f, cam.orientation.yaw + (float)M_PI / 2);
 	} else if (input.strafe_right()) {
-		vel_rel += narf::math::Vector3f(cosf(cam.orientation.yaw), -sinf(cam.orientation.yaw), 0.0f);
+		vel_rel -= narf::math::Orientationf(0.0f, cam.orientation.yaw + (float)M_PI / 2);
 	}
 
 	// normalize so that diagonal movement is not faster than cardinal directions

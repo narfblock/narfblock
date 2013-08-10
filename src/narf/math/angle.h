@@ -70,7 +70,7 @@ namespace narf {
 					angle = reduceAngle<T>(angle - sub, minimum, maximum);
 					return *this;
 				}
-				T toDeg() { return narf::math::toDeg(angle); }
+				T toDeg() const { return narf::math::toDeg(angle); }
 				operator T () const { return angle; };
 				bool operator==(T& rhs) const { return AlmostEqual(angle, rhs.angle); }
 				bool operator==(Angle<T>& rhs) const { return AlmostEqual(angle, rhs.angle); }

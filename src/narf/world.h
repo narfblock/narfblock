@@ -134,7 +134,7 @@ public:
 
 	BlockWrapper rayTrace(narf::math::coord::Point3f baseLocation, narf::math::Orientationf orientation, float max_distance) {
 		float distance = 0;
-		auto ray = narf::math::coord::Sphericalf(distance, (float)M_PI/2 - orientation.pitch, -((float)orientation.yaw - (float)M_PI/2));
+		auto ray = narf::math::Ray<float>(baseLocation, orientation);
 		auto rayEnd = narf::math::coord::Point3f(0, 0, 0);
 		int32_t prevX = 0;
 		int32_t prevY = 0;
@@ -142,8 +142,7 @@ public:
 		const Block* block;
 		bool found = false;
 		for (; distance < max_distance; distance += 0.05f) {
-			ray.radius = distance;
-			rayEnd = baseLocation + ray;
+			rayEnd = ray.pointAtDistance(distance);
 			block = get_block((uint32_t)rayEnd.x, (uint32_t)rayEnd.y, (uint32_t)rayEnd.z);
 			if (block->id != 0) {
 				found = true;

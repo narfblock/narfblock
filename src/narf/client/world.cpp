@@ -70,8 +70,8 @@ void narf::client::World::renderSlice(narf::gl::Texture *tiles_tex, uint32_t cx_
 void narf::client::World::render(narf::gl::Texture *tiles_tex, const narf::Camera *cam) {
 	// camera
 	glLoadIdentity();
-	glRotatef(-((float)cam->orientation.pitch + (float)M_PI/2) * 180.0f / (float)M_PI, 1.0f, 0.0f, 0.0f);
-	glRotatef(cam->orientation.yaw   * 180.0f / (float)M_PI, 0.0f, 0.0f, 1.0f);
+	glRotatef(-(cam->orientation.pitch.toDeg() + 90.0f), 1.0f, 0.0f, 0.0f);
+	glRotatef(90.0f - cam->orientation.yaw.toDeg(), 0.0f, 0.0f, 1.0f);
 	glTranslatef(-cam->position.x, -cam->position.y, -cam->position.z);
 
 	int32_t cx = (int32_t)(cam->position.x / (float)chunk_size_x_);

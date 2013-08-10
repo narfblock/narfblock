@@ -10,6 +10,11 @@ void testPlanePoint(const narf::math::Plane<float> &plane, const narf::math::coo
 	printf("(%f,%f,%f) distance: %+f closest point: (%f,%f,%f) on plane: %s\n", point.x, point.y, point.z, distance, closest.x, closest.y, closest.z, plane.containsPoint(point) ? "y" : "n");
 }
 
+void testRayAtDistance(const narf::math::Ray<float> &ray, float distance) {
+	auto p = ray.pointAtDistance(distance);
+	printf("At distance %f: (%f, %f, %f)\n", distance, p.x, p.y, p.z);
+}
+
 int main(int argc, char **argv)
 {
 	printf("NarfBlock unit tests\n");
@@ -53,5 +58,12 @@ int main(int argc, char **argv)
 	testPlanePoint(testplane, narf::math::coord::Point3f(1, 0, 0));
 	testPlanePoint(testplane, narf::math::coord::Point3f(2, 0, 0));
 	testPlanePoint(testplane, narf::math::coord::Point3f(0, 1, 0));
+
+	auto testray = narf::math::Ray<float>(narf::math::coord::Point3f(0, 0, 0), narf::math::Vector3f(1, 1, 1));
+	printf("Test ray: point (%f, %f, %f) direction (%f, %f, %f)\n", testray.initialPoint().x, testray.initialPoint().y, testray.initialPoint().z, testray.direction().x, testray.direction().y, testray.direction().z);
+	testRayAtDistance(testray, 0);
+	testRayAtDistance(testray, 0.5);
+	testRayAtDistance(testray, 1);
+	testRayAtDistance(testray, 5);
 	return 0;
 }

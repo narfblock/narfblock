@@ -2,6 +2,7 @@
 #define NARFBLOCK_MATH_ORIENTATION_H
 
 #include "narf/math/angle.h"
+#include "narf/math/vector.h"
 
 namespace narf {
 	namespace math {
@@ -19,6 +20,14 @@ namespace narf {
 				//Angle<T>& azimuth() { return yaw; } // North clockwise (same as yaw)
 				bool operator==(T& rhs) const {
 					return AlmostEqual(pitch, rhs.pitch) && AlmostEqual(yaw, rhs.yaw);
+				}
+
+				// convert direction of orientation to a vector, ignoring roll
+				operator Vector3<T>() const {
+					auto x = cos(yaw) * cos(pitch);
+					auto y = sin(yaw) * cos(pitch);
+					auto z = sin(pitch);
+					return Vector3<T>(x, y, z);
 				}
 		};
 		typedef Orientation<float> Orientationf;
