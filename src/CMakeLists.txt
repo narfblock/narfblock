@@ -108,7 +108,6 @@ target_link_libraries (narfblock
 	# there are symbols in libSDLmain that depend on libSDL, but -lSDL is first in SDL_LIBRARY.
 	# Add them again to get -lSDL after -lSDLmain.
 	${SDL_LIBRARY}
-	${Boost_LIBRARIES}
 	)
 
 # server executable
@@ -120,7 +119,6 @@ add_executable (narfblock-server
 
 target_link_libraries (narfblock-server
 	${YAMLCPP_LIBRARY}
-	${Boost_LIBRARIES}
 	)
 
 # unit test executable
@@ -132,7 +130,6 @@ add_executable (narfblock-test
 
 target_link_libraries (narfblock-test
 	${YAMLCPP_LIBRARY}
-	${Boost_LIBRARIES}
 	)
 
 set(CMAKE_BUILD_TYPE Release)
