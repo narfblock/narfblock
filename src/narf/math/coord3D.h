@@ -3,7 +3,6 @@
 
 #include <math.h>
 #include "narf/math/floats.h"
-#include "narf/math/orientation.h"
 
 namespace narf {
 	namespace math {
@@ -28,7 +27,7 @@ namespace narf {
 
 					T distanceTo(Spherical<T>& other) {
 						T rel_angle_cos = sin(inclination) * sin(other.inclination) + cos(inclination) * cos(other.inclination) * cos(azimuth - other.azimuth);
-						return static_cast<T>(sqrt(radius * radius + other.radius * other.radius - 2 * radius * other.radius * rel_angle_cos));
+						return sqrt(radius * radius + other.radius * other.radius - 2 * radius * other.radius * rel_angle_cos);
 					}
 
 					bool operator==(Spherical<T> rhs) const {
@@ -37,9 +36,9 @@ namespace narf {
 							narf::math::AlmostEqual(azimuth, rhs.azimuth);
 					}
 					operator Point3<T> () const {
-						T x = static_cast<T>(radius * sin(inclination) * cos(azimuth));
-						T y = static_cast<T>(radius * sin(inclination) * sin(azimuth));
-						T z = static_cast<T>(radius * cos(inclination));
+						T x = radius * sin(inclination) * cos(azimuth);
+						T y = radius * sin(inclination) * sin(azimuth);
+						T z = radius * cos(inclination);
 						return Point3<T>(x, y, z);
 					}
 					//narf::math::Orientation<T> getOrientation() const {
@@ -59,8 +58,8 @@ namespace narf {
 					}
 					operator Spherical<T> () const {
 						float radius = distanceTo(0, 0, 0);
-						float inclination = !narf::math::AlmostEqual(radius, 0) ? static_cast<T>(acos(z/radius)) : 0;
-						float azimuth = !narf::math::AlmostEqual(x, 0) ? static_cast<T>(atan2(y, x)) : 0;
+						float inclination = !narf::math::AlmostEqual(radius, 0) ? acos(z/radius) : 0;
+						float azimuth = !narf::math::AlmostEqual(x, 0) ? atan2(y, x) : 0;
 						return Spherical<T>(radius, inclination, azimuth);
 					}
 					float distanceTo(Point3<T> other) const {

@@ -6,6 +6,7 @@
 
 #include <float.h>
 #include <stdint.h>
+#include <math.h>
 
 namespace narf {
 	namespace math {
@@ -26,6 +27,12 @@ namespace narf {
 		bool AlmostEqualUlps(float A, float B, int maxUlpsDiff);
 		bool AlmostEqualUlpsAndAbs(float A, float B, float maxDiff, int maxUlpsDiff);
 		bool AlmostEqualRelativeAndAbs(float A, float B, float maxDiff, float maxRelDiff);
+
+		// single-precision overloads of double-precision function names
+		static inline float sin(float f) { return ::sinf(f); }
+		static inline float cos(float f) { return ::cosf(f); }
+		static inline float acos(float f) { return ::acosf(f); }
+		static inline float atan2(float y, float x) { return ::atan2f(y, x); }
 	}
 }
 
