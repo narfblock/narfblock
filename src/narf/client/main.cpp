@@ -128,8 +128,11 @@ void drawHighlightQuad(const float *quad)
 }
 
 // hax - put somewhere better
-void drawCubeHighlight(float x, float y, float z, narf::BlockFace face)
+void drawCubeHighlight(const narf::BlockWrapper &blockFace)
 {
+	auto x = static_cast<float>(blockFace.x);
+	auto y = static_cast<float>(blockFace.y);
+	auto z = static_cast<float>(blockFace.z);
 	const float cube_quads[][4*3] = {
 		{x+1,y+0,z+0, x+1,y+1,z+0, x+1,y+1,z+1, x+1,y+0,z+1}, // XPos
 		{x+0,y+0,z+0, x+0,y+0,z+1, x+0,y+1,z+1, x+0,y+1,z+0}, // XNeg
@@ -139,8 +142,8 @@ void drawCubeHighlight(float x, float y, float z, narf::BlockFace face)
 		{x+0,y+1,z+0, x+1,y+1,z+0, x+1,y+0,z+0, x+0,y+0,z+0}, // ZNeg
 	};
 
-	assert(face < sizeof(cube_quads) / sizeof(*cube_quads));
-	drawHighlightQuad(cube_quads[face]);
+	assert(blockFace.face < sizeof(cube_quads) / sizeof(*cube_quads));
+	drawHighlightQuad(cube_quads[blockFace.face]);
 }
 
 
@@ -177,7 +180,7 @@ void draw3d() {
 
 	if (selected_block_face.block) {
 		// draw a selection rectangle
-		drawCubeHighlight(selected_block_face.x, selected_block_face.y, selected_block_face.z, selected_block_face.face);
+		drawCubeHighlight(selected_block_face);
 	}
 }
 
