@@ -1,26 +1,23 @@
 #ifndef NARF_CONFIG_CONFIG_H
 #define NARF_CONFIG_CONFIG_H
 
-#include "configmanager.h"
-#include "yamlmanager.h"
-#include "property.h"
-
-#include <vector>
+#include <Poco/Util/LayeredConfiguration.h>
+#include <Poco/Util/IniFileConfiguration.h>
 #include <string>
+#include <vector>
+#include <memory>
+#include <map>
 
 namespace narf {
 	namespace config {
 
-		template <typename T>
-		T Property::as() {
-			return manager.get<T>(name);
-		}
-
-		template <typename T>
-		T YAMLManager::get(std::vector<std::string> path) {
-			return YAMLManager::getNode(path).as<T>();
-		}
-
+		class ConfigManager : public Poco::Util::LayeredConfiguration {
+			public:
+				ConfigManager() {};
+				void load(std::string name, std::string filename);
+			private:
+				std::vector<Poco::Util::IniFileConfiguration*> configs;
+		};
 
 	}
 }

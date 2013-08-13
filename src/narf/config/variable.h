@@ -1,5 +1,5 @@
-#ifndef NARF_CONFIG_PROPERTY_H
-#define NARF_CONFIG_PROPERTY_H
+#ifndef NARF_CONFIG_VARIABLE_H
+#define NARF_CONFIG_VARIABLE_H
 
 #include <stdlib.h>
 #include <string>
@@ -9,15 +9,17 @@ namespace narf {
 
 		class ConfigManager;
 
-		class Property {
+		class Variable {
 			public:
-				Property(ConfigManager& manager, std::string name) : name(name), manager(manager) {};
+				Variable(ConfigManager& manager, std::string name) : name(name), manager(manager) {};
 				template <typename T>
 				T as();
 				ConfigManager& getManager();
 				std::string getName();
 				bool reset();
 			private:
+				narf::any value;
+				narf::any default_value;
 				std::string name;
 				ConfigManager& manager;
 		};

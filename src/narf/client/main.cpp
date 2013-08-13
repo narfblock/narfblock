@@ -88,7 +88,7 @@ bool init_video(int w, int h, int bpp, bool fullscreen)
 
 bool init_textures()
 {
-	const std::string terrain_file = configmanager.get<std::string>("test.terrain");
+	const std::string terrain_file = configmanager.getString("test.misc.terrain", "terrain.png");
 	tiles_surf = IMG_Load((Poco::Path(data_dir, terrain_file)).toString().c_str());
 	if (!tiles_surf) {
 		fprintf(stderr, "%s not found!\n", terrain_file.c_str());
@@ -355,13 +355,13 @@ double get_time()
 
 void game_loop()
 {
-	const float input_divider = configmanager.get<float>("test.input_divider");
+	const float input_divider = static_cast<float>(configmanager.getDouble("test.misc.input_divider", 1000));
 	narf::Input input(1.0f / input_divider, 1.0f / input_divider);
 	double t = 0.0;
 	double t1 = get_time();
-	const double physics_rate = configmanager.get<double>("test.physics_rate");
+	const double physics_rate = configmanager.getDouble("test.misc.physics_rate", 60);
 	const double physics_tick_step = 1.0 / physics_rate; // fixed time step
-	const double max_frame_time = configmanager.get<double>("test.max_frame_time");
+	const double max_frame_time = configmanager.getDouble("test.misc.max_frame_time", 0.25);
 
 	double t_accum = 0.0;
 
@@ -486,11 +486,11 @@ extern "C" int main(int argc, char **argv)
 	}
 
 	// Will explode if things don't exist
-	auto config_file = Poco::Path(data_dir, "test.yaml").toString();
+	auto config_file = Poco::Path(data_dir, "config.ini").toString();
 	printf("Config File: %s\n", config_file.c_str());
 	configmanager.load("test", config_file);
-	narf::config::Property bar = configmanager.get("test.foo.bar");
-	printf("ConfigManager test: test.foo.bar = %d\n", bar.as<int>());
+	int bar = configmanager.getInt("test.foo.bar");
+	printf("ConfigManager test: test.foo.bar = %d\n", bar);
 
 	if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
 		printf("SDL_Init(SDL_INIT_EVERYTHING) failed: %s\n", SDL_GetError());
@@ -505,9 +505,9 @@ extern "C" int main(int argc, char **argv)
 	int w = vid_info->current_w;
 	int h = vid_info->current_h;
 	int bpp = vid_info->vfmt->BitsPerPixel;
-	bool fullscreen = configmanager.get("test.video.fullscreen").as<bool>();
-	float width_cfg = configmanager.get("test.video.width").as<float>();
-	float height_cfg = configmanager.get("test.video.height").as<float>();
+	bool fullscreen = configmanager.getBool("test.video.fullscreen", true);
+	float width_cfg = static_cast<float>(configmanager.getDouble("test.video.width", 0.6));
+	float height_cfg = static_cast<float>(configmanager.getDouble("test.video.height", 0.6));
 	printf("Setting video to ");
 	if (!fullscreen) {
 		if (width_cfg > 1) {
@@ -538,7 +538,7 @@ extern "C" int main(int argc, char **argv)
 	srand(0x1234);
 	gen_world();
 
-	world->renderDistance = configmanager.get("test.video.render_distance").as<int32_t>();
+	world->renderDistance = configmanager.getInt("test.video.render_distance", 5);
 
 	player = world->newEntity();
 

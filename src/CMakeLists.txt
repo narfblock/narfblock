@@ -16,25 +16,19 @@ find_package (OpenGL REQUIRED)
 find_package (GLEW REQUIRED)
 find_package (SDL REQUIRED)
 find_package (SDL_image REQUIRED)
-find_package (YamlCpp REQUIRED)
 find_package (freetype-gl REQUIRED)
 find_package (Freetype REQUIRED)
+find_package (Threads REQUIRED)
 
 set(PocoFoundation_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../poco/Foundation)
 configure_file ("${CMAKE_SOURCE_DIR}/../cmake/PocoFoundationConfig.cmake" "${PocoFoundation_DIR}/PocoFoundationConfig.cmake" COPYONLY)
 find_package (PocoFoundation REQUIRED)
-#add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../poco/Foundation"
-	#"${CMAKE_BINARY_DIR}/PocoFoundation")
+
+set(PocoUtil_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../poco/Util)
+configure_file ("${CMAKE_SOURCE_DIR}/../cmake/PocoUtilConfig.cmake" "${PocoUtil_DIR}/PocoUtilConfig.cmake" COPYONLY)
+find_package (PocoUtil REQUIRED)
 
 include (DownloadFont)
-
-# use Boost autolinking instead of explicit package names on MSVC
-# CMake doesn't generate the correct filenames for the Boost MSVC libraries
-if (MSVC)
-	find_package (Boost REQUIRED)
-else ()
-	find_package (Boost REQUIRED COMPONENTS filesystem)
-endif ()
 
 if (CMAKE_COMPILER_IS_GNUCXX)
 	SET(CMAKE_CXX_FLAGS
@@ -50,8 +44,6 @@ include_directories (
 	# cmake's SDL_INCLUDE_DIR incorrectly includes the actual SDL dir;
 	# append .. to work around this
 	"${SDL_INCLUDE_DIR}/.."
-	"${Boost_INCLUDE_DIR}"
-	"${YAMLCPP_INCLUDE_DIR}"
 	"${FREETYPE_GL_INCLUDE_DIR}"
 	"${FREETYPE_INCLUDE_DIRS}"
 	"${GLEW_INCLUDE_DIR}"
@@ -69,9 +61,7 @@ set (NARFBLOCK_COMMON_SOURCE_FILES
 	narf/chunk.cpp
 	narf/entity.cpp
 	narf/world.cpp
-	narf/config/configmanager.cpp
-	narf/config/yamlmanager.cpp
-	narf/config/property.cpp
+	narf/config/config.cpp
 	narf/math/floats.cpp
 	narf/util/tokenize.cpp
 	)
@@ -97,7 +87,7 @@ add_executable (narfblock
 target_link_libraries (narfblock
 	freetype-gl
 	PocoFoundation
-	${YAMLCPP_LIBRARY}
+	PocoUtil
 	${FREETYPE_LIBRARY}
 	${FREETYPE_GL_LIBRARY}
 	${GLEW_LIBRARY}
@@ -108,6 +98,7 @@ target_link_libraries (narfblock
 	# there are symbols in libSDLmain that depend on libSDL, but -lSDL is first in SDL_LIBRARY.
 	# Add them again to get -lSDL after -lSDLmain.
 	${SDL_LIBRARY}
+	${CMAKE_THREAD_LIBS_INIT}
 	)
 
 # server executable
@@ -118,7 +109,9 @@ add_executable (narfblock-server
 	)
 
 target_link_libraries (narfblock-server
-	${YAMLCPP_LIBRARY}
+	PocoFoundation
+	PocoUtil
+	${CMAKE_THREAD_LIBS_INIT}
 	)
 
 # unit test executable
@@ -129,7 +122,9 @@ add_executable (narfblock-test
 	)
 
 target_link_libraries (narfblock-test
-	${YAMLCPP_LIBRARY}
+	PocoFoundation
+	PocoUtil
+	${CMAKE_THREAD_LIBS_INIT}
 	)
 
 set(CMAKE_BUILD_TYPE Release)
