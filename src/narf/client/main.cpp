@@ -476,7 +476,7 @@ extern "C" int main(int argc, char **argv)
 	printf("Current Dir: %s\n", Poco::Path::current().c_str());
 	Poco::File tmp;
 	for (Poco::Path dir = Poco::Path::current(); dir.toString() != dir.parent().toString(); dir = dir.parent()) {
-		data_dir = Poco::Path(dir, "data/");
+		data_dir = Poco::Path(dir, "data");
 		printf("Checking %s (%s)\n", data_dir.toString().c_str(), dir.toString().c_str());
 		tmp = data_dir;
 		if (tmp.exists()) {
@@ -489,7 +489,7 @@ extern "C" int main(int argc, char **argv)
 	auto config_file = Poco::Path(data_dir, "config.ini").toString();
 	printf("Config File: %s\n", config_file.c_str());
 	configmanager.load("test", config_file);
-	int bar = configmanager.getInt("test.foo.bar");
+	int bar = configmanager.getInt("test.foo.bar", 43);
 	printf("ConfigManager test: test.foo.bar = %d\n", bar);
 
 	if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {

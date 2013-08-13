@@ -18,3 +18,14 @@ std::vector<std::string> narf::util::tokenize(const std::string &input, char del
 	narf::util::tokenize(input, delimeter, tokens);
 	return tokens;
 }
+
+std::string narf::util::join(const std::vector<std::string> &input, std::string delimeter) {
+	std::string output;
+	for (const auto& i : input) {
+		if (&i != &input[0]) {
+			output += delimeter;
+		}
+		output += i;
+	}
+	return output;
+}
