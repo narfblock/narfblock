@@ -105,6 +105,45 @@ bool init_textures()
 }
 
 
+void drawHighlightQuad(const float *quad)
+{
+	glPushAttrib(GL_ALL_ATTRIB_BITS);
+	glDisable(GL_TEXTURE_2D);
+	glDisable(GL_DEPTH_TEST);
+	// TODO: get this stuff working so depth test can be enabled
+	//glEnable(GL_POLYGON_OFFSET_LINE);
+	//glPolygonOffset(0.0f, -2.5f);
+	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	glLineWidth(5.0f);
+
+	glBegin(GL_LINE_LOOP);
+	glVertex3fv(&quad[0 * 3]);
+	glVertex3fv(&quad[1 * 3]);
+	glVertex3fv(&quad[2 * 3]);
+	glVertex3fv(&quad[3 * 3]);
+	glEnd();
+
+	glPopAttrib();
+}
+
+// hax - put somewhere better
+void drawCubeHighlight(float x, float y, float z, narf::BlockFace face)
+{
+	const float cube_quads[][4*3] = {
+		{x+1,y+0,z+0, x+1,y+1,z+0, x+1,y+1,z+1, x+1,y+0,z+1}, // XPos
+		{x+0,y+0,z+0, x+0,y+0,z+1, x+0,y+1,z+1, x+0,y+1,z+0}, // XNeg
+		{x+1,y+1,z+0, x+0,y+1,z+0, x+0,y+1,z+1, x+1,y+1,z+1}, // YPos
+		{x+1,y+0,z+0, x+1,y+0,z+1, x+0,y+0,z+1, x+0,y+0,z+0}, // YNeg
+		{x+0,y+0,z+1, x+1,y+0,z+1, x+1,y+1,z+1, x+0,y+1,z+1}, // ZPos
+		{x+0,y+1,z+0, x+1,y+1,z+0, x+1,y+0,z+0, x+0,y+0,z+0}, // ZNeg
+	};
+
+	assert(face < sizeof(cube_quads) / sizeof(*cube_quads));
+	drawHighlightQuad(cube_quads[face]);
+}
+
+
 void draw3d() {
 	// draw 3d world and objects
 
@@ -135,6 +174,11 @@ void draw3d() {
 	glEnable(GL_TEXTURE_2D);
 
 	world->render(tiles_tex, &cam);
+
+	if (selected_block_face.block) {
+		// draw a selection rectangle
+		drawCubeHighlight(selected_block_face.x, selected_block_face.y, selected_block_face.z, selected_block_face.face);
+	}
 }
 
 
