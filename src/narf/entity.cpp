@@ -36,7 +36,7 @@
 void narf::Entity::update(double t, double dt)
 {
 	// cheesy Euler integration
-	auto acceleration = narf::math::Vector3f(0.0f, 0.0f, world_->get_gravity());
+	auto acceleration = narf::math::Vector3f(0.0f, 0.0f, antigrav ? 0.0f : world_->get_gravity());
 
 	velocity += acceleration * (float)dt;
 	position += velocity * (float)dt;
@@ -66,6 +66,11 @@ void narf::Entity::update(double t, double dt)
 		} else {
 			position.z = ceilf(position.z);
 			velocity.z = 0.0f;
+			onGround = true;
 		}
+	}
+
+	if (!narf::math::AlmostEqual(velocity.z, 0.0f)) {
+		onGround = false;
 	}
 }

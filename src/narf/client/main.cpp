@@ -315,10 +315,17 @@ void sim_frame(const narf::Input &input, double t, double dt)
 
 	narf::math::Vector3f vel_rel(0.0f, 0.0f, 0.0f);
 
+	float movePitch = 0.0f;
+
+	if (player->antigrav) {
+		// if flying, move in the direction of camera including pitch
+		movePitch = cam.orientation.pitch;
+	}
+
 	if (input.move_forward()) {
-		vel_rel += narf::math::Orientationf(0.0f, cam.orientation.yaw);
+		vel_rel += narf::math::Orientationf(movePitch, cam.orientation.yaw);
 	} else if (input.move_backward()) {
-		vel_rel -= narf::math::Orientationf(0.0f, cam.orientation.yaw);
+		vel_rel -= narf::math::Orientationf(movePitch, cam.orientation.yaw);
 	}
 
 	if (input.strafe_left()) {
@@ -331,7 +338,12 @@ void sim_frame(const narf::Input &input, double t, double dt)
 	vel_rel = vel_rel.normalize() * movespeed;
 
 	if (input.jump()) {
-		vel_rel += narf::math::Vector3f(0.0f, 0.0f, 8.0f);
+		if (player->onGround) {
+			vel_rel += narf::math::Vector3f(0.0f, 0.0f, 8.0f);
+		} else if (player->velocity.z > 0.0f) {
+			// still going up - double jump triggers flying
+			player->antigrav = true;
+		}
 	}
 
 	// hax
@@ -339,7 +351,15 @@ void sim_frame(const narf::Input &input, double t, double dt)
 	player->velocity.y = vel_rel.y;
 	player->velocity.z += vel_rel.z;
 
+	if (player->antigrav) {
+		player->velocity.z = vel_rel.z;
+	}
+
 	world->update(t, dt);
+
+	if (player->onGround) {
+		player->antigrav = false;
+	}
 
 	// lock camera to player
 	cam.position = player->position;
