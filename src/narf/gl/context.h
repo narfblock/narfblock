@@ -45,13 +45,27 @@ public:
 
 	Context();
 
-	bool set_display_mode(int width, int height, int bpp, bool fullscreen);
+	bool setDisplayMode(const char *title, int width, int height, bool fullscreen);
 
-	uint32_t width() const { return surface_->w; }
-	uint32_t height() const { return surface_->h; }
+	void swap() {
+		SDL_GL_SwapWindow(window_);
+	}
+
+	uint32_t width() const {
+		int w, h;
+		SDL_GetWindowSize(window_, &w, &h);
+		return w;
+	}
+
+	uint32_t height() const {
+		int w, h;
+		SDL_GetWindowSize(window_, &w, &h);
+		return h;
+	}
 
 private:
-	SDL_Surface *surface_;
+	SDL_Window *window_;
+	SDL_GLContext context_;
 };
 
 } // namespace gl

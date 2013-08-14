@@ -6,9 +6,9 @@
 #include <GL/glew.h>
 
 #define NO_SDL_GLEXT
-#include <SDL/SDL.h>
-#include <SDL/SDL_opengl.h>
-#include <SDL/SDL_image.h>
+#include <SDL.h>
+#include <SDL_opengl.h>
+#include <SDL_image.h>
 
 #include <GL/gl.h>
 

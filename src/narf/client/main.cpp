@@ -1,10 +1,14 @@
-#include <SDL/SDL.h>
-#include <SDL/SDL_image.h>
+#include <math.h>
+
+#include <SDL.h>
+#include <SDL_image.h>
+
+#if SDL_MAJOR_VERSION < 2
+#error SDL2 required
+#endif
 
 #include <Poco/Path.h>
 #include <Poco/File.h>
-
-#include <math.h>
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -72,10 +76,10 @@ float clampf(float val, float min, float max)
 }
 
 
-bool init_video(int w, int h, int bpp, bool fullscreen)
+bool init_video(int w, int h, bool fullscreen)
 {
 	display = new narf::gl::Context();
-	if (!display->set_display_mode(w, h, bpp, fullscreen)) {
+	if (!display->setDisplayMode("NarfBlock", w, h, fullscreen)) {
 		return false;
 	}
 
@@ -88,10 +92,18 @@ bool init_video(int w, int h, int bpp, bool fullscreen)
 
 bool init_textures()
 {
+	int imgFlags = IMG_INIT_PNG;
+	if (IMG_Init(imgFlags) != imgFlags) {
+		fprintf(stderr, "IMG_Init failed: %s\n", IMG_GetError());
+		return false;
+	}
+
 	const std::string terrain_file = configmanager.getString("test.misc.terrain", "terrain.png");
-	tiles_surf = IMG_Load((Poco::Path(data_dir, terrain_file)).toString().c_str());
+	auto terrain_file_path = Poco::Path(data_dir, terrain_file);
+
+	tiles_surf = IMG_Load(terrain_file_path.toString().c_str());
 	if (!tiles_surf) {
-		fprintf(stderr, "%s not found!\n", terrain_file.c_str());
+		fprintf(stderr, "IMG_Load(%s) failed: %s\n", terrain_file_path.toString().c_str(), IMG_GetError());
 		SDL_Quit();
 	}
 
@@ -265,7 +277,7 @@ void draw() {
 	draw3d();
 	draw2d();
 
-	SDL_GL_SwapBuffers();
+	display->swap();
 
 	if (screenshot == 1) {
 		// http://stackoverflow.com/questions/5862097/sdl-opengl-screenshot-is-black hax hax
@@ -537,6 +549,12 @@ void gen_world()
 
 extern "C" int main(int argc, char **argv)
 {
+#if _WIN32
+	// hack to redirect output to text files
+	freopen("stdout.txt", "w", stdout);
+	freopen("stderr.txt", "w", stderr);
+#endif
+
 	printf("Version: %d.%d%s\n", VERSION_MAJOR, VERSION_MINOR, VERSION_RELEASE);
 
 	// walk up the path until data directory is found
@@ -565,13 +583,19 @@ extern "C" int main(int argc, char **argv)
 		return 1;
 	}
 
-	const SDL_VideoInfo *vid_info = SDL_GetVideoInfo();
+	SDL_DisplayMode mode;
+	// TODO: iterate over monitors?
+	if (SDL_GetDesktopDisplayMode(0, &mode)) {
+		printf("SDL_GetDesktopDisplayMode failed: %s\n", SDL_GetError());
+		SDL_Quit();
+		return 1;
+	}
 
-	printf("Current video mode is %dx%dx%d\n", vid_info->current_w, vid_info->current_h, vid_info->vfmt->BitsPerPixel);
+	auto w = mode.w;
+	auto h = mode.h;
 
-	int w = vid_info->current_w;
-	int h = vid_info->current_h;
-	int bpp = vid_info->vfmt->BitsPerPixel;
+	printf("Current video mode is %dx%d\n", w, h);
+
 	bool fullscreen = configmanager.getBool("test.video.fullscreen", true);
 	float width_cfg = static_cast<float>(configmanager.getDouble("test.video.width", 0.6));
 	float height_cfg = static_cast<float>(configmanager.getDouble("test.video.height", 0.6));
@@ -594,10 +618,8 @@ extern "C" int main(int argc, char **argv)
 
 	// TODO: read w, h, bpp from config file to override defaults
 
-	SDL_WM_SetCaption("NarfBlock", "NarfBlock");
-
-	if (!init_video(w, h, bpp, fullscreen)) {
-		fprintf(stderr, "Error: could not set OpenGL video mode %dx%d@%d bpp\n", w, h, bpp);
+	if (!init_video(w, h, fullscreen)) {
+		fprintf(stderr, "Error: could not set OpenGL video mode %dx%d\n", w, h);
 		SDL_Quit();
 		return 1;
 	}
@@ -639,8 +661,7 @@ extern "C" int main(int argc, char **argv)
 	auto red = narf::Color(1.0f, 0.0f, 0.0f, 1.0f);
 	console_text_buffer->print(L"Testing 123", 0, 10, red);
 
-	SDL_ShowCursor(0);
-	SDL_WM_GrabInput(SDL_GRAB_ON);
+	SDL_SetRelativeMouseMode(SDL_TRUE);
 
 	game_loop();
 

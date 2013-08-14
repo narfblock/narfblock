@@ -6,7 +6,10 @@ Narfblock
 ## Prerequisites
 
 - CMake 2.6 or newer
-- libSDL 1.2 development libraries
+- libSDL 2.0 development libraries
+- libSDL2_image development libraries
+- GLEW development libraries
+- FreeType development libraries
 
 ## Build Commands
 

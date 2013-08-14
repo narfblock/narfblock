@@ -1,4 +1,4 @@
-#include <SDL/SDL.h>
+#include <SDL.h>
 
 #include <stdlib.h>
 
@@ -94,18 +94,6 @@ void narf::Input::process_event(const SDL_Event *event)
 			action_secondary_ = false;
 			action_secondary_end_ = true;
 			break;
-		}
-		break;
-
-	case SDL_ACTIVEEVENT:
-		if (event->active.state & (SDL_APPACTIVE | SDL_APPINPUTFOCUS)) {
-			if (event->active.gain) {
-				SDL_ShowCursor(0);
-				SDL_WM_GrabInput(SDL_GRAB_ON);
-			} else {
-				SDL_ShowCursor(1);
-				SDL_WM_GrabInput(SDL_GRAB_OFF);
-			}
 		}
 		break;
 	}

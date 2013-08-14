@@ -41,9 +41,7 @@ if (MSVC)
 endif ()
 
 include_directories (
-	# cmake's SDL_INCLUDE_DIR incorrectly includes the actual SDL dir;
-	# append .. to work around this
-	"${SDL_INCLUDE_DIR}/.."
+	"${SDL_INCLUDE_DIR}"
 	"${FREETYPE_GL_INCLUDE_DIR}"
 	"${FREETYPE_INCLUDE_DIRS}"
 	"${GLEW_INCLUDE_DIR}"
