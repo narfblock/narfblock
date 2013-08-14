@@ -67,8 +67,8 @@ void narf::Input::process_event(const SDL_Event *event)
 		break;
 
 	case SDL_MOUSEMOTION:
-		look_rel_ = narf::math::Vector2f((float)event->motion.xrel * look_sensitivity_x_,
-		                                 (float)event->motion.yrel * look_sensitivity_y_);
+		look_rel_ += narf::math::Vector2f((float)event->motion.xrel * look_sensitivity_x_,
+		                                  (float)event->motion.yrel * look_sensitivity_y_);
 		break;
 
 	case SDL_MOUSEBUTTONDOWN:
