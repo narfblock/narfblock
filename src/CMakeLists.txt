@@ -14,8 +14,8 @@ set(NARFBLOCK_DATA_PATH "${CMAKE_SOURCE_DIR}/../data/")
 
 find_package (OpenGL REQUIRED)
 find_package (GLEW REQUIRED)
-find_package (SDL REQUIRED)
-find_package (SDL_image REQUIRED)
+find_package (SDL2 REQUIRED)
+find_package (SDL2_image REQUIRED)
 find_package (freetype-gl REQUIRED)
 find_package (Freetype REQUIRED)
 find_package (Threads REQUIRED)
@@ -41,7 +41,8 @@ if (MSVC)
 endif ()
 
 include_directories (
-	"${SDL_INCLUDE_DIR}"
+	"${SDL2_INCLUDE_DIR}"
+	"${SDL2IMAGE_INCLUDE_DIR}"
 	"${FREETYPE_GL_INCLUDE_DIR}"
 	"${FREETYPE_INCLUDE_DIRS}"
 	"${GLEW_INCLUDE_DIR}"
@@ -90,12 +91,12 @@ target_link_libraries (narfblock
 	${FREETYPE_GL_LIBRARY}
 	${GLEW_LIBRARY}
 	${OPENGL_LIBRARY}
-	${SDL_IMAGE_LIBRARY}
-	${SDL_LIBRARY}
+	${SDL2IMAGE_LIBRARY}
+	${SDL2_LIBRARY}
 	# HACK: cmake's SDL_LIBRARY puts the libraries in the wrong order;
 	# there are symbols in libSDLmain that depend on libSDL, but -lSDL is first in SDL_LIBRARY.
 	# Add them again to get -lSDL after -lSDLmain.
-	${SDL_LIBRARY}
+	${SDL2_LIBRARY}
 	${CMAKE_THREAD_LIBS_INIT}
 	)
 
