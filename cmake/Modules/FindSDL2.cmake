@@ -105,7 +105,7 @@ IF(NOT SDL_BUILDING_LIBRARY)
     # seem to provide SDLmain for compatibility even though they don't
     # necessarily need it.
     FIND_LIBRARY(SDLMAIN_LIBRARY 
-      NAMES SDLmain2
+      NAMES SDL2main
       HINTS
       $ENV{SDLDIR}
       PATH_SUFFIXES lib64 lib
