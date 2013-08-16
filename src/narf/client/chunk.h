@@ -51,6 +51,7 @@ class World;
 
 struct BlockVertex {
 	GLfloat vertex[3];
+	GLfloat color[3];
 	GLfloat texcoord[2];
 };
 

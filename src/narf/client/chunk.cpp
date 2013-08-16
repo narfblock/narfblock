@@ -113,6 +113,8 @@ void narf::client::Chunk::draw_quad(narf::gl::Buffer<BlockVertex> &vbo, uint8_t 
 	float u2 = u1 + texcoord_tile_size;
 	float v2 = v1 + texcoord_tile_size;
 
+	float light = quad[2] / (float)(world_->size_z() / 2) + 0.5f; // hax
+
 	BlockVertex v[4];
 
 	memcpy(v[0].vertex, &quad[0*3], sizeof(v[0].vertex));
@@ -124,6 +126,11 @@ void narf::client::Chunk::draw_quad(narf::gl::Buffer<BlockVertex> &vbo, uint8_t 
 	v[1].texcoord[0] = u2; v[1].texcoord[1] = v2;
 	v[2].texcoord[0] = u2; v[2].texcoord[1] = v1;
 	v[3].texcoord[0] = u1; v[3].texcoord[1] = v1;
+
+	v[0].color[0] = light; v[0].color[1] = light; v[0].color[2] = light;
+	v[1].color[0] = light; v[1].color[1] = light; v[1].color[2] = light;
+	v[2].color[0] = light; v[2].color[1] = light; v[2].color[2] = light;
+	v[3].color[0] = light; v[3].color[1] = light; v[3].color[2] = light;
 
 	vbo.append(v[0]);
 	vbo.append(v[1]);
@@ -231,11 +238,14 @@ void draw_vbo(narf::gl::Buffer<narf::client::BlockVertex> &vbo)
 	// TODO: move this stuff into Buffer class
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	glEnableClientState(GL_COLOR_ARRAY);
 
 	glVertexPointer(3, GL_FLOAT, sizeof(narf::client::BlockVertex), (void*)offsetof(narf::client::BlockVertex, vertex));
 	glTexCoordPointer(2, GL_FLOAT, sizeof(narf::client::BlockVertex), (void*)offsetof(narf::client::BlockVertex, texcoord));
+	glColorPointer(3, GL_FLOAT, sizeof(narf::client::BlockVertex), (void*)offsetof(narf::client::BlockVertex, color));
 
 	glDrawArrays(GL_QUADS, 0, (int)vbo.count());
+	glDisableClientState(GL_COLOR_ARRAY);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 	glDisableClientState(GL_VERTEX_ARRAY);
 
