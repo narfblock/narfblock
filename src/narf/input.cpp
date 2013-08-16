@@ -81,6 +81,10 @@ void narf::Input::process_event(const SDL_Event *event)
 			action_secondary_begin_ = !action_secondary_;
 			action_secondary_ = true;
 			break;
+		case SDL_BUTTON_MIDDLE:
+			action_ternary_begin_ = !action_ternary_;
+			action_ternary_ = true;
+			break;
 		}
 		break;
 
@@ -94,6 +98,10 @@ void narf::Input::process_event(const SDL_Event *event)
 			action_secondary_ = false;
 			action_secondary_end_ = true;
 			break;
+		case SDL_BUTTON_MIDDLE:
+			action_ternary_ = false;
+			action_ternary_end_ = true;
+			break;
 		}
 		break;
 	}
@@ -106,6 +114,7 @@ void narf::Input::begin_sample()
 	jump_ = false;
 	action_primary_begin_ = action_primary_end_ = false;
 	action_secondary_begin_ = action_secondary_end_ = false;
+	action_ternary_begin_ = action_ternary_end_ = false;
 	toggle_wireframe_ = false;
 	toggle_backface_culling_ = false;
 	screenshot_ = false;

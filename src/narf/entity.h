@@ -41,12 +41,14 @@ class World;
 
 class Entity {
 public:
-	Entity(World *world) : bouncy(false), model(false), onGround(false), antigrav(false), world_(world) { }
+	Entity(World *world) : bouncy(false), explodey(false), model(false), onGround(false), antigrav(false), world_(world) { }
 
 	math::Vector3f position;
 	math::Vector3f velocity;
 
+	// temp hack stuff
 	bool bouncy;
+	bool explodey;
 	bool model; // TODO: replace with 3d model object; for now, indicates whether to draw a cube
 	bool onGround; // on solid ground, i.e. can jump
 	bool antigrav; // magic!

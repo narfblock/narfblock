@@ -27,6 +27,9 @@ public:
 		action_secondary_(false),
 		action_secondary_begin_(false),
 		action_secondary_end_(false),
+		action_ternary_(false),
+		action_ternary_begin_(false),
+		action_ternary_end_(false),
 		toggle_wireframe_(false),
 		toggle_backface_culling_(false),
 		look_rel_(0.0f, 0.0f) { }
@@ -51,6 +54,10 @@ public:
 	bool action_secondary() const { return action_secondary_; }
 	bool action_secondary_begin() const { return action_secondary_begin_; }
 	bool action_secondary_end() const { return action_secondary_end_; }
+
+	bool action_ternary() const { return action_ternary_; }
+	bool action_ternary_begin() const { return action_ternary_begin_; }
+	bool action_ternary_end() const { return action_ternary_end_; }
 
 	bool toggle_wireframe() const { return toggle_wireframe_; }
 	bool toggle_backface_culling() const { return toggle_backface_culling_; }
@@ -81,6 +88,10 @@ private:
 	bool action_secondary_; // right click
 	bool action_secondary_begin_;
 	bool action_secondary_end_;
+
+	bool action_ternary_; // middle click
+	bool action_ternary_begin_;
+	bool action_ternary_end_;
 
 	bool toggle_wireframe_;
 	bool toggle_backface_culling_;

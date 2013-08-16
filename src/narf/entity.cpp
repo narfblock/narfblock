@@ -33,6 +33,33 @@
 #include "narf/entity.h"
 #include "narf/world.h"
 
+
+// TODO: move this to a subclass of entity
+void explode(narf::World *world, int32_t bx, int32_t by, int32_t bz, int32_t radius) {
+	narf::Block air;
+	air.id = 0;
+
+	auto radiusSquared = radius * radius;
+
+	for (int32_t x = 0; x < radius; x++) {
+		for (int32_t y = 0; y < radius; y++) {
+			for (int32_t z = 0; z < radius; z++) {
+				if (x * x + y * y + z * z < radiusSquared) {
+					world->put_block(&air, bx + x, by + y, bz + z);
+					world->put_block(&air, bx - x, by + y, bz + z);
+					world->put_block(&air, bx + x, by - y, bz + z);
+					world->put_block(&air, bx - x, by - y, bz + z);
+					world->put_block(&air, bx + x, by + y, bz - z);
+					world->put_block(&air, bx - x, by + y, bz - z);
+					world->put_block(&air, bx + x, by - y, bz - z);
+					world->put_block(&air, bx - x, by - y, bz - z);
+				}
+			}
+		}
+	}
+}
+
+
 void narf::Entity::update(double t, double dt)
 {
 	// cheesy Euler integration
@@ -60,6 +87,13 @@ void narf::Entity::update(double t, double dt)
 	uint32_t by = (uint32_t)position.y;
 	uint32_t bz = (uint32_t)position.z;
 	if (world_->get_block(bx, by, bz)->id != 0) {
+		if (explodey) {
+			explode(world_, bx, by, bz, 5);
+			// TODO: delete this entity
+			explodey = false;
+			velocity.x = velocity.y = 0.0f;
+		}
+
 		if (bouncy) {
 			position.z = ceilf(position.z) + (ceilf(position.z) - position.z);
 			velocity.z = -velocity.z;

@@ -408,6 +408,17 @@ void sim_frame(const narf::Input &input, double t, double dt)
 		}
 	}
 
+	if (input.action_ternary_begin()) {
+		printf("got middle click\n");
+		// fire a new entity
+		auto ent = world->newEntity();
+		ent->position = cam.position;
+		ent->velocity = player->velocity + narf::math::Vector3f(cam.orientation).normalize() * 20.0f;
+		ent->model = true;
+		ent->bouncy = false;
+		ent->explodey = true;
+	}
+
 	if (input.toggle_wireframe()) {
 		wireframe = !wireframe;
 	}
