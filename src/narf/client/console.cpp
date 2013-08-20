@@ -71,7 +71,7 @@ void narf::client::Console::render() {
 		auto x1 = float(impl->x);
 		auto y1 = float(impl->y);
 		auto x2 = float(impl->x + impl->width);
-		auto y2 = float(impl->y + impl->height - 1);
+		auto y2 = float(impl->y + impl->height);
 
 		glColor4f(0.5f, 0.5f, 0.5f, 0.7f);
 		glBegin(GL_QUADS);
