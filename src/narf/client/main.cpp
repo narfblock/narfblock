@@ -26,12 +26,15 @@
 #include "narf/config/config.h"
 #include "narf/math/math.h"
 
+#include "narf/client/console.h"
 #include "narf/client/world.h"
 #include "narf/client/chunk.h"
 
 #include "narf/gl/gl.h"
 
 // TODO: this is all hacky test code - refactor into nicely modularized code
+
+narf::client::Console *clientConsole;
 
 narf::Entity *player;
 narf::Entity *bouncy_block; // temp hack
@@ -56,7 +59,6 @@ narf::gl::Texture *tiles_tex;
 Poco::Path data_dir;
 
 narf::font::FontManager font_manager;
-narf::font::TextBuffer *console_text_buffer;
 narf::font::TextBuffer *fps_text_buffer;
 narf::font::TextBuffer *block_info_buffer;
 narf::font::TextBuffer *location_buffer;
@@ -94,7 +96,7 @@ bool init_textures()
 {
 	int imgFlags = IMG_INIT_PNG;
 	if (IMG_Init(imgFlags) != imgFlags) {
-		fprintf(stderr, "IMG_Init failed: %s\n", IMG_GetError());
+		narf::console->println("IMG_Init failed: " + std::string(IMG_GetError()));
 		return false;
 	}
 
@@ -103,7 +105,7 @@ bool init_textures()
 
 	tiles_surf = IMG_Load(terrain_file_path.toString().c_str());
 	if (!tiles_surf) {
-		fprintf(stderr, "IMG_Load(%s) failed: %s\n", terrain_file_path.toString().c_str(), IMG_GetError());
+		narf::console->println("IMG_Load(" + terrain_file_path.toString() + ") failed: " + std::string(IMG_GetError()));
 		SDL_Quit();
 	}
 
@@ -256,15 +258,15 @@ void draw2d() {
 			L" " + BlockFace_str[selected_block_face.face] +
 			L" (" + std::to_wstring((int)selected_block_face.face) + L")";
 
-		block_info_buffer->print(block_info_str, 0, 35, blue);
+		block_info_buffer->print(block_info_str, 0, (float)display->height() - 90, blue);
 	}
 
 	std::wstring location_str = L"Pos: " + std::to_wstring(player->position.x) + L", " + std::to_wstring(player->position.y) + L", " + std::to_wstring(player->position.z);
 	location_str += L" Yaw: " + std::to_wstring(cam.orientation.yaw) + L" Pitch: " + std::to_wstring(cam.orientation.pitch);
 	location_buffer->clear();
-	location_buffer->print(location_str, 0, 70, blue);
+	location_buffer->print(location_str, 0, (float)display->height() - 60, blue);
 
-	console_text_buffer->render();
+	clientConsole->render();
 	fps_text_buffer->render();
 	block_info_buffer->render();
 	location_buffer->render();
@@ -284,7 +286,7 @@ void draw() {
 		SDL_Surface* image = SDL_CreateRGBSurface(SDL_SWSURFACE, display->width(), display->height(), 24, 0x000000FF, 0x0000FF00, 0x00FF0000, 0);
 		SDL_Surface* result = SDL_CreateRGBSurface(SDL_SWSURFACE, display->width(), display->height(), 24, 0x000000FF, 0x0000FF00, 0x00FF0000, 0);
 		glReadPixels(0, 0, display->width(), display->height(), GL_RGB, GL_UNSIGNED_BYTE, image->pixels);
-		printf("Taking a screenshot. %dx%dx24\n", image->w, image->h);
+		narf::console->println("Taking a screenshot. " + std::to_string(image->w) + "x" + std::to_string(image->h) + "x24");
 
 		// Flip upside down
 		for(int32_t y = 0; y < image->h; ++y) {
@@ -355,6 +357,7 @@ void sim_frame(const narf::Input &input, double t, double dt)
 		} else if (player->velocity.z > 0.0f) {
 			// still going up - double jump triggers flying
 			player->antigrav = true;
+			narf::console->println("entered antigrav mode");
 		}
 	}
 
@@ -369,8 +372,9 @@ void sim_frame(const narf::Input &input, double t, double dt)
 
 	world->update(t, dt);
 
-	if (player->onGround) {
+	if (player->onGround && player->antigrav) {
 		player->antigrav = false;
+		narf::console->println("left antigrav mode");
 	}
 
 	// lock camera to player
@@ -383,8 +387,11 @@ void sim_frame(const narf::Input &input, double t, double dt)
 
 	if (selected_block_face.block != nullptr) {
 		if (input.action_primary_begin() || input.action_secondary_begin()) {
-			printf("got left click\n");
-			printf("got non-null block %d %d %d\n", selected_block_face.x, selected_block_face.y, selected_block_face.z);
+			narf::console->println("got " + std::string(input.action_primary_begin() ? "left" : "right") + " click " +
+				std::to_string(selected_block_face.x) + " " +
+				std::to_string(selected_block_face.y) + " " +
+				std::to_string(selected_block_face.z));
+
 			narf::Block b;
 			uint32_t x = selected_block_face.x;
 			uint32_t y = selected_block_face.y;
@@ -409,7 +416,7 @@ void sim_frame(const narf::Input &input, double t, double dt)
 	}
 
 	if (input.action_ternary_begin()) {
-		printf("got middle click\n");
+		narf::console->println("got middle click");
 		// fire a new entity
 		auto ent = world->newEntity();
 		ent->position = cam.position;
@@ -566,30 +573,33 @@ extern "C" int main(int argc, char **argv)
 	freopen("stderr.txt", "w", stderr);
 #endif
 
-	printf("Version: %d.%d%s\n", VERSION_MAJOR, VERSION_MINOR, VERSION_RELEASE);
+	clientConsole = new narf::client::Console();
+	narf::console = clientConsole;
+
+	narf::console->println("Version: " + std::to_string(VERSION_MAJOR) + "." + std::to_string(VERSION_MINOR) + std::string(VERSION_RELEASE));
 
 	// walk up the path until data directory is found
-	printf("Current Dir: %s\n", Poco::Path::current().c_str());
+	narf::console->println("Current Dir: " + Poco::Path::current());
 	Poco::File tmp;
 	for (Poco::Path dir = Poco::Path::current(); dir.toString() != dir.parent().toString(); dir = dir.parent()) {
 		data_dir = Poco::Path(dir, "data");
-		printf("Checking %s (%s)\n", data_dir.toString().c_str(), dir.toString().c_str());
+		narf::console->println("Checking " + data_dir.toString());
 		tmp = data_dir;
 		if (tmp.exists()) {
-			printf("Found data directory: %s\n", data_dir.toString().c_str());
+			narf::console->println("Found data directory: " + data_dir.toString());
 			break;
 		}
 	}
 
 	// Will explode if things don't exist
 	auto config_file = Poco::Path(data_dir, "config.ini").toString();
-	printf("Config File: %s\n", config_file.c_str());
+	narf::console->println("Config File: " + config_file);
 	configmanager.load("test", config_file);
 	int bar = configmanager.getInt("test.foo.bar", 43);
-	printf("ConfigManager test: test.foo.bar = %d\n", bar);
+	narf::console->println("ConfigManager test: test.foo.bar = " + std::to_string(bar));
 
 	if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
-		printf("SDL_Init(SDL_INIT_EVERYTHING) failed: %s\n", SDL_GetError());
+		narf::console->println("SDL_Init(SDL_INIT_EVERYTHING) failed: " + std::string(SDL_GetError()));
 		SDL_Quit();
 		return 1;
 	}
@@ -597,7 +607,7 @@ extern "C" int main(int argc, char **argv)
 	SDL_DisplayMode mode;
 	// TODO: iterate over monitors?
 	if (SDL_GetDesktopDisplayMode(0, &mode)) {
-		printf("SDL_GetDesktopDisplayMode failed: %s\n", SDL_GetError());
+		narf::console->println("SDL_GetDesktopDisplayMode failed: " + std::string(SDL_GetError()));
 		SDL_Quit();
 		return 1;
 	}
@@ -605,12 +615,11 @@ extern "C" int main(int argc, char **argv)
 	auto w = mode.w;
 	auto h = mode.h;
 
-	printf("Current video mode is %dx%d\n", w, h);
+	narf::console->println("Current video mode is " + std::to_string(w) + "x" + std::to_string(h));
 
 	bool fullscreen = configmanager.getBool("test.video.fullscreen", true);
 	float width_cfg = static_cast<float>(configmanager.getDouble("test.video.width", 0.6));
 	float height_cfg = static_cast<float>(configmanager.getDouble("test.video.height", 0.6));
-	printf("Setting video to ");
 	if (!fullscreen) {
 		if (width_cfg > 1) {
 			w = (int)width_cfg;
@@ -622,15 +631,15 @@ extern "C" int main(int argc, char **argv)
 		} else {
 			h = (int)((float)h * height_cfg);
 		}
-		printf("%dx%d\n", w, h);
+		narf::console->println("Setting video to windowed " + std::to_string(w) + "x" + std::to_string(h));
 	} else {
-		printf("fullscreen\n");
+		narf::console->println("Setting video to fullscreen");
 	}
 
 	// TODO: read w, h, bpp from config file to override defaults
 
 	if (!init_video(w, h, fullscreen)) {
-		fprintf(stderr, "Error: could not set OpenGL video mode %dx%d\n", w, h);
+		narf::console->println("Error: could not set OpenGL video mode " + std::to_string(w) + "x" + std::to_string(h));
 		SDL_Quit();
 		return 1;
 	}
@@ -656,21 +665,34 @@ extern "C" int main(int argc, char **argv)
 
 	init_textures();
 	auto font_file = Poco::Path(data_dir, "DroidSansMono.ttf").toString();
-	printf("Loading font from %s\n", font_file.c_str());
+	narf::console->println("Loading font from " + font_file);
 
 	auto font = font_manager.addFont("DroidSansMono", font_file, 30);
 	if (!font) {
-		fprintf(stderr, "Error: could not load DroidSansMono\n");
+		narf::console->println("Error: could not load DroidSansMono");
 		return 1;
 	}
 
-	console_text_buffer = new narf::font::TextBuffer(font);
+	auto consoleFontFile = Poco::Path(data_dir, configmanager.getString("test.video.console_font", "DroidSansMono.ttf")).toString();
+	auto consoleFontSize = configmanager.getInt("test.video.console_font_size", 18);
+
+	auto consoleFont = font_manager.addFont("console", consoleFontFile, (float)consoleFontSize);
+
+	auto consoleX = 0;
+	auto consoleY = 0;
+	auto consoleWidth = display->width();
+	auto consoleHeight = 175; // TODO: calculate dynamically based on screen size
+
+	narf::console->println("Console location: (" +
+		std::to_string(consoleX) + ", " + std::to_string(consoleY) + ") " +
+		std::to_string(consoleWidth) + "x" + std::to_string(consoleHeight));
+
+	clientConsole->setFont(consoleFont, consoleFontSize);
+	clientConsole->setLocation(consoleX, consoleY, consoleWidth, consoleHeight);
+
 	fps_text_buffer = new narf::font::TextBuffer(font);
 	block_info_buffer = new narf::font::TextBuffer(font);
 	location_buffer = new narf::font::TextBuffer(font);
-
-	auto red = narf::Color(1.0f, 0.0f, 0.0f, 1.0f);
-	console_text_buffer->print(L"Testing 123", 0, 10, red);
 
 	SDL_SetRelativeMouseMode(SDL_TRUE);
 

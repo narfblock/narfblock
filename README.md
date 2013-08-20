@@ -10,6 +10,7 @@ Narfblock
 - libSDL2_image development libraries
 - GLEW development libraries
 - FreeType development libraries
+- ncurses (Linux) or pdcurses (Windows) development libraries
 
 ## Build Commands
 

@@ -19,6 +19,7 @@ find_package (SDL2_image REQUIRED)
 find_package (freetype-gl REQUIRED)
 find_package (Freetype REQUIRED)
 find_package (Threads REQUIRED)
+find_package (Curses REQUIRED)
 
 set(PocoFoundation_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../poco/Foundation)
 configure_file ("${CMAKE_SOURCE_DIR}/../cmake/PocoFoundationConfig.cmake" "${PocoFoundation_DIR}/PocoFoundationConfig.cmake" COPYONLY)
@@ -40,12 +41,27 @@ if (MSVC)
 	add_definitions( -D_USE_MATH_DEFINES )
 endif ()
 
+# figure out the correct header filename for curses
+if (CURSES_HAVE_CURSES_H)
+	add_definitions( -DHAVE_CURSES_H )
+endif()
+if (CURSES_HAVE_NCURSES_H)
+	add_definitions( -DHAVE_NCURSES_H )
+endif()
+if (CURSES_HAVE_NCURSES_NCURSES_H)
+	add_definitions( -DHAVE_NCURSES_NCURSES_H )
+endif()
+if (CURSES_HAVE_NCURSES_CURSES_H)
+	add_definitions( -DHAVE_NCURSES_CURSES_H )
+endif()
+
 include_directories (
 	"${SDL2_INCLUDE_DIR}"
 	"${SDL2IMAGE_INCLUDE_DIR}"
 	"${FREETYPE_GL_INCLUDE_DIR}"
 	"${FREETYPE_INCLUDE_DIRS}"
 	"${GLEW_INCLUDE_DIR}"
+	"${CURSES_INCLUDE_DIR}"
 	"${PROJECT_SOURCE_DIR}"
 	"${PROJECT_BINARY_DIR}"
 	)
@@ -80,6 +96,7 @@ add_executable (narfblock
 
 	narf/client/main.cpp
 	narf/client/chunk.cpp
+	narf/client/console.cpp
 	narf/client/world.cpp
 	)
 
@@ -104,6 +121,7 @@ target_link_libraries (narfblock
 add_executable (narfblock-server
 	${NARFBLOCK_COMMON_SOURCE_FILES}
 
+	narf/cursesconsole.cpp
 	narf/server/main.cpp
 	)
 
@@ -111,6 +129,7 @@ target_link_libraries (narfblock-server
 	PocoFoundation
 	PocoUtil
 	${CMAKE_THREAD_LIBS_INIT}
+	${CURSES_LIBRARY}
 	)
 
 # unit test executable
