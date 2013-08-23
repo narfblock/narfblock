@@ -33,6 +33,8 @@ foreach (i IN LISTS FREETYPE_GL_SRC_LIST)
   endif()
 endforeach()
 
+execute_process(COMMAND ${PATCH_COMMAND} --merge --binary -d "${FREETYPE_GL_DIR}" -i "${CMAKE_SOURCE_DIR}/../cmake/freetype-gl.platform.patch")
+
 configure_file ("${CMAKE_SOURCE_DIR}/../cmake/freetype-gl.CMakeLists.txt" "${FREETYPE_GL_DIR}/CMakeLists.txt" COPYONLY)
 
 add_subdirectory("${FREETYPE_GL_DIR}" "${FREETYPE_GL_DIR}")
