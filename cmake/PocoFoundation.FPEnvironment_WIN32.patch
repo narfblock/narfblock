@@ -1,0 +1,30 @@
+--- ../poco/Foundation/include/Poco/FPEnvironment_WIN32.h
++++ ../poco/Foundation/include/Poco/FPEnvironment_WIN32.h
+@@ -53,18 +53,18 @@ class Foundation_API FPEnvironmentImpl
+ protected:
+ 	enum RoundingModeImpl
+ 	{
+-		FP_ROUND_DOWNWARD_IMPL   = RC_DOWN,
+-		FP_ROUND_UPWARD_IMPL     = RC_UP,
+-		FP_ROUND_TONEAREST_IMPL  = RC_NEAR,
+-		FP_ROUND_TOWARDZERO_IMPL = RC_CHOP
++		FP_ROUND_DOWNWARD_IMPL   = _RC_DOWN,
++		FP_ROUND_UPWARD_IMPL     = _RC_UP,
++		FP_ROUND_TONEAREST_IMPL  = _RC_NEAR,
++		FP_ROUND_TOWARDZERO_IMPL = _RC_CHOP
+ 	};
+ 	enum FlagImpl
+ 	{
+-		FP_DIVIDE_BY_ZERO_IMPL = SW_ZERODIVIDE,
+-		FP_INEXACT_IMPL        = SW_INEXACT,
+-		FP_OVERFLOW_IMPL       = SW_OVERFLOW,
+-		FP_UNDERFLOW_IMPL      = SW_UNDERFLOW,
+-		FP_INVALID_IMPL        = SW_INVALID
++		FP_DIVIDE_BY_ZERO_IMPL = _EM_ZERODIVIDE,
++		FP_INEXACT_IMPL        = _EM_INEXACT,
++		FP_OVERFLOW_IMPL       = _EM_OVERFLOW,
++		FP_UNDERFLOW_IMPL      = _EM_UNDERFLOW,
++		FP_INVALID_IMPL        = _EM_INVALID
+ 	};
+ 	FPEnvironmentImpl();
+ 	FPEnvironmentImpl(const FPEnvironmentImpl& env);
