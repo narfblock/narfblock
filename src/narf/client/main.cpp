@@ -598,7 +598,7 @@ extern "C" int main(int argc, char **argv)
 	int bar = configmanager.getInt("test.foo.bar", 43);
 	narf::console->println("ConfigManager test: test.foo.bar = " + std::to_string(bar));
 
-	if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
+	if (SDL_Init(SDL_INIT_TIMER | SDL_INIT_VIDEO) < 0) {
 		narf::console->println("SDL_Init(SDL_INIT_EVERYTHING) failed: " + std::string(SDL_GetError()));
 		SDL_Quit();
 		return 1;
