@@ -1,5 +1,5 @@
---- ../poco/Foundation/include/Poco/FPEnvironment_WIN32.h
-+++ ../poco/Foundation/include/Poco/FPEnvironment_WIN32.h
+--- Foundation/include/Poco/FPEnvironment_WIN32.h
++++ Foundation/include/Poco/FPEnvironment_WIN32.h
 @@ -53,18 +53,18 @@ class Foundation_API FPEnvironmentImpl
  protected:
  	enum RoundingModeImpl
@@ -28,3 +28,30 @@
  	};
  	FPEnvironmentImpl();
  	FPEnvironmentImpl(const FPEnvironmentImpl& env);
+--- Foundation/src/FPEnvironment_WIN32.cpp
++++ Foundation/src/FPEnvironment_WIN32.cpp
+@@ -54,7 +54,7 @@ FPEnvironmentImpl::FPEnvironmentImpl(const FPEnvironmentImpl& env)
+ 
+ FPEnvironmentImpl::~FPEnvironmentImpl()
+ {
+-	_controlfp(_env, MCW_RC);
++	_controlfp(_env, _MCW_RC);
+ }
+ 
+ 
+@@ -85,13 +85,13 @@ bool FPEnvironmentImpl::isFlagImpl(FlagImpl flag)
+ 
+ void FPEnvironmentImpl::setRoundingModeImpl(RoundingModeImpl mode)
+ {
+-	_controlfp(mode, MCW_RC);
++	_controlfp(mode, _MCW_RC);
+ }
+ 
+ 
+ FPEnvironmentImpl::RoundingModeImpl FPEnvironmentImpl::getRoundingModeImpl()
+ {
+-	return RoundingModeImpl(_controlfp(0, 0) & MCW_RC);
++	return RoundingModeImpl(_controlfp(0, 0) & _MCW_RC);
+ }
+ 
+ 
