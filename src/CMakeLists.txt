@@ -34,6 +34,9 @@ include (DownloadFont)
 if (CMAKE_COMPILER_IS_GNUCXX)
 	SET(CMAKE_CXX_FLAGS
 		"-std=gnu++0x -Wpointer-arith -Wtype-limits -Wwrite-strings -Wuninitialized -Wno-pmf-conversions -Werror=redundant-decls -Wsign-compare -Wconversion -g")
+	if (WIN32)
+		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static-libgcc -static-libstdc++")
+	endif ()
 endif ()
 
 if (MSVC)
