@@ -39,3 +39,22 @@ void narf::World::update(double t, double dt)
 		ent->update(t, dt);
 	}
 }
+
+
+narf::BlockTypeId narf::World::addBlockType(const narf::BlockType &bt) {
+	if (numBlockTypes_ == (sizeof(blockTypes_) / sizeof(*blockTypes_)) - 1) {
+		return 0; // TODO - get a better invalid value
+	}
+
+	blockTypes_[numBlockTypes_] = bt;
+	return numBlockTypes_++;
+}
+
+const narf::BlockType *narf::World::getBlockType(narf::BlockTypeId id) const {
+	if (id >= numBlockTypes_) {
+		// TODO
+		assert(0);
+		return &blockTypes_[0];
+	}
+	return &blockTypes_[id];
+}

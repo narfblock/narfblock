@@ -35,9 +35,11 @@
 
 namespace narf {
 
+typedef uint8_t BlockTypeId;
+
 class Block {
 public:
-	uint8_t id;
+	BlockTypeId id;
 };
 
 enum BlockFace { XPos, XNeg, YPos, YNeg, ZPos, ZNeg, Invalid };
@@ -49,6 +51,24 @@ typedef struct {
 	int32_t z;
 	BlockFace face;
 } BlockWrapper;
+
+
+struct BlockTexCoord {
+	float u1;
+	float v1;
+	float u2;
+	float v2;
+};
+
+
+class BlockType {
+public:
+	bool solid;
+	bool indestructible;
+
+	// texture coords within tileset bitmap for each face (in BlockFace order)
+	BlockTexCoord texCoords[6];
+};
 
 } // namespace narf
 

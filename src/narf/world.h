@@ -58,7 +58,8 @@ public:
 
 	World(uint32_t size_x, uint32_t size_y, uint32_t size_z, uint32_t chunk_size_x, uint32_t chunk_size_y, uint32_t chunk_size_z) :
 		size_x_(size_x), size_y_(size_y), size_z_(size_z),
-		chunk_size_x_(chunk_size_x), chunk_size_y_(chunk_size_y), chunk_size_z_(chunk_size_z)
+		chunk_size_x_(chunk_size_x), chunk_size_y_(chunk_size_y), chunk_size_z_(chunk_size_z),
+		numBlockTypes_(0)
 	{
 		// TODO: verify size is a multiple of chunk_size and a power of 2
 
@@ -194,6 +195,9 @@ public:
 
 	void update(double t, double dt);
 
+	BlockTypeId addBlockType(const BlockType &bt);
+	const BlockType *getBlockType(BlockTypeId id) const;
+
 protected:
 
 	Chunk **chunks_;
@@ -212,6 +216,8 @@ protected:
 
 	std::vector<narf::Entity*> entities_;
 
+	BlockTypeId numBlockTypes_;
+	BlockType blockTypes_[256];
 
 	void calc_chunk_coords(
 		uint32_t x, uint32_t y, uint32_t z,

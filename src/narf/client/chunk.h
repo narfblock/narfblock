@@ -92,8 +92,7 @@ private:
 
 	// internal rendering functions
 	void build_vertex_buffers();
-	uint8_t get_tex_id(uint8_t type, narf::BlockFace face);
-	void draw_quad(narf::gl::Buffer<BlockVertex> &vbo, uint8_t tex_id, const float *quad);
+	void draw_quad(narf::gl::Buffer<BlockVertex> &vbo, const BlockTexCoord &texCoord, const float *quad);
 };
 
 } // namespace client

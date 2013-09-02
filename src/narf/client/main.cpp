@@ -535,12 +535,60 @@ void fill_plane(uint32_t z, uint8_t block_id) {
 	fill_rect_prism(0, WORLD_X_MAX, 0, WORLD_Y_MAX, z, z + 1, block_id);
 }
 
+
+void calcTexCoord(narf::BlockTexCoord *tc, unsigned texId) {
+	unsigned texX = texId % 16;
+	unsigned texY = texId / 16;
+
+	float texCoordTileSize = 1.0f / 16.0f; // TODO: calculate from actual texture size
+
+	tc->u1 = (float)texX * texCoordTileSize;
+	tc->v1 = (float)texY * texCoordTileSize;
+
+	tc->u2 = tc->u1 + texCoordTileSize;
+	tc->v2 = tc->v1 + texCoordTileSize;
+}
+
+
+// calc tex coords from id
+narf::BlockType genNormalBlockType(unsigned texXPos, unsigned texXNeg, unsigned texYPos, unsigned texYNeg, unsigned texZPos, unsigned texZNeg) {
+	narf::BlockType bt;
+	bt.solid = true;
+	bt.indestructible = false;
+	calcTexCoord(&bt.texCoords[narf::XPos], texXPos);
+	calcTexCoord(&bt.texCoords[narf::XNeg], texXNeg);
+	calcTexCoord(&bt.texCoords[narf::YPos], texYPos);
+	calcTexCoord(&bt.texCoords[narf::YNeg], texYNeg);
+	calcTexCoord(&bt.texCoords[narf::ZPos], texZPos);
+	calcTexCoord(&bt.texCoords[narf::ZNeg], texZNeg);
+	return bt;
+}
+
+
 void gen_world()
 {
 	world = new narf::client::World(WORLD_X_MAX, WORLD_Y_MAX, WORLD_Z_MAX, 16, 16, 16);
 
+	// set up block types
+	// TODO: put this in a config file
+	auto airType = genNormalBlockType(0, 0, 0, 0, 0, 0); // TODO
+	airType.solid = false;
+	auto air = world->addBlockType(airType);
+
+	auto adminiumType = genNormalBlockType(4, 4, 4, 4, 4, 4);
+	adminiumType.indestructible = true;
+	auto adminium = world->addBlockType(adminiumType);
+
+	auto dirt = world->addBlockType(genNormalBlockType(2, 2, 2, 2, 2, 2)); // dirt
+	auto grassDirt = world->addBlockType(genNormalBlockType(3, 3, 3, 3, 0, 2)); // dirt with grass top
+	auto bloop = world->addBlockType(genNormalBlockType(4, 4, 4, 4, 4, 4)); // TODO
+	auto brick = world->addBlockType(genNormalBlockType(5, 5, 5, 5, 5, 5));
+	auto stone1 = world->addBlockType(genNormalBlockType(1, 1, 1, 1, 1, 1));
+	auto stone2 = world->addBlockType(genNormalBlockType(16, 16, 16, 16, 16, 16));
+	auto stone3 = world->addBlockType(genNormalBlockType(17, 17, 17, 17, 17, 17));
+
 	for (int z = 16; z < 23; z++) {
-		fill_rect_prism(30 + z, 35 + (10 - z), 30 + z, 35 + (10 - z), z, z + 1, 16);
+		fill_rect_prism(30 + z, 35 + (10 - z), 30 + z, 35 + (10 - z), z, z + 1, stone2);
 	}
 
 	// generate some random blocks above the ground
@@ -555,7 +603,7 @@ void gen_world()
 
 	for (int i = 0; i < 10; i++) {
 		narf::Block b;
-		b.id = 16;
+		b.id = stone2;
 		world->put_block(&b, 5 + i, 5, 16);
 		world->put_block(&b, 5, 5 + i, 16);
 		world->put_block(&b, 5 + i, 15, 16);

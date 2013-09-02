@@ -35,7 +35,6 @@
 
 #include "narf/gl/gl.h"
 
-
 // TODO: remove me - only used for bouncy block
 void draw_quad(uint8_t tex_id, const float *quad)
 {
@@ -101,18 +100,8 @@ void draw_cube(float x, float y, float z, uint8_t type, unsigned draw_face_mask)
 
 
 
-void narf::client::Chunk::draw_quad(narf::gl::Buffer<BlockVertex> &vbo, uint8_t tex_id, const float *quad)
+void narf::client::Chunk::draw_quad(narf::gl::Buffer<BlockVertex> &vbo, const narf::BlockTexCoord &texCoord, const float *quad)
 {
-	uint8_t tex_x = tex_id % 16;
-	uint8_t tex_y = tex_id / 16;
-
-	float texcoord_tile_size = 1.0f / 16.0f;
-
-	float u1 = (float)tex_x * texcoord_tile_size;
-	float v1 = (float)tex_y * texcoord_tile_size;
-	float u2 = u1 + texcoord_tile_size;
-	float v2 = v1 + texcoord_tile_size;
-
 	float light = quad[2] / (float)(world_->size_z() / 2) + 0.5f; // hax
 
 	BlockVertex v[4];
@@ -122,10 +111,10 @@ void narf::client::Chunk::draw_quad(narf::gl::Buffer<BlockVertex> &vbo, uint8_t 
 	memcpy(v[2].vertex, &quad[2*3], sizeof(v[2].vertex));
 	memcpy(v[3].vertex, &quad[3*3], sizeof(v[3].vertex));
 
-	v[0].texcoord[0] = u1; v[0].texcoord[1] = v2;
-	v[1].texcoord[0] = u2; v[1].texcoord[1] = v2;
-	v[2].texcoord[0] = u2; v[2].texcoord[1] = v1;
-	v[3].texcoord[0] = u1; v[3].texcoord[1] = v1;
+	v[0].texcoord[0] = texCoord.u1; v[0].texcoord[1] = texCoord.v2;
+	v[1].texcoord[0] = texCoord.u2; v[1].texcoord[1] = texCoord.v2;
+	v[2].texcoord[0] = texCoord.u2; v[2].texcoord[1] = texCoord.v1;
+	v[3].texcoord[0] = texCoord.u1; v[3].texcoord[1] = texCoord.v1;
 
 	v[0].color[0] = light; v[0].color[1] = light; v[0].color[2] = light;
 	v[1].color[0] = light; v[1].color[1] = light; v[1].color[2] = light;
@@ -136,27 +125,6 @@ void narf::client::Chunk::draw_quad(narf::gl::Buffer<BlockVertex> &vbo, uint8_t 
 	vbo.append(v[1]);
 	vbo.append(v[2]);
 	vbo.append(v[3]);
-}
-
-
-uint8_t narf::client::Chunk::get_tex_id(uint8_t type, narf::BlockFace face)
-{
-	// TODO: get rid of this hardcoded stuff
-	uint8_t tex_id_map[][6] = {
-	//  +x -x +y -y +z -z
-		{0, 0, 0, 0, 0, 0}, // air
-		{4, 4, 4, 4, 4, 4}, // adminium
-		{2, 2, 2, 2, 2, 2}, // dirt
-		{3, 3, 3, 3, 0, 2}, // dirt with grass top
-		{4, 4, 4, 4, 4, 4},
-		{5, 5, 5, 5, 5, 5},
-	};
-	if (type < sizeof(tex_id_map) / sizeof(tex_id_map[0]) && face < 6) {
-		return tex_id_map[type][face];
-	}
-
-	// HAX: assert here
-	return type;
 }
 
 
@@ -184,37 +152,38 @@ void narf::client::Chunk::build_vertex_buffers()
 
 					float fx = (float)world_x, fy = (float)world_y, fz = (float)world_z;
 
-					auto type = b->id;
+					auto type = world_->getBlockType(b->id);
+					assert(type != nullptr);
 
 					// don't render sides of the cube that are obscured by other opaque cubes
 					if (!world_->is_opaque(world_x, world_y + 1, world_z)) {
 						float quad[] = {fx+1,fy+1,fz+0, fx+0,fy+1,fz+0, fx+0,fy+1,fz+1, fx+1,fy+1,fz+1};
-						draw_quad(vbo_y_pos_, get_tex_id(type, BlockFace::YPos), quad);
+						draw_quad(vbo_y_pos_, type->texCoords[BlockFace::YPos], quad);
 					}
 
 					if (!world_->is_opaque(world_x, world_y - 1, world_z)) {
 						float quad[] = {fx+0,fy+0,fz+0, fx+1,fy+0,fz+0, fx+1,fy+0,fz+1, fx+0,fy+0,fz+1};
-						draw_quad(vbo_y_neg_, get_tex_id(type, BlockFace::YNeg), quad);
+						draw_quad(vbo_y_neg_, type->texCoords[BlockFace::YNeg], quad);
 					}
 
 					if (!world_->is_opaque(world_x + 1, world_y, world_z)) {
 						float quad[] = {fx+1,fy+0,fz+0, fx+1,fy+1,fz+0, fx+1,fy+1,fz+1, fx+1,fy+0,fz+1};
-						draw_quad(vbo_x_pos_, get_tex_id(type, BlockFace::XPos), quad);
+						draw_quad(vbo_x_pos_, type->texCoords[BlockFace::XPos], quad);
 					}
 
 					if (!world_->is_opaque(world_x - 1, world_y, world_z)) {
 						float quad[] = {fx+0,fy+1,fz+0, fx+0,fy+0,fz+0, fx+0,fy+0,fz+1, fx+0,fy+1,fz+1};
-						draw_quad(vbo_x_neg_, get_tex_id(type, BlockFace::XNeg), quad);
+						draw_quad(vbo_x_neg_, type->texCoords[BlockFace::XNeg], quad);
 					}
 
 					if (!world_->is_opaque(world_x, world_y, world_z + 1)) {
 						float quad[] = {fx+0,fy+0,fz+1, fx+1,fy+0,fz+1, fx+1,fy+1,fz+1, fx+0,fy+1,fz+1};
-						draw_quad(vbo_z_pos_, get_tex_id(type, BlockFace::ZPos), quad);
+						draw_quad(vbo_z_pos_, type->texCoords[BlockFace::ZPos], quad);
 					}
 
 					if (world_z != 0 && !world_->is_opaque(world_x, world_y, world_z - 1)) {
 						float quad[] = {fx+0,fy+1,fz+0, fx+1,fy+1,fz+0, fx+1,fy+0,fz+0, fx+0,fy+0,fz+0};
-						draw_quad(vbo_z_neg_, get_tex_id(type, BlockFace::ZNeg), quad);
+						draw_quad(vbo_z_neg_, type->texCoords[BlockFace::ZNeg], quad);
 					}
 				}
 			}

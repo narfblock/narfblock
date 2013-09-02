@@ -73,12 +73,7 @@ public:
 		return &blocks_[((z * size_y_) + y) * size_x_ + x];
 	}
 
-	void put_block(const Block *b, uint32_t x, uint32_t y, uint32_t z) {
-		Block *to_replace = &blocks_[z * size_x_ * size_y_ + y * size_x_ + x];
-		if (to_replace->id != 1) {
-			*to_replace = *b;
-		}
-	}
+	void put_block(const Block *b, uint32_t x, uint32_t y, uint32_t z);
 
 	bool is_opaque(uint32_t x, uint32_t y, uint32_t z) const
 	{

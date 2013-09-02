@@ -33,6 +33,14 @@
 #include "narf/chunk.h"
 #include "narf/world.h"
 
+void narf::Chunk::put_block(const Block *b, uint32_t x, uint32_t y, uint32_t z) {
+	Block *to_replace = &blocks_[z * size_x_ * size_y_ + y * size_x_ + x];
+	if (!world_->getBlockType(to_replace->id)->indestructible) {
+		*to_replace = *b;
+	}
+}
+
+
 void narf::Chunk::fillRectPrism(uint32_t x1, uint32_t x2, uint32_t y1, uint32_t y2, uint32_t z1, uint32_t z2, uint8_t block_id) {
 	for (uint32_t z = z1; z < z2; z++) {
 		for (uint32_t y = y1; y < y2; y++) {
