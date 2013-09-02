@@ -236,7 +236,7 @@ void draw2d() {
 	glLoadIdentity();
 	glOrtho(0.0, display->width(), 0.0, display->height(), 0.0, 1.0);
 
-	glTranslatef(0.5f, 0.5f, 0.0f);
+	glTranslatef(0.375f, 0.375f, 0.0f);
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
