@@ -13,7 +13,7 @@ namespace narf {
 		class Ray {
 		private:
 			coord::Point3<T> point_; // initial point
-			Orientation<T> direction_; // direction (unit vector)
+			Vector3<T> direction_; // direction (unit vector)
 		public:
 			Ray(Vector3<T> direction) : point_(coord::Point3<T>(0, 0, 0)), direction_(direction) { }
 			Ray(Orientation<T> direction) : point_(coord::Point3<T>(0, 0, 0)), direction_(direction) { }
@@ -29,7 +29,7 @@ namespace narf {
 			}
 
 			coord::Point3<T> pointAtDistance(T distance) const {
-				return point_ + static_cast<Vector3<T>>(direction_) * distance;
+				return point_ + direction_ * distance;
 			}
 		};
 	}
