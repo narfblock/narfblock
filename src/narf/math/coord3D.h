@@ -2,10 +2,17 @@
 #define NARFBLOCK_MATH_COORD_3D_H
 
 #include <math.h>
+#include <assert.h>
 #include "narf/math/floats.h"
+#include "narf/math/coord2D.h"
+#include "narf/math/orientation.h"
 
 namespace narf {
 	namespace math {
+
+		template<class T>
+		class Vector3;
+
 		namespace coord {
 
 			template<class T>
@@ -76,6 +83,19 @@ namespace narf {
 					}
 					const Point3<T> operator+(const Point3<T> &add) const {
 						return Point3<T>(x + add.x, y + add.y, z + add.z);
+					}
+					const T operator[](const int idx) const {
+						assert(idx >=0 && idx < 3);
+						return (idx == 0) ? x : ((idx == 1) ? y : z);
+					}
+					Point2<T> make2D(int idx0, int idx1) const {
+						return Point2<T>((*this)[idx0], (*this)[idx1]);
+					}
+					operator Orientation<T> () const {
+						auto a = narf::math::Vector3<T>(x, y, z);
+						auto b = narf::math::Vector3<T>(x, y, 0);
+						auto c = narf::math::Vector3<T>(0, 1, 0);
+						return Orientation<T>(b.angleTo(a), (x < 0 ? -1 : 1) * c.angleTo(b));
 					}
 			};
 

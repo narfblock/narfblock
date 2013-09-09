@@ -60,10 +60,12 @@ int main(int argc, char **argv)
 	testPlanePoint(testplane, narf::math::coord::Point3f(0, 1, 0));
 
 	auto testray = narf::math::Ray<float>(narf::math::coord::Point3f(0, 0, 0), narf::math::Vector3f(1, 1, 1));
-	printf("Test ray: point (%f, %f, %f) direction (%f, %f, %f)\n", testray.initialPoint().x, testray.initialPoint().y, testray.initialPoint().z, testray.direction().x, testray.direction().y, testray.direction().z);
+	printf("Test ray: point (%f, %f, %f) direction (%f, %f)\n", testray.initialPoint().x, testray.initialPoint().y, testray.initialPoint().z, testray.direction().yaw.toDeg(), testray.direction().pitch.toDeg());
 	testRayAtDistance(testray, 0);
 	testRayAtDistance(testray, 0.5);
 	testRayAtDistance(testray, 1);
 	testRayAtDistance(testray, 5);
+	narf::math::Orientation<float> orient = narf::math::Vector3f(1, 0, 1);
+	printf("Vector3 (1, 0, 1)-> Orientation (%f, %f)\n", orient.yaw.toDeg(), orient.pitch.toDeg());
 	return 0;
 }

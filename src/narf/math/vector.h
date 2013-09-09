@@ -8,6 +8,14 @@
 namespace narf {
 namespace math {
 
+	namespace coord {
+		template<class T>
+			class Point3;
+	}
+
+	template<class T>
+	class Orientation;
+
 	template<class T>
 		class Vector2 {
 			public:
@@ -17,13 +25,11 @@ namespace math {
 				Vector2() : x(0.0f), y(0.0f) { }
 				Vector2(T x, T y) : x(x), y(y) { }
 
-				T length() const
-				{
+				T length() const {
 					return sqrt(x * x + y * y);
 				}
 
-				const Vector2<T> normalize() const
-				{
+				const Vector2<T> normalize() const {
 					T length = this->length();
 					if (length == 0) {
 						return *this;
@@ -32,37 +38,36 @@ namespace math {
 					}
 				}
 
-				const Vector2<T> operator+(const Vector2<T> &add) const
-				{
+				const Vector2<T> operator+(const Vector2<T> &add) const {
 					return Vector2<T>(x + add.x, y + add.y);
 				}
 
-				Vector2<T> &operator +=(const Vector2<T> &add)
-				{
+				Vector2<T> &operator +=(const Vector2<T> &add) {
 					x += add.x;
 					y += add.y;
 					return *this;
 				}
 
-				const Vector2<T> operator-(const Vector2<T> &sub) const
-				{
+				const Vector2<T> operator-(const Vector2<T> &sub) const {
 					return Vector2<T>(x - sub.x, y - sub.y);
 				}
 
-				Vector2<T> &operator-=(const Vector2<T> &sub)
-				{
+				Vector2<T> &operator-=(const Vector2<T> &sub) {
 					x -= sub.x;
 					y -= sub.y;
 					return *this;
 				}
 
-				const Vector2<T> operator*(T v) const
-				{
+				const Vector2<T> operator*(T v) const {
 					return Vector2<T>(x * v, y * v);
 				}
 
 				T dot(Vector2<T> vec) const {
 					return x * vec.x + y * vec.y;
+				}
+
+				T angleTo(Vector2<T> vec) const {
+					return acos(dot(vec) / (length() * vec.length()));
 				}
 
 		};
@@ -82,6 +87,10 @@ namespace math {
 				}
 
 				operator coord::Point3<T>() const {
+					return coord::Point3<T>(x, y, z);
+				}
+
+				operator Orientation<T>() const {
 					return coord::Point3<T>(x, y, z);
 				}
 
@@ -133,6 +142,11 @@ namespace math {
 							y * vec.z - z * vec.y,
 							z * vec.x - x * vec.z,
 							x * vec.y - y * vec.x);
+				}
+
+				T angleTo(Vector3<T> vec) const {
+					//printf("angleTo(%f, %f, %f): %f\n", vec.x, vec.y, vec.z, dot(vec) / (length() * vec.length()));
+					return acos(dot(vec) / (length() * vec.length()));
 				}
 		};
 

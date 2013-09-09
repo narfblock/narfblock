@@ -3,6 +3,7 @@
 
 #include "narf/math/coord3D.h"
 #include "narf/math/vector.h"
+#include "narf/math/orientation.h"
 
 namespace narf {
 	namespace math {
@@ -12,20 +13,23 @@ namespace narf {
 		class Ray {
 		private:
 			coord::Point3<T> point_; // initial point
-			Vector3<T> direction_; // direction (unit vector)
+			Orientation<T> direction_; // direction (unit vector)
 		public:
-			Ray(coord::Point3<T> point, Vector3<T> direction) : point_(point), direction_(direction.normalize()) { }
+			Ray(Vector3<T> direction) : point_(coord::Point3<T>(0, 0, 0)), direction_(direction) { }
+			Ray(Orientation<T> direction) : point_(coord::Point3<T>(0, 0, 0)), direction_(direction) { }
+			Ray(coord::Point3<T> point, const Vector3<T> direction) : point_(point), direction_(direction) { }
+			Ray(coord::Point3<T> point, Orientation<T> direction) : point_(point), direction_(direction) { }
 
 			coord::Point3<T> initialPoint() const {
 				return point_;
 			}
 
-			Vector3<T> direction() const {
+			Orientation<T> direction() const {
 				return direction_;
 			}
 
 			coord::Point3<T> pointAtDistance(T distance) const {
-				return point_ + direction_ * distance;
+				return point_ + static_cast<Vector3<T>>(direction_) * distance;
 			}
 		};
 	}
