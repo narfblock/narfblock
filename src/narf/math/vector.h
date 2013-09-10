@@ -80,6 +80,7 @@ namespace math {
 
 				Vector3() : x(0), y(0), z(0) { }
 				Vector3(T x, T y, T z) : x(x), y(y), z(z) { }
+				Vector3(coord::Point3<T> p) : x(p.x), y(p.y), z(p.z) { }
 
 				// construct a vector from the origin to a point
 				static Vector3<T> fromPoint(coord::Point3<T> p) {

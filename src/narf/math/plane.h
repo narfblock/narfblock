@@ -53,6 +53,20 @@ namespace narf {
 				return Vector3<T>::fromPoint(p) - normal() * distanceTo(p);
 			}
 
+			coord::Point3<T> intercept(coord::Point3<T> p1, coord::Point3<T> p2) {
+				return intercept(p1, Vector3<T>(p2 - p1).normalize());
+			}
+
+			coord::Point3<T> intercept(narf::math::Ray<T> ray) {
+				return intercept(ray.initialPoint(), ray.direction());
+			}
+
+			coord::Point3<T> intercept(coord::Point3<T> p1, Vector3<T> direction) {
+				auto planePoint = narf::math::Vector3<T>(nearestPoint(p1));
+				auto d = (planePoint - direction).dot(normal()) / (direction.dot(normal())) + 1; // Length of the vector used
+				return narf::math::Ray<T>(p1, direction).pointAtDistance(d);
+			}
+
 		};
 	}
 }

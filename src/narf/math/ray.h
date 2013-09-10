@@ -15,9 +15,9 @@ namespace narf {
 			coord::Point3<T> point_; // initial point
 			Vector3<T> direction_; // direction (unit vector)
 		public:
-			Ray(Vector3<T> direction) : point_(coord::Point3<T>(0, 0, 0)), direction_(direction) { }
+			Ray(Vector3<T> direction) : point_(coord::Point3<T>(0, 0, 0)), direction_(direction.normalize()) { }
 			Ray(Orientation<T> direction) : point_(coord::Point3<T>(0, 0, 0)), direction_(direction) { }
-			Ray(coord::Point3<T> point, const Vector3<T> direction) : point_(point), direction_(direction) { }
+			Ray(coord::Point3<T> point, const Vector3<T> direction) : point_(point), direction_(direction.normalize()) { }
 			Ray(coord::Point3<T> point, Orientation<T> direction) : point_(point), direction_(direction) { }
 
 			coord::Point3<T> initialPoint() const {

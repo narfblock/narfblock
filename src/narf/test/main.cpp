@@ -59,6 +59,13 @@ int main(int argc, char **argv)
 	testPlanePoint(testplane, narf::math::coord::Point3f(2, 0, 0));
 	testPlanePoint(testplane, narf::math::coord::Point3f(0, 1, 0));
 
+	testplane = narf::math::Plane<float>::fromPointNormal(narf::math::coord::Point3f(2, 0, 0), narf::math::Vector3f(1, 1, 0));
+	auto interpoint = testplane.intercept(narf::math::coord::Point3<float>(0, 0, 0), narf::math::coord::Point3<float>(2, 2, 2));
+	printf("Test plane 1: Intercept (%f, %f, %f)\n", interpoint.x, interpoint.y, interpoint.z);
+	testplane = narf::math::Plane<float>::fromPointNormal(narf::math::coord::Point3f(-2, 0, 0), narf::math::Vector3f(1, 1, 0));
+	interpoint = testplane.intercept(narf::math::coord::Point3<float>(0, 0, 0), narf::math::coord::Point3<float>(2, 2, 2));
+	printf("Test plane 2: Intercept (%f, %f, %f)\n", interpoint.x, interpoint.y, interpoint.z);
+
 	auto testray = narf::math::Ray<float>(narf::math::coord::Point3f(0, 0, 0), narf::math::Vector3f(1, 1, 1));
 	printf("Test ray: point (%f, %f, %f) direction (%f, %f)\n", testray.initialPoint().x, testray.initialPoint().y, testray.initialPoint().z, testray.direction().yaw.toDeg(), testray.direction().pitch.toDeg());
 	testRayAtDistance(testray, 0);

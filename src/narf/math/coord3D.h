@@ -84,6 +84,15 @@ namespace narf {
 					const Point3<T> operator+(const Point3<T> &add) const {
 						return Point3<T>(x + add.x, y + add.y, z + add.z);
 					}
+					Point3<T> &operator -=(const Point3<T> &sub) {
+						x -= sub.x;
+						y -= sub.y;
+						z -= sub.z;
+						return *this;
+					}
+					const Point3<T> operator-(const Point3<T> &sub) const {
+						return Point3<T>(x - sub.x, y - sub.y, z - sub.z);
+					}
 					const T operator[](const int idx) const {
 						assert(idx >=0 && idx < 3);
 						return (idx == 0) ? x : ((idx == 1) ? y : z);
