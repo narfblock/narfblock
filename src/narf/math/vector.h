@@ -82,11 +82,6 @@ namespace math {
 				Vector3(T x, T y, T z) : x(x), y(y), z(z) { }
 				Vector3(coord::Point3<T> p) : x(p.x), y(p.y), z(p.z) { }
 
-				// construct a vector from the origin to a point
-				static Vector3<T> fromPoint(coord::Point3<T> p) {
-					return Vector3<T>(p.x, p.y, p.z);
-				}
-
 				operator coord::Point3<T>() const {
 					return coord::Point3<T>(x, y, z);
 				}

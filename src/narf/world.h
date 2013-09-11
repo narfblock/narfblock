@@ -53,6 +53,8 @@ static uint32_t ilog2(uint32_t v)
 	return (uint32_t)(log((double)v) / log(2.0));
 }
 
+narf::math::coord::Point3f nextBlockIntersect(narf::math::coord::Point3f base, narf::math::Vector3f direction);
+
 class World {
 public:
 
@@ -133,59 +135,8 @@ public:
 	void set_gravity(float g) { gravity_ = g; }
 	float get_gravity() { return gravity_; }
 
-	BlockWrapper rayTrace(narf::math::coord::Point3f baseLocation, narf::math::Orientationf orientation, float max_distance) {
-		float distance = 0;
-		auto ray = narf::math::Ray<float>(baseLocation, orientation);
-		auto rayEnd = narf::math::coord::Point3f(0, 0, 0);
-		int32_t prevX = 0;
-		int32_t prevY = 0;
-		int32_t prevZ = 0;
-		const Block* block;
-		bool found = false;
-		for (; distance < max_distance; distance += 0.05f) {
-			rayEnd = ray.pointAtDistance(distance);
-			block = get_block((uint32_t)rayEnd.x, (uint32_t)rayEnd.y, (uint32_t)rayEnd.z);
-			if (block->id != 0) {
-				found = true;
-				break;
-			}
-			prevX = prevX != (int)rayEnd.x ? (int)rayEnd.x : prevX;
-			prevY = prevY != (int)rayEnd.y ? (int)rayEnd.y : prevY;
-			prevZ = prevZ != (int)rayEnd.z ? (int)rayEnd.z : prevZ;
-		}
-
-		if (!found) {
-			BlockWrapper tmp = {nullptr};
-			return tmp;
-		}
-
-		BlockFace face = narf::Invalid;
-		int32_t xDiff = prevX - (int)rayEnd.x;
-		int32_t yDiff = prevY - (int)rayEnd.y;
-		int32_t zDiff = prevZ - (int)rayEnd.z;
-		if (xDiff != 0) {
-			if (xDiff < 0) {
-				face = narf::XNeg;
-			} else {
-				face = narf::XPos;
-			}
-		} else if (yDiff != 0) {
-			if (yDiff < 0) {
-				face = narf::YNeg;
-			} else {
-				face = narf::YPos;
-			}
-		} else if (zDiff != 0) {
-			if (zDiff < 0) {
-				face = narf::ZNeg;
-			} else {
-				face = narf::ZPos;
-			}
-		}
-
-		BlockWrapper tmp = {block, static_cast<int32_t>(rayEnd.x), static_cast<int32_t>(rayEnd.y), static_cast<int32_t>(rayEnd.z), face};
-		return tmp;
-	}
+	narf::math::coord::Point3f nextBlockIntersect(narf::math::coord::Point3f base, narf::math::Vector3f direction);
+	BlockWrapper rayTrace(narf::math::coord::Point3f basePoint, narf::math::Vector3f direction, float max_distance);
 
 	Entity* newEntity() {
 		auto ent = new Entity(this);

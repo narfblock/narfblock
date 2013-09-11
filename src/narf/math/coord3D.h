@@ -112,6 +112,7 @@ namespace narf {
 			typedef Spherical<double> Sphericald;
 			typedef Point3<float> Point3f;
 			typedef Point3<double> Point3d;
+			typedef Point3<uint32_t> Point3i;
 
 			template<class T>
 			T distance(T x, T y, T z, T x2, T y2, T z2) {

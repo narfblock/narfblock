@@ -20,16 +20,15 @@ namespace narf {
 			Plane(T a, T b, T c, T d) : a(a), b(b), c(c), d(d) { }
 
 			// construct a plane based on a point on the plane and a normal vector to the plane
-			static Plane fromPointNormal(coord::Point3<T> p, Vector3<T> normal) {
+			Plane(coord::Point3<T> p, Vector3<T> normal) {
 				Vector3<T> normnorm = normal.normalize();
-				return Plane(normnorm.x, normnorm.y, normnorm.z, -normnorm.dot(Vector3<T>::fromPoint(p)));
+				a = normnorm.x;
+				b = normnorm.y;
+				c = normnorm.z;
+				d = -normnorm.dot(Vector3<T>(p));
 			}
 
-			// construct a plane from three points that lie on it
-			static Plane fromPoints(coord::Point3<T> p1, coord::Point3<T> p2, coord::Point3<T> p3) {
-				Vector3<T> normal = Vector3<T>(p2 - p1).cross(Vector3<T>(p3 - p1));
-				return fromPointNormal(p1, normal);
-			}
+			Plane(coord::Point3<T> p1, coord::Point3<T> p2, coord::Point3<T> p3) : Plane(p1, Vector3<T>(p2 - p1).cross(Vector3<T>(p3 - p1))) {}
 
 			const Vector3<T> normal() const {
 				return Vector3<T>(a, b, c);
@@ -50,21 +49,21 @@ namespace narf {
 
 			// find nearest point on plane to another point
 			coord::Point3<T> nearestPoint(coord::Point3<T> p) const {
-				return Vector3<T>::fromPoint(p) - normal() * distanceTo(p);
+				return Vector3<T>(p) - normal() * distanceTo(p);
 			}
 
-			coord::Point3<T> intercept(coord::Point3<T> p1, coord::Point3<T> p2) {
-				return intercept(p1, Vector3<T>(p2 - p1).normalize());
+			coord::Point3<T> intersect(coord::Point3<T> p1, coord::Point3<T> p2) {
+				return intersect(p1, Vector3<T>(p2 - p1).normalize());
 			}
 
-			coord::Point3<T> intercept(narf::math::Ray<T> ray) {
-				return intercept(ray.initialPoint(), ray.direction());
+			coord::Point3<T> intersect(narf::math::Ray<T> ray) {
+				return intersect(ray.initialPoint(), ray.direction());
 			}
 
-			coord::Point3<T> intercept(coord::Point3<T> p1, Vector3<T> direction) {
+			coord::Point3<T> intersect(coord::Point3<T> p1, Vector3<T> direction) {
 				auto planePoint = narf::math::Vector3<T>(nearestPoint(p1));
-				auto d = (planePoint - direction).dot(normal()) / (direction.dot(normal())) + 1; // Length of the vector used
-				return narf::math::Ray<T>(p1, direction).pointAtDistance(d);
+				auto d = (planePoint - p1).dot(normal()) / (direction.dot(normal()));
+				return direction * d + p1;
 			}
 
 		};

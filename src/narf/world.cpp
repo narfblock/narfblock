@@ -31,6 +31,7 @@
  */
 
 #include "narf/world.h"
+std::vector<narf::BlockWrapper> highlightVector;
 
 void narf::World::update(double t, double dt)
 {
@@ -58,3 +59,101 @@ const narf::BlockType *narf::World::getBlockType(narf::BlockTypeId id) const {
 	}
 	return &blockTypes_[id];
 }
+
+narf::math::coord::Point3f narf::nextBlockIntersect(narf::math::coord::Point3f base, narf::math::Vector3f direction) {
+	int8_t xDir = (direction.x > 0) ? 1 : -1;
+	int8_t yDir = (direction.y > 0) ? 1 : -1;
+	int8_t zDir = (direction.z > 0) ? 1 : -1;
+	float distance;
+	narf::math::Vector3f normal;
+	narf::math::coord::Point3f nextPoint(0, 0, 0);
+	auto finalPoint = base;
+
+	narf::math::Plane<float> plane(0, 0, 0, 0);
+	narf::math::coord::Point3f planePoint(0, 0, 0);
+
+	normal = narf::math::Vector3f(1, 0, 0);
+	planePoint = narf::math::coord::Point3f(xDir > 0 ? (float)floor(base.x + xDir) : (float)ceil(base.x + xDir), 0, 0);
+	plane = narf::math::Plane<float>(planePoint, normal);
+	nextPoint = plane.intersect(base, direction);
+	finalPoint = nextPoint;
+	distance = base.distanceTo(nextPoint);
+
+	normal = narf::math::Vector3f(0, 1, 0);
+	planePoint = narf::math::coord::Point3f(0, yDir > 0 ? (float)floor(base.y + yDir) : (float)ceil(base.y + yDir), 0);
+	plane = narf::math::Plane<float>(planePoint, normal);
+	nextPoint = plane.intersect(base, direction);
+	if (base.distanceTo(nextPoint) < distance) {
+		finalPoint = nextPoint;
+		distance = base.distanceTo(nextPoint);
+	}
+
+	normal = narf::math::Vector3f(0, 0, 1);
+	planePoint = narf::math::coord::Point3f(0, 0, zDir > 0 ? (float)floor(base.z + zDir) : (float)ceil(base.z + zDir));
+	plane = narf::math::Plane<float>(planePoint, normal);
+	nextPoint = plane.intersect(base, direction);
+	if (base.distanceTo(nextPoint) < distance) {
+		finalPoint = nextPoint;
+		distance = base.distanceTo(nextPoint);
+	}
+
+	return finalPoint;
+}
+
+narf::BlockWrapper narf::World::rayTrace(narf::math::coord::Point3f basePoint, narf::math::Vector3f direction, float max_distance) {
+	float distance = 0;
+	const Block* block;
+	bool found = false;
+
+	narf::math::coord::Point3f prevPoint = basePoint;
+	narf::math::coord::Point3f point = basePoint;
+
+	narf::math::coord::Point3<int32_t> blockCoord(0, 0, 0);
+	auto prevblockCoord = blockCoord;
+
+	while (distance < max_distance) {
+		point = narf::nextBlockIntersect(prevPoint, direction);
+		blockCoord.x = (int32_t)(point.x - (direction.x > 0 ? 1 : -1) * 0.0001);
+		blockCoord.y = (int32_t)(point.y - (direction.y > 0 ? 1 : -1) * 0.0001);
+		blockCoord.z = (int32_t)(point.z - (direction.z > 0 ? 1 : -1) * 0.0001);
+		block = get_block(blockCoord.x, blockCoord.y, blockCoord.z);
+		narf::BlockWrapper tmp = {block, blockCoord.x, blockCoord.y, blockCoord.z, narf::Invalid};
+		if (block->id != 0) {
+			found = true;
+			break;
+		}
+		distance = basePoint.distanceTo(point);
+		prevPoint = point;
+		prevblockCoord = blockCoord;
+	}
+
+	if (!found) {
+		narf::BlockWrapper tmp = {nullptr};
+		return tmp;
+	}
+
+	BlockFace face = narf::Invalid;
+	if (blockCoord.x != prevblockCoord.x) {
+		if (blockCoord.x > prevblockCoord.x) {
+			face = narf::XNeg;
+		} else {
+			face = narf::XPos;
+		}
+	} else if (blockCoord.y != prevblockCoord.y) {
+		if (blockCoord.y > prevblockCoord.y) {
+			face = narf::YNeg;
+		} else {
+			face = narf::YPos;
+		}
+	} else if (blockCoord.z != prevblockCoord.z) {
+		if (blockCoord.z > prevblockCoord.z) {
+			face = narf::ZNeg;
+		} else {
+			face = narf::ZPos;
+		}
+	}
+
+	BlockWrapper tmp = {block, blockCoord.x, blockCoord.y, blockCoord.z, face};
+	return tmp;
+}
+
