@@ -31,7 +31,6 @@
  */
 
 #include "narf/world.h"
-std::vector<narf::BlockWrapper> highlightVector;
 
 void narf::World::update(double t, double dt)
 {
@@ -113,9 +112,9 @@ narf::BlockWrapper narf::World::rayTrace(narf::math::coord::Point3f basePoint, n
 
 	while (distance < max_distance) {
 		point = narf::nextBlockIntersect(prevPoint, direction);
-		blockCoord.x = (int32_t)(point.x - (direction.x > 0 ? 1 : -1) * 0.0001);
-		blockCoord.y = (int32_t)(point.y - (direction.y > 0 ? 1 : -1) * 0.0001);
-		blockCoord.z = (int32_t)(point.z - (direction.z > 0 ? 1 : -1) * 0.0001);
+		blockCoord.x = (int32_t)floor(point.x - (direction.x > 0 ? 1 : -1) * 0.0001);
+		blockCoord.y = (int32_t)floor(point.y - (direction.y > 0 ? 1 : -1) * 0.0001);
+		blockCoord.z = (int32_t)floor(point.z - (direction.z > 0 ? 1 : -1) * 0.0001);
 		block = get_block(blockCoord.x, blockCoord.y, blockCoord.z);
 		narf::BlockWrapper tmp = {block, blockCoord.x, blockCoord.y, blockCoord.z, narf::Invalid};
 		if (block->id != 0) {
