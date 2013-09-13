@@ -7,6 +7,8 @@ namespace narf {
 	namespace util {
 		std::string exeName();
 		std::string exeDir();
+
+		std::string dataDir();
 	}
 }
 

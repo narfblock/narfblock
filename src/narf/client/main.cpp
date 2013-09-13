@@ -25,6 +25,7 @@
 #include "narf/block.h"
 #include "narf/config/config.h"
 #include "narf/math/math.h"
+#include "narf/util/path.h"
 
 #include "narf/client/console.h"
 #include "narf/client/world.h"
@@ -55,8 +56,6 @@ SDL_Surface *tiles_surf;
 
 narf::gl::Context *display;
 narf::gl::Texture *tiles_tex;
-
-Poco::Path data_dir;
 
 narf::font::FontManager font_manager;
 narf::font::TextBuffer *fps_text_buffer;
@@ -101,7 +100,7 @@ bool init_textures()
 	}
 
 	const std::string terrain_file = configmanager.getString("test.misc.terrain", "terrain.png");
-	auto terrain_file_path = Poco::Path(data_dir, terrain_file);
+	auto terrain_file_path = Poco::Path(narf::util::dataDir(), terrain_file);
 
 	tiles_surf = IMG_Load(terrain_file_path.toString().c_str());
 	if (!tiles_surf) {
@@ -626,21 +625,8 @@ extern "C" int main(int argc, char **argv)
 
 	narf::console->println("Version: " + std::to_string(VERSION_MAJOR) + "." + std::to_string(VERSION_MINOR) + std::string(VERSION_RELEASE));
 
-	// walk up the path until data directory is found
-	narf::console->println("Current Dir: " + Poco::Path::current());
-	Poco::File tmp;
-	for (Poco::Path dir = Poco::Path::current(); dir.toString() != dir.parent().toString(); dir = dir.parent()) {
-		data_dir = Poco::Path(dir, "data");
-		narf::console->println("Checking " + data_dir.toString());
-		tmp = data_dir;
-		if (tmp.exists()) {
-			narf::console->println("Found data directory: " + data_dir.toString());
-			break;
-		}
-	}
-
 	// Will explode if things don't exist
-	auto config_file = Poco::Path(data_dir, "config.ini").toString();
+	auto config_file = Poco::Path(narf::util::dataDir(), "config.ini").toString();
 	narf::console->println("Config File: " + config_file);
 	configmanager.load("test", config_file);
 	int bar = configmanager.getInt("test.foo.bar", 43);
@@ -712,7 +698,7 @@ extern "C" int main(int argc, char **argv)
 	bouncy_block->model = true;
 
 	init_textures();
-	auto font_file = Poco::Path(data_dir, "DroidSansMono.ttf").toString();
+	auto font_file = Poco::Path(narf::util::dataDir(), "DroidSansMono.ttf").toString();
 	narf::console->println("Loading font from " + font_file);
 
 	auto font = font_manager.addFont("DroidSansMono", font_file, 30);
@@ -721,7 +707,7 @@ extern "C" int main(int argc, char **argv)
 		return 1;
 	}
 
-	auto consoleFontFile = Poco::Path(data_dir, configmanager.getString("test.video.console_font", "DroidSansMono.ttf")).toString();
+	auto consoleFontFile = Poco::Path(narf::util::dataDir(), configmanager.getString("test.video.console_font", "DroidSansMono.ttf")).toString();
 	auto consoleFontSize = configmanager.getInt("test.video.console_font_size", 18);
 
 	auto consoleFont = font_manager.addFont("console", consoleFontFile, (float)consoleFontSize);

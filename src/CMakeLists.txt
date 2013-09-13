@@ -140,6 +140,7 @@ target_link_libraries (narfblock-server
 add_executable (narfblock-test
 	${NARFBLOCK_COMMON_SOURCE_FILES}
 
+	narf/stdioconsole.cpp
 	narf/test/main.cpp
 	)
 

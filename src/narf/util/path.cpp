@@ -1,6 +1,8 @@
+#include "narf/console.h"
 #include "narf/util/path.h"
 
 #include <Poco/Path.h>
+#include <Poco/File.h>
 
 #ifdef linux
 
@@ -67,3 +69,28 @@ std::string narf::util::exeDir() {
 	return path.toString();
 }
 
+
+std::string narf::util::dataDir() {
+	static std::string cachedDataDir;
+
+	if (cachedDataDir != "") {
+		return cachedDataDir;
+	}
+
+	// walk up the path until data directory is found
+	narf::console->println("Current Dir: " + Poco::Path::current());
+	narf::console->println("Executable Dir: " + narf::util::exeDir());
+
+	for (Poco::Path dir = Poco::Path(narf::util::exeDir()); dir.toString() != dir.parent().toString(); dir = dir.parent()) {
+		auto dataDir = Poco::Path(dir, "data");
+		narf::console->println("Checking " + dataDir.toString());
+		auto tmp = Poco::File(dataDir);
+		if (tmp.exists()) {
+			narf::console->println("Found data directory: " + dataDir.toString());
+			cachedDataDir = dataDir.toString();
+			return cachedDataDir;
+		}
+	}
+
+	return "";
+}
