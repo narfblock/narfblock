@@ -82,6 +82,7 @@ set (NARFBLOCK_COMMON_SOURCE_FILES
 	narf/config/config.cpp
 	narf/math/floats.cpp
 	narf/util/tokenize.cpp
+	narf/util/path.cpp
 	)
 
 # client executable
