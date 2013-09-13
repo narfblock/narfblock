@@ -4,6 +4,8 @@
 
 #include "narf/math/math.h"
 
+#include "narf/stdioconsole.h"
+
 void testPlanePoint(const narf::math::Plane<float> &plane, const narf::math::coord::Point3f &point) {
 	auto distance = plane.distanceTo(point);
 	auto closest = plane.nearestPoint(point);
