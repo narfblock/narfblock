@@ -20,14 +20,7 @@ find_package (freetype-gl REQUIRED)
 find_package (Freetype REQUIRED)
 find_package (Threads REQUIRED)
 find_package (Curses REQUIRED)
-
-set(PocoFoundation_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../poco/Foundation)
-configure_file ("${CMAKE_SOURCE_DIR}/../cmake/PocoFoundationConfig.cmake" "${PocoFoundation_DIR}/PocoFoundationConfig.cmake" COPYONLY)
-find_package (PocoFoundation REQUIRED)
-
-set(PocoUtil_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../poco/Util)
-configure_file ("${CMAKE_SOURCE_DIR}/../cmake/PocoUtilConfig.cmake" "${PocoUtil_DIR}/PocoUtilConfig.cmake" COPYONLY)
-find_package (PocoUtil REQUIRED)
+find_package (Poco REQUIRED)
 
 include (DownloadFont)
 
@@ -65,6 +58,8 @@ include_directories (
 	"${FREETYPE_INCLUDE_DIRS}"
 	"${GLEW_INCLUDE_DIR}"
 	"${CURSES_INCLUDE_DIR}"
+	"${PocoFoundation_INCLUDE_DIR}"
+	"${PocoUtil_INCLUDE_DIR}"
 	"${PROJECT_SOURCE_DIR}"
 	"${PROJECT_BINARY_DIR}"
 	)
@@ -106,8 +101,8 @@ add_executable (narfblock
 
 target_link_libraries (narfblock
 	freetype-gl
-	PocoFoundation
-	PocoUtil
+	${PocoFoundation_LIBRARY}
+	${PocoUtil_LIBRARY}
 	${FREETYPE_LIBRARY}
 	${FREETYPE_GL_LIBRARY}
 	${GLEW_LIBRARY}
@@ -130,8 +125,8 @@ add_executable (narfblock-server
 	)
 
 target_link_libraries (narfblock-server
-	PocoFoundation
-	PocoUtil
+	${PocoFoundation_LIBRARY}
+	${PocoUtil_LIBRARY}
 	${CMAKE_THREAD_LIBS_INIT}
 	${CURSES_LIBRARY}
 	)
@@ -145,8 +140,8 @@ add_executable (narfblock-test
 	)
 
 target_link_libraries (narfblock-test
-	PocoFoundation
-	PocoUtil
+	${PocoFoundation_LIBRARY}
+	${PocoUtil_LIBRARY}
 	${CMAKE_THREAD_LIBS_INIT}
 	)
 
