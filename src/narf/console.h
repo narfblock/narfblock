@@ -10,17 +10,7 @@ namespace narf {
 
 	class Console {
 	public:
-		virtual void println(const std::wstring &s) = 0;
-
-		void println(const std::string &s) {
-			// TODO: total hax
-			std::wstring ws;
-			for (auto iter = s.begin(); iter != s.end(); ++iter) {
-				ws += *iter;
-			}
-			println(ws);
-		}
-
+		virtual void println(const std::string &s) = 0;
 		virtual bool pollInput() = 0; // TODO
 
 	//private: // TODO

@@ -89,6 +89,7 @@ add_executable (narfblock
 	${NARFBLOCK_COMMON_SOURCE_FILES}
 
 	narf/input.cpp
+	narf/texteditor.cpp
 	narf/gl/context.cpp
 	narf/gl/texture.cpp
 	narf/font.cpp

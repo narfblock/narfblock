@@ -246,22 +246,22 @@ void draw2d() {
 
 	block_info_buffer->clear();
 	if (selected_block_face.block) {
-		std::wstring block_info_str = L"Block info: ";
+		std::string block_info_str = "Block info: ";
 
-		const wchar_t *BlockFace_str[] = {L"East", L"West", L"North", L"South", L"Top", L"Bottom", L"Invalid"};
+		const char *BlockFace_str[] = {"East", "West", "North", "South", "Top", "Bottom", "Invalid"};
 
-		block_info_str += L"ID: " + std::to_wstring(selected_block_face.block->id) +
-			L" Pos: " + std::to_wstring(selected_block_face.x) +
-			L", " + std::to_wstring(selected_block_face.y) +
-			L", " + std::to_wstring(selected_block_face.z) +
-			L" " + BlockFace_str[selected_block_face.face] +
-			L" (" + std::to_wstring((int)selected_block_face.face) + L")";
+		block_info_str += "ID: " + std::to_string(selected_block_face.block->id) +
+			" Pos: " + std::to_string(selected_block_face.x) +
+			", " + std::to_string(selected_block_face.y) +
+			", " + std::to_string(selected_block_face.z) +
+			" " + BlockFace_str[selected_block_face.face] +
+			" (" + std::to_string((int)selected_block_face.face) + ")";
 
 		block_info_buffer->print(block_info_str, 0, (float)display->height() - 90, blue);
 	}
 
-	std::wstring location_str = L"Pos: " + std::to_wstring(player->position.x) + L", " + std::to_wstring(player->position.y) + L", " + std::to_wstring(player->position.z);
-	location_str += L" Yaw: " + std::to_wstring(cam.orientation.yaw) + L" Pitch: " + std::to_wstring(cam.orientation.pitch);
+	std::string location_str = "Pos: " + std::to_string(player->position.x) + ", " + std::to_string(player->position.y) + ", " + std::to_string(player->position.z);
+	location_str += " Yaw: " + std::to_string(cam.orientation.yaw) + " Pitch: " + std::to_string(cam.orientation.pitch);
 	location_buffer->clear();
 	location_buffer->print(location_str, 0, (float)display->height() - 60, blue);
 
@@ -317,6 +317,13 @@ void poll_input(narf::Input *input)
 
 void sim_frame(const narf::Input &input, double t, double dt)
 {
+	if (input.text() != "") {
+		narf::console->println("got text input: " + input.text());
+	}
+
+	// copy the text editor state so it can be rendered in draw2d
+	clientConsole->setEditState(input.textEditor);
+
 	// TODO: decouple player direction and camera direction
 	cam.orientation.yaw -= input.look_rel().x;
 	cam.orientation.yaw = fmodf(cam.orientation.yaw, (float)M_PI * 2.0f);
@@ -493,8 +500,8 @@ void game_loop()
 		double fps_dt = get_time() - fps_t1;
 		if (fps_dt >= 1.0) {
 			// update fps counter
-			std::wstring fps_str = std::to_wstring((double)physics_steps / fps_dt) + L" physics steps/" +
-				std::to_wstring((double)draws / fps_dt) + L" renders per second (dt " + std::to_wstring(fps_dt) + L")";
+			std::string fps_str = std::to_string((double)physics_steps / fps_dt) + " physics steps/" +
+				std::to_string((double)draws / fps_dt) + " renders per second (dt " + std::to_string(fps_dt) + ")";
 			auto blue = narf::Color(0.0f, 0.0f, 1.0f);
 			fps_text_buffer->clear();
 			fps_text_buffer->print(fps_str, 0.0f, (float)display->height() - 30 /* TODO */, blue);

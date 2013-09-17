@@ -11,7 +11,7 @@ namespace narf {
 	public:
 		CursesConsole();
 		~CursesConsole();
-		void println(const std::wstring &s);
+		void println(const std::string &s);
 		bool pollInput();
 
 	private:

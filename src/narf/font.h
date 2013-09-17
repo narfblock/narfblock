@@ -41,8 +41,8 @@ namespace narf {
 		public:
 			TextBuffer(const Font *font) : font_(font), buffer_(GL_ARRAY_BUFFER, GL_STATIC_DRAW) {}
 
-			void print(const std::wstring &text, float x, float y);
-			void print(const std::wstring &text, float x, float y, const Color &color);
+			void print(const std::string &text, float x, float y);
+			void print(const std::string &text, float x, float y, const Color &color);
 
 			void render();
 			void clear();

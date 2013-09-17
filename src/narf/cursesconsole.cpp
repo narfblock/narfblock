@@ -67,7 +67,7 @@ narf::CursesConsole::~CursesConsole() {
 }
 
 
-void narf::CursesConsole::println(const std::wstring &s) {
+void narf::CursesConsole::println(const std::string &s) {
 
 	// TODO: this is total hack
 	for (auto iter = s.begin(); iter != s.end(); ++iter) {
@@ -107,7 +107,7 @@ bool narf::CursesConsole::pollInput() {
 
 			wrefresh(impl->inputWin);
 
-			println(L"Resized to " + std::to_wstring(impl->numCols) + L"x" + std::to_wstring(impl->numLines));
+			println("Resized to " + std::to_string(impl->numCols) + "x" + std::to_string(impl->numLines));
 		}
 #endif
 	} while (c != 'q');

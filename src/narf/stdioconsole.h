@@ -9,7 +9,7 @@ namespace narf {
 	public:
 		StdioConsole();
 		~StdioConsole();
-		void println(const std::wstring &s);
+		void println(const std::string &s);
 		bool pollInput();
 	};
 };

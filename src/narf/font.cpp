@@ -17,16 +17,17 @@ bool narf::font::Font::load(const std::string &filename, float size) {
 }
 
 
-void narf::font::TextBuffer::print(const std::wstring &text, float x, float y) {
+void narf::font::TextBuffer::print(const std::string &text, float x, float y) {
 	auto black = narf::Color(0.0f, 0.0f, 0.0f);
 	print(text, x, y, black);
 }
 
 
-void narf::font::TextBuffer::print(const std::wstring &text, float x, float y, const Color &color) {
+void narf::font::TextBuffer::print(const std::string &text, float x, float y, const Color &color) {
 	float r = color.r, g = color.g, b = color.b, a = color.a;
 	float pos_x = (float)x;
 	float pos_y = (float)y;
+	// TODO: iterate over unicode characters rather than bytes
 	for(size_t i = 0; i < text.size(); i++) {
 		texture_glyph_t *glyph = texture_font_get_glyph(font_->font_, text[i]);
 		if (glyph != NULL) {

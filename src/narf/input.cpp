@@ -4,8 +4,19 @@
 
 #include "narf/input.h"
 
-void narf::Input::process_event(const SDL_Event *event)
-{
+void narf::Input::process_event(const SDL_Event *event) {
+	switch (state_) {
+	case InputStateNormal:
+		processNormalEvent(event);
+		break;
+	case InputStateText:
+		processTextEvent(event);
+		break;
+	}
+}
+
+
+void narf::Input::processNormalEvent(const SDL_Event *event) {
 	// TODO: describe input mappings with data so they can be configurable by the user
 
 	switch (event->type) {
@@ -15,6 +26,10 @@ void narf::Input::process_event(const SDL_Event *event)
 
 	case SDL_KEYDOWN:
 		switch (event->key.keysym.sym) {
+		case SDLK_RETURN:
+		case SDLK_SLASH:
+			state_ = InputStateText;
+			break;
 		case SDLK_ESCAPE:
 			exit_ = true;
 			break;
@@ -108,6 +123,35 @@ void narf::Input::process_event(const SDL_Event *event)
 }
 
 
+void narf::Input::processTextEvent(const SDL_Event *event) {
+	switch (event->type) {
+	case SDL_KEYDOWN:
+		switch (event->key.keysym.sym) {
+		case SDLK_RETURN:
+			// return the entered text and go back to normal mode
+			text_ += textEditor.getString();
+			// fall through
+		case SDLK_ESCAPE: // go back to normal state but do not return any text
+			state_ = InputStateNormal;
+			textEditor.clear();
+			return;
+
+		default:
+			// eat any other key - actual text entry happens in SDL_TEXTINPUT
+			return;
+		}
+		break;
+
+	case SDL_TEXTINPUT:
+		textEditor.addString(event->text.text);
+		return;
+	}
+
+	// pass any unhandled input to normal handler
+	processNormalEvent(event);
+}
+
+
 void narf::Input::begin_sample()
 {
 	// reset one-shot events and relative measurements
@@ -119,6 +163,7 @@ void narf::Input::begin_sample()
 	toggle_backface_culling_ = false;
 	screenshot_ = false;
 	look_rel_ = narf::math::Vector2f(0.0f, 0.0f);
+	text_.clear();
 }
 
 

@@ -2,6 +2,7 @@
 #define NARFBLOCK_INPUT_H
 
 #include "narf/math/vector.h"
+#include "narf/texteditor.h"
 
 namespace narf {
 
@@ -10,7 +11,13 @@ class Display;
 class Input {
 public:
 
+	enum State {
+		InputStateNormal,
+		InputStateText,
+	};
+
 	Input(float look_sensitivity_x, float look_sensitivity_y) :
+		state_(InputStateNormal),
 		look_sensitivity_x_(look_sensitivity_x),
 		look_sensitivity_y_(look_sensitivity_y),
 		move_forward_(false),
@@ -65,7 +72,17 @@ public:
 
 	const math::Vector2f look_rel() const { return look_rel_; }
 
+	const std::string &text() const { return text_; }
+
+	TextEditor textEditor;
+
 private:
+
+	void processNormalEvent(const SDL_Event *event);
+	void processTextEvent(const SDL_Event *event);
+
+	State state_;
+
 	float look_sensitivity_x_;
 	float look_sensitivity_y_;
 
@@ -98,8 +115,10 @@ private:
 	bool screenshot_;
 
 	math::Vector2f look_rel_;
+
+	std::string text_;
 };
 
-} // namespace nar
+} // namespace narf
 
 #endif // NARFBLOCK_INPUT_H

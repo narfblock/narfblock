@@ -14,7 +14,7 @@ narf::StdioConsole::~StdioConsole() {
 }
 
 
-void narf::StdioConsole::println(const std::wstring &s) {
+void narf::StdioConsole::println(const std::string &s) {
 	// TODO: this is total hack
 	for (auto iter = s.begin(); iter != s.end(); ++iter) {
 		fputwc(*iter, stdout);
