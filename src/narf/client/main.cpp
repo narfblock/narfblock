@@ -26,6 +26,7 @@
 #include "narf/config/config.h"
 #include "narf/math/math.h"
 #include "narf/util/path.h"
+#include "narf/util/tokenize.h"
 
 #include "narf/client/console.h"
 #include "narf/client/world.h"
@@ -63,6 +64,10 @@ narf::font::TextBuffer *block_info_buffer;
 narf::font::TextBuffer *location_buffer;
 
 narf::BlockWrapper selected_block_face;
+
+// TODO: move this
+typedef void (*ConsoleCommand)(const std::string &args);
+std::map<std::string, ConsoleCommand> consoleCommands;
 
 // debug options
 bool wireframe = false;
@@ -318,8 +323,36 @@ void poll_input(narf::Input *input)
 void sim_frame(const narf::Input &input, double t, double dt)
 {
 	if (input.text() != "") {
-		narf::console->println("got text input: " + input.text());
+		auto text = input.text();
+		if (text[0] == '/') { // commands begin with slash
+			auto firstSpace = text.find_first_of(' ');
+			std::string cmdStr;
+			std::string params;
+			if (firstSpace == std::string::npos) {
+				// no space found - command only
+				cmdStr = text.substr(1);
+				params = "";
+			} else {
+				// space found - split on space to get command
+				cmdStr = text.substr(1, firstSpace - 1);
+				params = text.substr(firstSpace + 1);
+			}
+
+			auto cmdIter = consoleCommands.find(cmdStr);
+			if (cmdIter == consoleCommands.end()) {
+				narf::console->println("Unknown command '" + cmdStr + "'");
+			} else {
+				auto cmd = cmdIter->second;
+				cmd(params);
+			}
+		} else {
+			narf::console->println("Got text input: " + input.text());
+		}
 	}
+
+	// TODO: add ability to bind variables instead of looking this up every time?
+	world->set_gravity((float)configmanager.getInt("test.foo.gravity", -24));
+	world->renderDistance = configmanager.getInt("test.video.render_distance", 5);
 
 	// copy the text editor state so it can be rendered in draw2d
 	clientConsole->setEditState(input.textEditor);
@@ -619,6 +652,23 @@ void gen_world()
 }
 
 
+void cmdSet(const std::string &args) {
+	auto tokens = narf::util::tokenize(args, ' ');
+	if (tokens.size() == 1) {
+		auto key(tokens[0]);
+		auto value(configmanager.getString(key, ""));
+		narf::console->println(key + " = " + value);
+	} else if (tokens.size() == 2) {
+		std::string key(tokens[0]);
+		std::string value(tokens[1]);
+		narf::console->println("Setting '" + key + "' to '" + value + "'");
+		configmanager.setRaw(key, value);
+	} else {
+		narf::console->println("wrong number of parameters to set");
+	}
+}
+
+
 extern "C" int main(int argc, char **argv)
 {
 #if _WIN32
@@ -631,6 +681,8 @@ extern "C" int main(int argc, char **argv)
 	narf::console = clientConsole;
 
 	narf::console->println("Version: " + std::to_string(VERSION_MAJOR) + "." + std::to_string(VERSION_MINOR) + std::string(VERSION_RELEASE));
+
+	consoleCommands["set"] = cmdSet;
 
 	// Will explode if things don't exist
 	auto config_file = Poco::Path(narf::util::dataDir(), "config.ini").toString();
