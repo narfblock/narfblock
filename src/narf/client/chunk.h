@@ -63,12 +63,7 @@ public:
 		uint32_t size_x, uint32_t size_y, uint32_t size_z,
 		uint32_t pos_x, uint32_t pos_y, uint32_t pos_z) : narf::Chunk(world, size_x, size_y, size_z, pos_x, pos_y, pos_z),
 		rebuild_vertex_buffers_(true),
-		vbo_x_pos_(GL_ARRAY_BUFFER, GL_STATIC_DRAW),
-		vbo_x_neg_(GL_ARRAY_BUFFER, GL_STATIC_DRAW),
-		vbo_y_pos_(GL_ARRAY_BUFFER, GL_STATIC_DRAW),
-		vbo_y_neg_(GL_ARRAY_BUFFER, GL_STATIC_DRAW),
-		vbo_z_pos_(GL_ARRAY_BUFFER, GL_STATIC_DRAW),
-		vbo_z_neg_(GL_ARRAY_BUFFER, GL_STATIC_DRAW)
+		vbo_(GL_ARRAY_BUFFER, GL_STATIC_DRAW)
 	{
 	}
 
@@ -83,12 +78,7 @@ public:
 private:
 	bool rebuild_vertex_buffers_;
 
-	narf::gl::Buffer<BlockVertex> vbo_x_pos_;
-	narf::gl::Buffer<BlockVertex> vbo_x_neg_;
-	narf::gl::Buffer<BlockVertex> vbo_y_pos_;
-	narf::gl::Buffer<BlockVertex> vbo_y_neg_;
-	narf::gl::Buffer<BlockVertex> vbo_z_pos_;
-	narf::gl::Buffer<BlockVertex> vbo_z_neg_;
+	narf::gl::Buffer<BlockVertex> vbo_;
 
 	// internal rendering functions
 	void build_vertex_buffers();

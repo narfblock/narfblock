@@ -130,12 +130,7 @@ void narf::client::Chunk::draw_quad(narf::gl::Buffer<BlockVertex> &vbo, const na
 
 void narf::client::Chunk::build_vertex_buffers()
 {
-	vbo_x_pos_.clear();
-	vbo_x_neg_.clear();
-	vbo_y_pos_.clear();
-	vbo_y_neg_.clear();
-	vbo_z_pos_.clear();
-	vbo_z_neg_.clear();
+	vbo_.clear();
 
 	// draw blocks
 	for (uint32_t z = 0; z < size_z_; z++) {
@@ -158,44 +153,39 @@ void narf::client::Chunk::build_vertex_buffers()
 					// don't render sides of the cube that are obscured by other opaque cubes
 					if (!world_->is_opaque(world_x, world_y + 1, world_z)) {
 						float quad[] = {fx+1,fy+1,fz+0, fx+0,fy+1,fz+0, fx+0,fy+1,fz+1, fx+1,fy+1,fz+1};
-						draw_quad(vbo_y_pos_, type->texCoords[BlockFace::YPos], quad);
+						draw_quad(vbo_, type->texCoords[BlockFace::YPos], quad);
 					}
 
 					if (!world_->is_opaque(world_x, world_y - 1, world_z)) {
 						float quad[] = {fx+0,fy+0,fz+0, fx+1,fy+0,fz+0, fx+1,fy+0,fz+1, fx+0,fy+0,fz+1};
-						draw_quad(vbo_y_neg_, type->texCoords[BlockFace::YNeg], quad);
+						draw_quad(vbo_, type->texCoords[BlockFace::YNeg], quad);
 					}
 
 					if (!world_->is_opaque(world_x + 1, world_y, world_z)) {
 						float quad[] = {fx+1,fy+0,fz+0, fx+1,fy+1,fz+0, fx+1,fy+1,fz+1, fx+1,fy+0,fz+1};
-						draw_quad(vbo_x_pos_, type->texCoords[BlockFace::XPos], quad);
+						draw_quad(vbo_, type->texCoords[BlockFace::XPos], quad);
 					}
 
 					if (!world_->is_opaque(world_x - 1, world_y, world_z)) {
 						float quad[] = {fx+0,fy+1,fz+0, fx+0,fy+0,fz+0, fx+0,fy+0,fz+1, fx+0,fy+1,fz+1};
-						draw_quad(vbo_x_neg_, type->texCoords[BlockFace::XNeg], quad);
+						draw_quad(vbo_, type->texCoords[BlockFace::XNeg], quad);
 					}
 
 					if (!world_->is_opaque(world_x, world_y, world_z + 1)) {
 						float quad[] = {fx+0,fy+0,fz+1, fx+1,fy+0,fz+1, fx+1,fy+1,fz+1, fx+0,fy+1,fz+1};
-						draw_quad(vbo_z_pos_, type->texCoords[BlockFace::ZPos], quad);
+						draw_quad(vbo_, type->texCoords[BlockFace::ZPos], quad);
 					}
 
 					if (world_z != 0 && !world_->is_opaque(world_x, world_y, world_z - 1)) {
 						float quad[] = {fx+0,fy+1,fz+0, fx+1,fy+1,fz+0, fx+1,fy+0,fz+0, fx+0,fy+0,fz+0};
-						draw_quad(vbo_z_neg_, type->texCoords[BlockFace::ZNeg], quad);
+						draw_quad(vbo_, type->texCoords[BlockFace::ZNeg], quad);
 					}
 				}
 			}
 		}
 	}
 
-	vbo_x_pos_.upload();
-	vbo_x_neg_.upload();
-	vbo_y_pos_.upload();
-	vbo_y_neg_.upload();
-	vbo_z_pos_.upload();
-	vbo_z_neg_.upload();
+	vbo_.upload();
 }
 
 
@@ -231,10 +221,5 @@ void narf::client::Chunk::render()
 		rebuild_vertex_buffers_ = false;
 	}
 
-	draw_vbo(vbo_x_pos_);
-	draw_vbo(vbo_x_neg_);
-	draw_vbo(vbo_y_pos_);
-	draw_vbo(vbo_y_neg_);
-	draw_vbo(vbo_z_pos_);
-	draw_vbo(vbo_z_neg_);
+	draw_vbo(vbo_);
 }
