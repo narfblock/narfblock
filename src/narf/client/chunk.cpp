@@ -192,6 +192,10 @@ void narf::client::Chunk::build_vertex_buffers()
 // TODO: rework gl::Buffer so it can do this
 void draw_vbo(narf::gl::Buffer<narf::client::BlockVertex> &vbo)
 {
+	if (vbo.empty()) {
+		return;
+	}
+
 	vbo.bind();
 
 	// TODO: move this stuff into Buffer class

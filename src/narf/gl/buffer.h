@@ -91,6 +91,10 @@ public:
 		return data_.size();
 	}
 
+	bool empty() {
+		return data_.empty();
+	}
+
 private:
 	GLenum target_;
 	GLenum usage_;
