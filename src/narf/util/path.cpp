@@ -51,13 +51,21 @@ std::string narf::util::exeName() {
 #ifdef _WIN32
 
 #include <windows.h>
+#include <Poco/Buffer.h>
+#include <Poco/UnicodeConverter.h>
 
 std::string narf::util::exeName() {
-#ifdef UNICODE
-	// TODO: wstring nonsense
-#else
-	return std::string(_pgmptr);
-#endif
+	size_t len = 32768; // max NT-style name length + terminator
+	Poco::Buffer<wchar_t> buffer(len);
+
+	DWORD ret = GetModuleFileNameW(NULL, buffer.begin(), len);
+	if (ret == 0 || ret >= len) {
+		return ""; // error
+	}
+
+	std::string result;
+	Poco::UnicodeConverter::toUTF8(buffer.begin(), result);
+	return result;
 }
 
 #endif // _WIN32
