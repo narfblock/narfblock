@@ -6,6 +6,8 @@
 namespace narf {
 	class TextEditor {
 	public:
+		int cursor;
+		size_t sel_length;
 		TextEditor();
 		~TextEditor();
 
@@ -13,6 +15,12 @@ namespace narf {
 
 		void clear() { str_.clear(); }
 		void addString(const std::string &s);
+		void setString(const std::string &s);
+		void moveCursor(const int count);
+		void backspace();
+		void backspace(const int count);
+		void homeCursor();
+		void endCursor();
 
 	private:
 		std::string str_;

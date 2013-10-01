@@ -3,6 +3,7 @@
 #include <stdlib.h>
 
 #include "narf/input.h"
+#include "narf/client/console.h"
 
 void narf::Input::process_event(const SDL_Event *event) {
 	switch (state_) {
@@ -135,7 +136,21 @@ void narf::Input::processTextEvent(const SDL_Event *event) {
 			state_ = InputStateNormal;
 			textEditor.clear();
 			return;
-
+		case SDLK_BACKSPACE:
+			textEditor.backspace();
+			return;
+		case SDLK_LEFT:
+			textEditor.moveCursor(-1);
+			return;
+		case SDLK_RIGHT:
+			textEditor.moveCursor(1);
+			return;
+		case SDLK_HOME:
+			textEditor.homeCursor();
+			return;
+		case SDLK_END:
+			textEditor.endCursor();
+			return;
 		default:
 			// eat any other key - actual text entry happens in SDL_TEXTINPUT
 			return;
