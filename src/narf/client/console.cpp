@@ -113,19 +113,17 @@ void narf::client::Console::render() {
 		// draw cursor
 		auto editY = static_cast<float>(impl->y + impl->lineHeight / 2);
 
-		auto x1 = float(impl->x) + impl->editBuffer->width(impl->editState.getString(), impl->editState.cursor);
-		auto y1 = editY + 1.0f;
-		auto x2 = x1 + 2.0f;
-		auto y2 = editY + float(impl->lineHeight);
+		auto x1 = float(impl->x) + impl->editBuffer->width(impl->editState.getString(), impl->editState.cursor) - 0.5f;
+		auto y1 = editY - 1.0f;
 
 		glPushAttrib(GL_ALL_ATTRIB_BITS);
 		glDisable(GL_TEXTURE_2D);
 		glColor4f(1.0f, 1.0f, 1.0f, 0.7f);
-		glBegin(GL_QUADS);
+		glLineWidth(2);
+		glBegin(GL_LINE_STRIP);
+		glVertex2f(x1 - 4, y1 - 2);
 		glVertex2f(x1, y1);
-		glVertex2f(x1, y2);
-		glVertex2f(x2, y2);
-		glVertex2f(x2, y1);
+		glVertex2f(x1 + 4, y1 - 2);
 		glEnd();
 		glPopAttrib();
 	}
