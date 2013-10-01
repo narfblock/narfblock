@@ -76,6 +76,8 @@ public:
 
 	TextEditor textEditor;
 
+	State state() const { return state_; }
+
 private:
 
 	void processNormalEvent(const SDL_Event *event);

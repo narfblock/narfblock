@@ -31,6 +31,9 @@ namespace narf {
 
 			bool load(const std::string &filename, float size);
 
+			// determine width in pixels of a string in this font
+			float width(const std::string &text, int nchars) const;
+
 		private:
 			texture_atlas_t *atlas_;
 			texture_font_t *font_;
@@ -46,6 +49,8 @@ namespace narf {
 
 			void render();
 			void clear();
+
+			float width(const std::string &text, int nchars) const;
 
 		private:
 			const Font *font_;

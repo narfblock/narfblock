@@ -355,7 +355,7 @@ void sim_frame(const narf::Input &input, double t, double dt)
 	world->renderDistance = configmanager.getInt("test.video.render_distance", 5);
 
 	// copy the text editor state so it can be rendered in draw2d
-	clientConsole->setEditState(input.textEditor);
+	clientConsole->setEditState(input.textEditor, input.state() == narf::Input::InputStateText);
 
 	// TODO: decouple player direction and camera direction
 	cam.orientation.yaw -= input.look_rel().x;

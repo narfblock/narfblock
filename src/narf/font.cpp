@@ -21,6 +21,35 @@ bool narf::font::Font::load(const std::string &filename, float size) {
 }
 
 
+float narf::font::Font::width(const std::string &text, int nchars) const {
+	Poco::UTF8Encoding utf8Encoding;
+	Poco::TextIterator i(text, utf8Encoding);
+	Poco::TextIterator end(text);
+
+	float width = 0;
+
+	int prev = 0;
+	for (int n = 0; i != end && n < nchars; ++i, ++n) {
+		int c = *i;
+		texture_glyph_t *glyph = texture_font_get_glyph(font_, *i);
+		if (glyph) {
+			if (prev) {
+				width += texture_glyph_get_kerning(glyph, prev);
+			}
+			prev = c;
+			width += glyph->advance_x;
+		}
+	}
+
+	return width;
+}
+
+
+float narf::font::TextBuffer::width(const std::string &text, int nchars) const {
+	return font_->width(text, nchars);
+}
+
+
 void narf::font::TextBuffer::print(const std::string &text, float x, float y) {
 	auto black = narf::Color(0.0f, 0.0f, 0.0f);
 	print(text, x, y, black);

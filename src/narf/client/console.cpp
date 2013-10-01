@@ -17,6 +17,7 @@ struct narf::client::ClientConsoleImpl {
 	narf::font::TextBuffer *editBuffer;
 	std::vector<std::string> text;
 	narf::TextEditor editState;
+	bool editing;
 };
 
 
@@ -49,8 +50,9 @@ void narf::client::Console::setLocation(int x, int y, int width, int height) {
 }
 
 
-void narf::client::Console::setEditState(const narf::TextEditor &editor) {
+void narf::client::Console::setEditState(const narf::TextEditor &editor, bool editing) {
 	impl->editState = editor;
+	impl->editing = editing;
 	update();
 }
 
@@ -93,6 +95,7 @@ void narf::client::Console::render() {
 		auto x2 = float(impl->x + impl->width);
 		auto y2 = float(impl->y + impl->height);
 
+		glPushAttrib(GL_ALL_ATTRIB_BITS);
 		glColor4f(0.5f, 0.5f, 0.5f, 0.7f);
 		glBegin(GL_QUADS);
 		glVertex2f(x1, y1);
@@ -100,12 +103,31 @@ void narf::client::Console::render() {
 		glVertex2f(x2, y2);
 		glVertex2f(x2, y1);
 		glEnd();
-		glColor3f(1.0f, 1.0f, 1.0f);
+		glPopAttrib();
 
 		impl->textBuffer->render();
 	}
-	if (impl->editBuffer) {
+	if (impl->editBuffer && impl->editing) {
 		impl->editBuffer->render();
+
+		// draw cursor
+		auto editY = static_cast<float>(impl->y + impl->lineHeight / 2);
+
+		auto x1 = float(impl->x) + impl->editBuffer->width(impl->editState.getString(), impl->editState.cursor);
+		auto y1 = editY + 1.0f;
+		auto x2 = x1 + 2.0f;
+		auto y2 = float(editY + impl->lineHeight);
+
+		glPushAttrib(GL_ALL_ATTRIB_BITS);
+		glDisable(GL_TEXTURE_2D);
+		glColor4f(1.0f, 1.0f, 1.0f, 0.7f);
+		glBegin(GL_QUADS);
+		glVertex2f(x1, y1);
+		glVertex2f(x1, y2);
+		glVertex2f(x2, y2);
+		glVertex2f(x2, y1);
+		glEnd();
+		glPopAttrib();
 	}
 }
 

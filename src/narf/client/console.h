@@ -20,7 +20,7 @@ namespace narf {
 
 			void setLocation(int x, int y, int width, int height);
 			void setFont(narf::font::Font *font, int lineHeight);
-			void setEditState(const narf::TextEditor &editor);
+			void setEditState(const narf::TextEditor &editor, bool editing);
 			void render();
 		private:
 			ClientConsoleImpl *impl;
