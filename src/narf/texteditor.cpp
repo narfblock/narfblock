@@ -9,6 +9,11 @@ narf::TextEditor::TextEditor() {
 narf::TextEditor::~TextEditor() {
 }
 
+void narf::TextEditor::clear() {
+	str_.clear();
+	cursor = 0;
+}
+
 void narf::TextEditor::addString(const std::string &s) {
 	str_.insert(cursor, s);
 	cursor += 1;
