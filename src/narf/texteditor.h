@@ -17,8 +17,7 @@ namespace narf {
 		void addString(const std::string &s);
 		void setString(const std::string &s);
 		void moveCursor(const int count);
-		void backspace();
-		void backspace(const int count);
+		void delAtCursor(const int count);
 		void homeCursor();
 		void endCursor();
 

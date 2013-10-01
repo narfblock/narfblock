@@ -21,7 +21,7 @@ void narf::TextEditor::addString(const std::string &s) {
 
 void narf::TextEditor::setString(const std::string &s) {
 	str_ = s;
-	cursor = str_.size();
+	cursor = int(str_.size());
 }
 
 void narf::TextEditor::moveCursor(const int count) {
@@ -29,15 +29,11 @@ void narf::TextEditor::moveCursor(const int count) {
 	cursor = std::max(0, std::min(cursor, (int)str_.size()));
 }
 
-void narf::TextEditor::backspace() {
-	backspace(1);
-}
-
-void narf::TextEditor::backspace(const int count) {
-	cursor = std::max(0, cursor - count);
-	if (count > 0) {
-		str_.erase(cursor, count);
+void narf::TextEditor::delAtCursor(const int count) {
+	if (count < 0) {
+		cursor = std::max(0, cursor + count);
 	}
+	str_.erase(cursor, std::abs(count));
 }
 
 void narf::TextEditor::homeCursor() {
@@ -45,5 +41,5 @@ void narf::TextEditor::homeCursor() {
 }
 
 void narf::TextEditor::endCursor() {
-	cursor = str_.size();
+	cursor = int(str_.size());
 }

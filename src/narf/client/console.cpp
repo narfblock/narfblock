@@ -116,7 +116,7 @@ void narf::client::Console::render() {
 		auto x1 = float(impl->x) + impl->editBuffer->width(impl->editState.getString(), impl->editState.cursor);
 		auto y1 = editY + 1.0f;
 		auto x2 = x1 + 2.0f;
-		auto y2 = float(editY + impl->lineHeight);
+		auto y2 = editY + float(impl->lineHeight);
 
 		glPushAttrib(GL_ALL_ATTRIB_BITS);
 		glDisable(GL_TEXTURE_2D);

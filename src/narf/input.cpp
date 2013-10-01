@@ -137,7 +137,10 @@ void narf::Input::processTextEvent(const SDL_Event *event) {
 			textEditor.clear();
 			return;
 		case SDLK_BACKSPACE:
-			textEditor.backspace();
+			textEditor.delAtCursor(-1);
+			return;
+		case SDLK_DELETE:
+			textEditor.delAtCursor(1);
 			return;
 		case SDLK_LEFT:
 			textEditor.moveCursor(-1);
