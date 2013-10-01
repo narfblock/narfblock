@@ -1,6 +1,10 @@
 #include "narf/font.h"
 #include <math.h> // Need floor or something
 
+#include <Poco/TextIterator.h>
+#include <Poco/TextEncoding.h>
+#include <Poco/UTF8Encoding.h>
+
 
 narf::font::Font::Font() : font_(nullptr) {
 	atlas_ = texture_atlas_new(512, 512, 1);
@@ -27,13 +31,18 @@ void narf::font::TextBuffer::print(const std::string &text, float x, float y, co
 	float r = color.r, g = color.g, b = color.b, a = color.a;
 	float pos_x = (float)x;
 	float pos_y = (float)y;
-	// TODO: iterate over unicode characters rather than bytes
-	for(size_t i = 0; i < text.size(); i++) {
-		texture_glyph_t *glyph = texture_font_get_glyph(font_->font_, text[i]);
+	Poco::UTF8Encoding utf8Encoding;
+	Poco::TextIterator i(text, utf8Encoding);
+	Poco::TextIterator end(text);
+	int prev = 0;
+	for (; i != end; ++i) {
+		auto c = *i;
+		texture_glyph_t *glyph = texture_font_get_glyph(font_->font_, *i);
 		if (glyph != NULL) {
-			if (i > 0) {
-				pos_x += texture_glyph_get_kerning(glyph, text[i - 1]);
+			if (prev) {
+				pos_x += texture_glyph_get_kerning(glyph, prev);
 			}
+			prev = c;
 
 			float x0  = (float)floor(pos_x + (float)glyph->offset_x);
 			float y0  = (float)floor(pos_y + (float)glyph->offset_y);
