@@ -70,6 +70,13 @@ SET(SDL2IMAGE_LIBRARY
 	${ZLIB_LIBRARY}
 	)
 
+if (WIN32)
+	# assume libs are static linked on win32
+	# TODO: make this configurable with cmake
+	add_definitions(-DPOCO_STATIC)
+	add_definitions(-DGLEW_STATIC)
+endif()
+
 include_directories (
 	"${SDL2_INCLUDE_DIR}"
 	"${SDL2IMAGE_INCLUDE_DIR}"
