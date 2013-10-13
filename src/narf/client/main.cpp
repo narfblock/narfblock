@@ -756,7 +756,11 @@ extern "C" int main(int argc, char **argv)
 	bouncy_block->bouncy = true;
 	bouncy_block->model = true;
 
-	init_textures();
+	if (!init_textures()) {
+		narf::console->println("init_textures() failed");
+		return 1;
+	}
+
 	auto font_file = Poco::Path(narf::util::dataDir(), "DroidSansMono.ttf").toString();
 	narf::console->println("Loading font from " + font_file);
 
