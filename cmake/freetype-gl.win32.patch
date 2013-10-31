@@ -1,0 +1,12 @@
+--- opengl.h.orig  2013-10-12 22:44:02.227181501 -0700
++++ opengl.h   2013-10-12 23:41:13.899380606 -0700
+@@ -41,9 +41,6 @@
+ #  else
+ #    include <OpenGL/gl.h>
+ #  endif
+-#elif defined(_WIN32) || defined(_WIN64)
+-#  include <GL/glew.h>
+-#  include <GL/wglew.h>
+ #else
+ #  include <GL/glew.h>
+ #  include <GL/gl.h>
