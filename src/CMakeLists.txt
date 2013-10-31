@@ -102,8 +102,8 @@ add_executable (narfblock
 
 target_link_libraries (narfblock
 	freetype-gl
-	${PocoFoundation_LIBRARY}
 	${PocoUtil_LIBRARY}
+	${PocoFoundation_LIBRARY}
 	${FREETYPE_LIBRARY}
 	${FREETYPE_GL_LIBRARY}
 	${GLEW_LIBRARY}
@@ -126,8 +126,8 @@ add_executable (narfblock-server
 	)
 
 target_link_libraries (narfblock-server
-	${PocoFoundation_LIBRARY}
 	${PocoUtil_LIBRARY}
+	${PocoFoundation_LIBRARY}
 	${CMAKE_THREAD_LIBS_INIT}
 	${CURSES_LIBRARY}
 	)
@@ -141,8 +141,8 @@ add_executable (narfblock-test
 	)
 
 target_link_libraries (narfblock-test
-	${PocoFoundation_LIBRARY}
 	${PocoUtil_LIBRARY}
+	${PocoFoundation_LIBRARY}
 	${CMAKE_THREAD_LIBS_INIT}
 	)
 
