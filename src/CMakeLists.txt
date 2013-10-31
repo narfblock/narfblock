@@ -21,6 +21,8 @@ find_package (Freetype REQUIRED)
 find_package (Threads REQUIRED)
 find_package (Curses REQUIRED)
 find_package (Poco REQUIRED)
+find_package (PNG REQUIRED)
+find_package (ZLIB REQUIRED)
 
 include (DownloadFont)
 
@@ -50,6 +52,23 @@ endif()
 if (CURSES_HAVE_NCURSES_CURSES_H)
 	add_definitions( -DHAVE_NCURSES_CURSES_H )
 endif()
+
+# add dependencies to SDL libs for static linking
+if (WIN32)
+	SET(SDL2_LIBRARY
+		${SDL2_LIBRARY}
+		imm32
+		winmm
+		version
+		)
+endif()
+
+# add dependencies to SDL2_image libs for static linking
+SET(SDL2IMAGE_LIBRARY
+	${SDL2IMAGE_LIBRARY}
+	${PNG_LIBRARY}
+	${ZLIB_LIBRARY}
+	)
 
 include_directories (
 	"${SDL2_INCLUDE_DIR}"
