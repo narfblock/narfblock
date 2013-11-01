@@ -1,0 +1,39 @@
+#include <windows.h>
+#include "narf/version.h"
+
+#define _STRINGIFY(s) #s
+#define STRINGIFY(s) _STRINGIFY(s)
+
+#define VER_STRING STRINGIFY(VERSION_MAJOR) "." STRINGIFY(VERSION_MINOR) VERSION_RELEASE "+" VERSION_REV
+
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+
+1 VERSIONINFO
+FILEVERSION     VERSION_MAJOR,VERSION_MINOR,0,0
+PRODUCTVERSION  VERSION_MAJOR,VERSION_MINOR,0,0
+FILEFLAGSMASK   VS_FFI_FILEFLAGSMASK
+FILEFLAGS       0
+FILEOS          VOS_NT_WINDOWS32
+FILETYPE        VFT_APP
+{
+	BLOCK "StringFileInfo"
+	{
+		BLOCK "040904B0"
+		{
+			VALUE "FileDescription", "NarfBlock client\0"
+			VALUE "FileVersion", VER_STRING "\0"
+			VALUE "InternalName", "narfblock\0"
+			VALUE "OriginalFilename", "narfblock.exe\0"
+			VALUE "CompanyName", "NarfBlock developers\0"
+			VALUE "ProductName", "NarfBlock\0"
+			VALUE "ProductVersion", VER_STRING "\0"
+		}
+	}
+
+	BLOCK "VarFileInfo"
+	{
+		VALUE "Translation", 0x409, 1200 /* unicode */
+	}
+}
+
+1 ICON "../narfblock.ico"

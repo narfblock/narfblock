@@ -113,14 +113,7 @@ set (NARFBLOCK_COMMON_SOURCE_FILES
 	narf/util/path.cpp
 	)
 
-# client executable
-add_executable (narfblock
-	# Mark as a "windowed" program (rather than console) on Windows
-	# (no effect on other platforms)
-	WIN32
-
-	${NARFBLOCK_COMMON_SOURCE_FILES}
-
+SET(NARFBLOCK_CLIENT_SOURCE_FILES
 	narf/input.cpp
 	narf/texteditor.cpp
 	narf/gl/context.cpp
@@ -131,6 +124,23 @@ add_executable (narfblock
 	narf/client/chunk.cpp
 	narf/client/console.cpp
 	narf/client/world.cpp
+	)
+
+if (WIN32)
+	SET(NARFBLOCK_CLIENT_SOURCE_FILES
+		${NARFBLOCK_CLIENT_SOURCE_FILES}
+		narf/client/winresources.rc
+		)
+endif()
+
+# client executable
+add_executable (narfblock
+	# Mark as a "windowed" program (rather than console) on Windows
+	# (no effect on other platforms)
+	WIN32
+
+	${NARFBLOCK_COMMON_SOURCE_FILES}
+	${NARFBLOCK_CLIENT_SOURCE_FILES}
 	)
 
 target_link_libraries (narfblock
