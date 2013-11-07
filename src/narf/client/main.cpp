@@ -34,6 +34,9 @@
 
 #include "narf/gl/gl.h"
 
+#include "narf/notifications/ConfigNotification.h"
+#include <Poco/NObserver.h>
+
 // TODO: this is all hacky test code - refactor into nicely modularized code
 
 narf::client::Console *clientConsole;
@@ -73,6 +76,13 @@ std::map<std::string, ConsoleCommand> consoleCommands;
 bool wireframe = false;
 bool backface_culling = true;
 int screenshot = 0;
+
+class TestObserver {
+	public:
+		void handler(const Poco::AutoPtr<narf::config::ConfigUpdateNotification>& pNf) {
+			narf::console->println("Config var updated: " + pNf->key);
+		}
+};
 
 float clampf(float val, float min, float max)
 {
@@ -678,6 +688,8 @@ extern "C" int main(int argc, char **argv)
 #endif
 
 	clientConsole = new narf::client::Console();
+	TestObserver testobserver;
+
 	narf::console = clientConsole;
 
 	narf::console->println("Version: " + std::to_string(VERSION_MAJOR) + "." + std::to_string(VERSION_MINOR) + std::string(VERSION_RELEASE));
@@ -688,6 +700,7 @@ extern "C" int main(int argc, char **argv)
 	auto config_file = Poco::Path(narf::util::dataDir(), "config.ini").toString();
 	narf::console->println("Config File: " + config_file);
 	configmanager.load("test", config_file);
+	configmanager.notificationCenter.addObserver(Poco::NObserver<TestObserver, narf::config::ConfigUpdateNotification>(testobserver, &TestObserver::handler));
 	int bar = configmanager.getInt("test.foo.bar", 43);
 	narf::console->println("ConfigManager test: test.foo.bar = " + std::to_string(bar));
 

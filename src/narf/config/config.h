@@ -3,6 +3,7 @@
 
 #include <Poco/Util/LayeredConfiguration.h>
 #include <Poco/Util/IniFileConfiguration.h>
+#include <Poco/NotificationCenter.h>
 #include <string>
 #include <vector>
 #include <memory>
@@ -33,6 +34,7 @@ namespace narf {
 				bool getRaw(const std::string& key, std::string& value) const;
 				void setRaw(const std::string& key, const std::string& value);
 				void enumerate(const std::string& key, Keys& range) const;
+				Poco::NotificationCenter notificationCenter;
 			private:
 				mutable std::map<const std::string, ConfigIni*> configs;
 		};

@@ -4,6 +4,7 @@
 
 #include "narf/config/config.h"
 #include "narf/util/tokenize.h"
+#include "narf/notifications/ConfigNotification.h"
 
 void narf::config::ConfigManager::load(std::string name, std::string filename) {
 	auto tmp = new narf::config::ConfigIni(filename);
@@ -26,6 +27,7 @@ void narf::config::ConfigManager::setRaw(const std::string& key, const std::stri
 	}
 	const std::string subkey = narf::util::join(std::vector<std::string>(tokens.begin() + 1, tokens.end()), ".");
 	configs[tokens[0]]->setRaw(subkey, value);
+	notificationCenter.postNotification(new narf::config::ConfigUpdateNotification(key));
 }
 void narf::config::ConfigManager::enumerate(const std::string& key, Keys& range) const {
 	auto tokens = narf::util::tokenize(key, '.');
