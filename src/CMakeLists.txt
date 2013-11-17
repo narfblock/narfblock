@@ -153,10 +153,6 @@ target_link_libraries (narfblock
 	${OPENGL_LIBRARY}
 	${SDL2IMAGE_LIBRARY}
 	${SDL2_LIBRARY}
-	# HACK: cmake's SDL_LIBRARY puts the libraries in the wrong order;
-	# there are symbols in libSDLmain that depend on libSDL, but -lSDL is first in SDL_LIBRARY.
-	# Add them again to get -lSDL after -lSDLmain.
-	${SDL2_LIBRARY}
 	${CMAKE_THREAD_LIBS_INIT}
 	)
 
