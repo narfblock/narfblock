@@ -692,7 +692,7 @@ extern "C" int main(int argc, char **argv)
 
 	narf::console = clientConsole;
 
-	narf::console->println("Version: " + std::to_string(VERSION_MAJOR) + "." + std::to_string(VERSION_MINOR) + std::string(VERSION_RELEASE));
+	narf::console->println("Version: " + std::to_string(VERSION_MAJOR) + "." + std::to_string(VERSION_MINOR) + std::string(VERSION_RELEASE) + "+" VERSION_REV);
 
 	consoleCommands["set"] = cmdSet;
 

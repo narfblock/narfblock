@@ -9,6 +9,12 @@ if (NOT DEFINED PATCH_COMMAND)
   set(PATCH_COMMAND "patch")
 endif()
 
+if (NOT DEFINED GIT_COMMAND)
+  set(GIT_COMMAND "git")
+endif()
+
+execute_process(COMMAND ${GIT_COMMAND} rev-parse --short --sq-quote HEAD OUTPUT_VARIABLE VERSION_REV OUTPUT_STRIP_TRAILING_WHITESPACE)
+
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/../cmake/Modules/")
 set(NARFBLOCK_DATA_PATH "${CMAKE_SOURCE_DIR}/../data/")
 
