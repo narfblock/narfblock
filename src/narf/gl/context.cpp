@@ -1,6 +1,11 @@
 #include "narf/gl/context.h"
 #include "narf/console.h"
 
+#ifdef _WIN32
+#include <SDL_syswm.h>
+#include <windows.h>
+#endif
+
 narf::gl::Context::Context()
 {
 }
@@ -40,6 +45,26 @@ bool narf::gl::Context::setDisplayMode(const char *title, int width, int height,
 	}
 
 	glViewport(0, 0, width, height);
+
+	// set window icon
+#ifdef _WIN32
+	SDL_SysWMinfo info;
+	SDL_VERSION(&info.version);
+	if (SDL_GetWindowWMInfo(window_, &info)) {
+		HWND hwnd = info.info.win.window;
+		HINSTANCE inst = GetModuleHandle(NULL);
+		HANDLE bigIcon   = LoadImage(inst, MAKEINTRESOURCE(1), IMAGE_ICON, 0, 0, LR_DEFAULTSIZE);
+		HANDLE smallIcon = LoadImage(inst, MAKEINTRESOURCE(1), IMAGE_ICON, GetSystemMetrics(SM_CXSMICON), GetSystemMetrics(SM_CYSMICON), LR_DEFAULTCOLOR);
+		if (bigIcon) {
+			SendMessage(hwnd, WM_SETICON, ICON_BIG, (LPARAM)bigIcon);
+		}
+		if (smallIcon) {
+			SendMessage(hwnd, WM_SETICON, ICON_SMALL, (LPARAM)smallIcon);
+		}
+	}
+#else
+	// TODO use SDL_SetWindowIcon
+#endif
 
 	return true;
 }
