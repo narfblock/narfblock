@@ -62,6 +62,9 @@ void narf::Input::processNormalEvent(const SDL_Event *event) {
 		case SDLK_F3:
 			screenshot_ = true;
 			break;
+		case SDLK_F4:
+			toggle_fog_ = true;
+			break;
 		}
 		break;
 
@@ -179,6 +182,7 @@ void narf::Input::begin_sample()
 	action_ternary_begin_ = action_ternary_end_ = false;
 	toggle_wireframe_ = false;
 	toggle_backface_culling_ = false;
+	toggle_fog_ = false;
 	screenshot_ = false;
 	look_rel_ = narf::math::Vector2f(0.0f, 0.0f);
 	text_.clear();

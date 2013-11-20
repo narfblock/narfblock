@@ -39,6 +39,7 @@ public:
 		action_ternary_end_(false),
 		toggle_wireframe_(false),
 		toggle_backface_culling_(false),
+		toggle_fog_(false),
 		look_rel_(0.0f, 0.0f) { }
 
 	void begin_sample();
@@ -68,6 +69,7 @@ public:
 
 	bool toggle_wireframe() const { return toggle_wireframe_; }
 	bool toggle_backface_culling() const { return toggle_backface_culling_; }
+	bool toggle_fog() const { return toggle_fog_; }
 	bool screenshot() const { return screenshot_; }
 
 	const math::Vector2f look_rel() const { return look_rel_; }
@@ -114,6 +116,7 @@ private:
 
 	bool toggle_wireframe_;
 	bool toggle_backface_culling_;
+	bool toggle_fog_;
 	bool screenshot_;
 
 	math::Vector2f look_rel_;

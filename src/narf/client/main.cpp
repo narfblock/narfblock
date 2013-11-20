@@ -75,7 +75,10 @@ std::map<std::string, ConsoleCommand> consoleCommands;
 // debug options
 bool wireframe = false;
 bool backface_culling = true;
+bool fog = true;
 int screenshot = 0;
+
+GLfloat fogColor[4] = {0.5f, 0.5f, 0.5f, 1.0f};
 
 class TestObserver {
 	public:
@@ -200,6 +203,19 @@ void draw3d() {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	} else {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	}
+
+	if (fog) {
+		glFogi(GL_FOG_MODE, GL_LINEAR);
+		glHint(GL_FOG_HINT, GL_DONT_CARE);
+		auto renderDistance = float(world->renderDistance - 1) * 16.0f; // TODO - don't hardcode chunk size
+		auto fogStart = std::max(renderDistance - 48.0f, 8.0f);
+		auto fogEnd = std::max(renderDistance, 16.0f);
+		glFogf(GL_FOG_START, fogStart);
+		glFogf(GL_FOG_END, fogEnd);
+		glEnable(GL_FOG);
+	} else {
+		glDisable(GL_FOG);
 	}
 
 	glEnable(GL_TEXTURE_2D);
@@ -481,6 +497,10 @@ void sim_frame(const narf::Input &input, double t, double dt)
 
 	if (input.toggle_backface_culling()) {
 		backface_culling = !backface_culling;
+	}
+
+	if (input.toggle_fog()) {
+		fog = !fog;
 	}
 
 	if (input.screenshot()) { // Hack in a screenshot function
