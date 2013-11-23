@@ -700,6 +700,14 @@ void cmdSet(const std::string &args) {
 }
 
 
+void fatalError(const std::string& msg) {
+	if (narf::console) {
+		narf::console->println(msg);
+	}
+	SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "NarfBlock: fatal error", msg.c_str(), nullptr);
+}
+
+
 extern "C" int main(int argc, char **argv)
 {
 #if _WIN32
@@ -725,7 +733,7 @@ extern "C" int main(int argc, char **argv)
 	narf::console->println("ConfigManager test: test.foo.bar = " + std::to_string(bar));
 
 	if (SDL_Init(SDL_INIT_TIMER | SDL_INIT_VIDEO) < 0) {
-		narf::console->println("SDL_Init(SDL_INIT_EVERYTHING) failed: " + std::string(SDL_GetError()));
+		fatalError("SDL_Init(SDL_INIT_EVERYTHING) failed: " + std::string(SDL_GetError()));
 		SDL_Quit();
 		return 1;
 	}
@@ -733,7 +741,7 @@ extern "C" int main(int argc, char **argv)
 	SDL_DisplayMode mode;
 	// TODO: iterate over monitors?
 	if (SDL_GetDesktopDisplayMode(0, &mode)) {
-		narf::console->println("SDL_GetDesktopDisplayMode failed: " + std::string(SDL_GetError()));
+		fatalError("SDL_GetDesktopDisplayMode failed: " + std::string(SDL_GetError()));
 		SDL_Quit();
 		return 1;
 	}
@@ -765,7 +773,7 @@ extern "C" int main(int argc, char **argv)
 	// TODO: read w, h, bpp from config file to override defaults
 
 	if (!init_video(w, h, fullscreen)) {
-		narf::console->println("Error: could not set OpenGL video mode " + std::to_string(w) + "x" + std::to_string(h));
+		fatalError("Error: could not set OpenGL video mode " + std::to_string(w) + "x" + std::to_string(h));
 		SDL_Quit();
 		return 1;
 	}
@@ -790,7 +798,7 @@ extern "C" int main(int argc, char **argv)
 	bouncy_block->model = true;
 
 	if (!init_textures()) {
-		narf::console->println("init_textures() failed");
+		fatalError("init_textures() failed");
 		return 1;
 	}
 
@@ -799,7 +807,7 @@ extern "C" int main(int argc, char **argv)
 
 	auto font = font_manager.addFont("DroidSansMono", font_file, 30);
 	if (!font) {
-		narf::console->println("Error: could not load DroidSansMono");
+		fatalError("Error: could not load DroidSansMono");
 		return 1;
 	}
 
