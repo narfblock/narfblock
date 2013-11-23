@@ -89,7 +89,7 @@ std::string narf::util::dataDir() {
 	narf::console->println("Current Dir: " + Poco::Path::current());
 	narf::console->println("Executable Dir: " + narf::util::exeDir());
 
-	for (Poco::Path dir = Poco::Path(narf::util::exeDir()); dir.toString() != dir.parent().toString(); dir = dir.parent()) {
+	for (Poco::Path dir = Poco::Path(narf::util::exeDir()); ; dir = dir.parent()) {
 		auto dataDir = Poco::Path(dir, "data");
 		narf::console->println("Checking " + dataDir.toString());
 		auto tmp = Poco::File(dataDir);
@@ -97,6 +97,9 @@ std::string narf::util::dataDir() {
 			narf::console->println("Found data directory: " + dataDir.toString());
 			cachedDataDir = dataDir.toString();
 			return cachedDataDir;
+		}
+		if (dir.toString() == dir.parent().toString()) {
+			break;
 		}
 	}
 
