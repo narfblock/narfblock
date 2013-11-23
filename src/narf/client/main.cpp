@@ -124,6 +124,7 @@ bool init_textures()
 	if (!tiles_surf) {
 		narf::console->println("IMG_Load(" + terrain_file_path.toString() + ") failed: " + std::string(IMG_GetError()));
 		SDL_Quit();
+		return false;
 	}
 
 	tiles_tex = new narf::gl::Texture(display);
@@ -716,7 +717,6 @@ extern "C" int main(int argc, char **argv)
 
 	consoleCommands["set"] = cmdSet;
 
-	// Will explode if things don't exist
 	auto config_file = Poco::Path(narf::util::dataDir(), "config.ini").toString();
 	narf::console->println("Config File: " + config_file);
 	configmanager.load("test", config_file);

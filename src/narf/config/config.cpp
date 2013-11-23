@@ -7,8 +7,15 @@
 #include "narf/notifications/ConfigNotification.h"
 
 void narf::config::ConfigManager::load(std::string name, std::string filename) {
-	auto tmp = new narf::config::ConfigIni(filename);
-	configs[name] = tmp;
+	narf::config::ConfigIni* cfg;
+	try {
+		cfg = new narf::config::ConfigIni(filename);
+	} catch (...) {
+		// file not found or could not be opened
+		// use an empty config (get defaults)
+		cfg = new narf::config::ConfigIni();
+	}
+	configs[name] = cfg;
 }
 
 bool narf::config::ConfigManager::getRaw(const std::string& key, std::string& value) const {

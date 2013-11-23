@@ -14,6 +14,7 @@ namespace narf {
 
 		class ConfigIni : public Poco::Util::IniFileConfiguration {
 			public:
+				ConfigIni() : Poco::Util::IniFileConfiguration() {};
 				ConfigIni(std::string& file) : Poco::Util::IniFileConfiguration(file) {};
 				bool getRaw(const std::string& key, std::string& value) const {
 					return Poco::Util::IniFileConfiguration::getRaw(key, value);
