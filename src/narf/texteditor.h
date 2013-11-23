@@ -2,6 +2,7 @@
 #define NARF_TEXTEDITOR_H
 
 #include <string>
+#include <chrono>
 
 namespace narf {
 	class TextEditor {
@@ -20,6 +21,7 @@ namespace narf {
 		void delAtCursor(const int count);
 		void homeCursor();
 		void endCursor();
+		std::chrono::time_point<std::chrono::system_clock> last_edited;
 
 	private:
 		std::string str_;

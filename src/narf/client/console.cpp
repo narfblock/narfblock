@@ -29,7 +29,7 @@ narf::client::Console::Console() {
 	impl->editBuffer = nullptr;
 	last_blink = std::chrono::system_clock::now();
 	blink_cursor = true;
-	blink_rate = 500;  // Milliseconds
+	blink_rate = 600;  // Milliseconds
 }
 
 
@@ -115,8 +115,12 @@ void narf::client::Console::render() {
 		impl->editBuffer->render();
 
 		// draw cursor
-		if (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - last_blink).count() > blink_rate) {
-			last_blink = std::chrono::system_clock::now();
+		auto now = std::chrono::system_clock::now();
+		if (std::chrono::duration_cast<std::chrono::milliseconds>(now - impl->editState.last_edited).count() < 100) {
+			blink_cursor = true;
+			last_blink = now;
+		} else if (std::chrono::duration_cast<std::chrono::milliseconds>(now - last_blink).count() > blink_rate) {
+			last_blink = now;
 			blink_cursor = !blink_cursor;
 		}
 		if (blink_cursor) {
