@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <chrono>
 #include <list>
 
 #include "narf/client/console.h"
@@ -26,6 +27,9 @@ narf::client::Console::Console() {
 	impl->font = nullptr;
 	impl->textBuffer = nullptr;
 	impl->editBuffer = nullptr;
+	last_blink = std::chrono::system_clock::now();
+	blink_cursor = true;
+	blink_rate = 500;  // Milliseconds
 }
 
 
@@ -111,21 +115,26 @@ void narf::client::Console::render() {
 		impl->editBuffer->render();
 
 		// draw cursor
-		auto editY = static_cast<float>(impl->y + impl->lineHeight / 2);
+		if (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - last_blink).count() > blink_rate) {
+			last_blink = std::chrono::system_clock::now();
+			blink_cursor = !blink_cursor;
+		}
+		if (blink_cursor) {
+			auto editY = static_cast<float>(impl->y + impl->lineHeight / 2);
+			auto x1 = float(impl->x) + impl->editBuffer->width(impl->editState.getString(), impl->editState.cursor) - 0.5f;
+			auto y1 = editY - 1.0f;
 
-		auto x1 = float(impl->x) + impl->editBuffer->width(impl->editState.getString(), impl->editState.cursor) - 0.5f;
-		auto y1 = editY - 1.0f;
-
-		glPushAttrib(GL_ALL_ATTRIB_BITS);
-		glDisable(GL_TEXTURE_2D);
-		glColor4f(1.0f, 1.0f, 1.0f, 0.7f);
-		glLineWidth(2);
-		glBegin(GL_LINE_STRIP);
-		glVertex2f(x1 - 4, y1 - 2);
-		glVertex2f(x1, y1);
-		glVertex2f(x1 + 4, y1 - 2);
-		glEnd();
-		glPopAttrib();
+			glPushAttrib(GL_ALL_ATTRIB_BITS);
+			glDisable(GL_TEXTURE_2D);
+			glColor4f(1.0f, 1.0f, 1.0f, 0.7f);
+			glLineWidth(2);
+			glBegin(GL_LINE_STRIP);
+			glVertex2f(x1 - 4, y1 - 2);
+			glVertex2f(x1, y1);
+			glVertex2f(x1 + 4, y1 - 2);
+			glEnd();
+			glPopAttrib();
+		}
 	}
 }
 
