@@ -67,7 +67,6 @@ public:
 	// coordinates are relative to chunk
 	const Block *get_block(uint32_t x, uint32_t y, uint32_t z) const
 	{
-		assert(x >= 0 && y >= 0 && z >= 0);
 		assert(x < size_x_ && y < size_y_ && z < size_z_);
 
 		return &blocks_[((z * size_y_) + y) * size_x_ + x];
