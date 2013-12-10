@@ -80,6 +80,8 @@ int screenshot = 0;
 
 GLfloat fogColor[4] = {0.5f, 0.5f, 0.5f, 1.0f};
 
+bool quitGameLoop = false;
+
 class TestObserver {
 	public:
 		void handler(const Poco::AutoPtr<narf::config::ConfigUpdateNotification>& pNf) {
@@ -555,7 +557,7 @@ void game_loop()
 		while (t_accum >= physics_tick_step)
 		{
 			poll_input(&input);
-			if (input.exit()) {
+			if (input.exit() || quitGameLoop) {
 				return;
 			}
 			sim_frame(input, t, physics_tick_step);
@@ -703,6 +705,11 @@ void cmdSet(const std::string &args) {
 	}
 }
 
+void cmdQuit(const std::string &args) {
+	narf::console->println("Quitting in response to user command");
+	quitGameLoop = true;
+}
+
 
 void fatalError(const std::string& msg) {
 	if (narf::console) {
@@ -728,6 +735,7 @@ extern "C" int main(int argc, char **argv)
 	narf::console->println("Version: " + std::to_string(VERSION_MAJOR) + "." + std::to_string(VERSION_MINOR) + std::string(VERSION_RELEASE) + "+" VERSION_REV);
 
 	consoleCommands["set"] = cmdSet;
+	consoleCommands["quit"] = cmdQuit;
 
 	auto config_file = Poco::Path(narf::util::dataDir(), "config.ini").toString();
 	narf::console->println("Config File: " + config_file);
