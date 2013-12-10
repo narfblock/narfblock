@@ -84,6 +84,13 @@ class TestObserver {
 	public:
 		void handler(const Poco::AutoPtr<narf::config::ConfigUpdateNotification>& pNf) {
 			narf::console->println("Config var updated: " + pNf->key);
+
+			// TODO: this could be done better...
+			if (pNf->key == "test.video.render_distance") {
+				world->renderDistance = configmanager.getInt(pNf->key);
+			} else if (pNf->key == "test.foo.gravity") {
+				world->set_gravity((float)configmanager.getDouble(pNf->key));
+			}
 		}
 };
 
@@ -377,9 +384,6 @@ void sim_frame(const narf::Input &input, double t, double dt)
 		}
 	}
 
-	// TODO: add ability to bind variables instead of looking this up every time?
-	world->set_gravity((float)configmanager.getInt("test.foo.gravity", -24));
-	world->renderDistance = configmanager.getInt("test.video.render_distance", 5);
 
 	// copy the text editor state so it can be rendered in draw2d
 	clientConsole->setEditState(input.textEditor, input.state() == narf::Input::InputStateText);
