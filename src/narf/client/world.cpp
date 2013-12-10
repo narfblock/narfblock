@@ -40,8 +40,8 @@ void draw_cube(float x, float y, float z, uint8_t type, unsigned draw_face_mask)
 void narf::client::World::renderSlice(narf::gl::Texture *tiles_tex, uint32_t cx_min, uint32_t cx_max, uint32_t cy_min, uint32_t cy_max) {
 	assert(cx_min <= cx_max);
 	assert(cy_min <= cy_max);
-	assert(cx_max < chunks_x_);
-	assert(cy_max < chunks_y_);
+	assert(cx_max <= chunks_x_);
+	assert(cy_max <= chunks_y_);
 
 	// draw chunks
 	glBindTexture(narf::gl::TEXTURE_2D, tiles_tex);
