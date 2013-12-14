@@ -60,6 +60,9 @@ void narf::client::Console::setLocation(int x, int y, int width, int height) {
 
 void narf::client::Console::setEditState(const narf::TextEditor &editor, bool editing) {
 	impl->editState = editor;
+	if (editing && !impl->editing) {
+		impl->editState.last_edited = std::chrono::system_clock::now();
+	}
 	impl->editing = editing;
 	update();
 }
