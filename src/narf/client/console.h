@@ -13,6 +13,24 @@ namespace narf {
 
 		class Console : public narf::Console {
 		public:
+
+			enum class CursorShape {
+				Caret,
+				Line,
+
+				Default = Caret,
+			};
+
+			static CursorShape cursorShapeFromString(const std::string &s) {
+				if (s == "caret") {
+					return CursorShape::Caret;
+				} else if (s == "line") {
+					return CursorShape::Line;
+				} else {
+					return CursorShape::Default;
+				}
+			}
+
 			Console();
 			~Console();
 			void println(const std::string &s);
@@ -22,6 +40,7 @@ namespace narf {
 			void setLocation(int x, int y, int width, int height);
 			void setFont(narf::font::Font *font, int lineHeight);
 			void setEditState(const narf::TextEditor &editor, bool editing);
+			void setCursorShape(CursorShape shape);
 			void render();
 		private:
 			ClientConsoleImpl *impl;

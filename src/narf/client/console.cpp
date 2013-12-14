@@ -20,6 +20,7 @@ struct narf::client::ClientConsoleImpl {
 	std::vector<std::string> text;
 	narf::TextEditor editState;
 	bool editing;
+	narf::client::Console::CursorShape cursorShape;
 };
 
 
@@ -29,6 +30,7 @@ narf::client::Console::Console() {
 	impl->textBuffer = nullptr;
 	impl->editBuffer = nullptr;
 	impl->paddingLeft = 5; // TODO: make this configurable
+	impl->cursorShape = CursorShape::Default;
 	last_blink = std::chrono::system_clock::now();
 	blink_cursor = true;
 	blink_rate = 600;  // Milliseconds
@@ -60,6 +62,11 @@ void narf::client::Console::setEditState(const narf::TextEditor &editor, bool ed
 	impl->editState = editor;
 	impl->editing = editing;
 	update();
+}
+
+
+void narf::client::Console::setCursorShape(CursorShape shape) {
+	impl->cursorShape = shape;
 }
 
 
@@ -127,18 +134,34 @@ void narf::client::Console::render() {
 		}
 		if (blink_cursor) {
 			auto editY = static_cast<float>(impl->y + impl->lineHeight / 2);
-			auto x1 = float(impl->x + impl->paddingLeft) + impl->editBuffer->width(impl->editState.getString(), impl->editState.cursor) - 0.5f;
-			auto y1 = editY - 1.0f;
 
 			glPushAttrib(GL_ALL_ATTRIB_BITS);
 			glDisable(GL_TEXTURE_2D);
 			glColor4f(1.0f, 1.0f, 1.0f, 0.7f);
-			glLineWidth(2);
-			glBegin(GL_LINE_STRIP);
-			glVertex2f(x1 - 4, y1 - 2);
-			glVertex2f(x1, y1);
-			glVertex2f(x1 + 4, y1 - 2);
-			glEnd();
+
+			if (impl->cursorShape == CursorShape::Caret) {
+				auto x1 = float(impl->x + impl->paddingLeft) + impl->editBuffer->width(impl->editState.getString(), impl->editState.cursor) - 0.5f;
+				auto y1 = editY - 1.0f;
+
+				glLineWidth(2);
+				glBegin(GL_LINE_STRIP);
+				glVertex2f(x1 - 4, y1 - 2);
+				glVertex2f(x1, y1);
+				glVertex2f(x1 + 4, y1 - 2);
+				glEnd();
+			} else if (impl->cursorShape == CursorShape::Line) {
+				auto x1 = float(impl->x + impl->paddingLeft) + impl->editBuffer->width(impl->editState.getString(), impl->editState.cursor);
+				auto y1 = editY - 1.0f;
+				auto x2 = x1 + 2.0f;
+				auto y2 = y1 + float(impl->lineHeight) - 1.0f;
+
+				glBegin(GL_QUADS);
+				glVertex2f(x1, y1);
+				glVertex2f(x1, y2);
+				glVertex2f(x2, y2);
+				glVertex2f(x2, y1);
+				glEnd();
+			}
 			glPopAttrib();
 		}
 	}

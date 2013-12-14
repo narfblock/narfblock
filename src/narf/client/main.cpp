@@ -90,6 +90,9 @@ class TestObserver {
 			// TODO: this could be done better...
 			if (pNf->key == "test.video.render_distance") {
 				world->renderDistance = configmanager.getInt(pNf->key);
+			} else if (pNf->key == "test.video.console_cursor_shape") {
+				auto shapeStr = configmanager.getString(pNf->key);
+				clientConsole->setCursorShape(narf::client::Console::cursorShapeFromString(shapeStr));
 			} else if (pNf->key == "test.foo.gravity") {
 				world->set_gravity((float)configmanager.getDouble(pNf->key));
 			}
@@ -833,12 +836,15 @@ extern "C" int main(int argc, char **argv)
 	auto consoleWidth = display->width();
 	auto consoleHeight = 175; // TODO: calculate dynamically based on screen size
 
+	auto shapeStr = configmanager.getString("test.video.console_cursor_shape", "default");
+
 	narf::console->println("Console location: (" +
 		std::to_string(consoleX) + ", " + std::to_string(consoleY) + ") " +
 		std::to_string(consoleWidth) + "x" + std::to_string(consoleHeight));
 
 	clientConsole->setFont(consoleFont, consoleFontSize);
 	clientConsole->setLocation(consoleX, consoleY, consoleWidth, consoleHeight);
+	clientConsole->setCursorShape(narf::client::Console::cursorShapeFromString(shapeStr));
 
 	fps_text_buffer = new narf::font::TextBuffer(font);
 	block_info_buffer = new narf::font::TextBuffer(font);
