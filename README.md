@@ -26,3 +26,8 @@ Then generate a Makefile using CMake and perform the build:
 Or on Windows with MinGW in an MSYS shell:
 
 	cmake -G "MSYS Makefiles" ../src && make
+
+
+## Credits
+
+Textures from the Isabella II texture pack by Bonemouse are used: http://www.minecraftforum.net/topic/242175-Isabella/
