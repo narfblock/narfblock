@@ -88,12 +88,12 @@ class TestObserver {
 			narf::console->println("Config var updated: " + pNf->key);
 
 			// TODO: this could be done better...
-			if (pNf->key == "test.video.render_distance") {
+			if (pNf->key == "client.video.renderDistance") {
 				world->renderDistance = configmanager.getInt(pNf->key);
-			} else if (pNf->key == "test.video.console_cursor_shape") {
+			} else if (pNf->key == "client.video.consoleCursorShape") {
 				auto shapeStr = configmanager.getString(pNf->key);
 				clientConsole->setCursorShape(narf::client::Console::cursorShapeFromString(shapeStr));
-			} else if (pNf->key == "test.foo.gravity") {
+			} else if (pNf->key == "client.foo.gravity") {
 				world->set_gravity((float)configmanager.getDouble(pNf->key));
 			}
 		}
@@ -129,7 +129,7 @@ bool init_textures()
 		return false;
 	}
 
-	const std::string terrain_file = configmanager.getString("test.misc.terrain", "terrain.png");
+	const std::string terrain_file = configmanager.getString("client.misc.terrain", "terrain.png");
 	auto terrain_file_path = Poco::Path(narf::util::dataDir(), terrain_file);
 
 	tiles_surf = IMG_Load(terrain_file_path.toString().c_str());
@@ -531,13 +531,13 @@ double get_time()
 
 void game_loop()
 {
-	const float input_divider = static_cast<float>(configmanager.getDouble("test.misc.input_divider", 1000));
+	const float input_divider = static_cast<float>(configmanager.getDouble("client.misc.inputDivider", 1000));
 	narf::Input input(1.0f / input_divider, 1.0f / input_divider);
 	double t = 0.0;
 	double t1 = get_time();
-	const double physics_rate = configmanager.getDouble("test.misc.physics_rate", 60);
+	const double physics_rate = configmanager.getDouble("client.misc.physicsRate", 60);
 	const double physics_tick_step = 1.0 / physics_rate; // fixed time step
-	const double max_frame_time = configmanager.getDouble("test.misc.max_frame_time", 0.25);
+	const double max_frame_time = configmanager.getDouble("client.misc.maxFrameTime", 0.25);
 
 	double t_accum = 0.0;
 
@@ -740,12 +740,12 @@ extern "C" int main(int argc, char **argv)
 	consoleCommands["set"] = cmdSet;
 	consoleCommands["quit"] = cmdQuit;
 
-	auto config_file = Poco::Path(narf::util::dataDir(), "config.ini").toString();
-	narf::console->println("Config File: " + config_file);
-	configmanager.load("test", config_file);
+	auto config_file = Poco::Path(narf::util::dataDir(), "client.ini").toString();
+	narf::console->println("Client config file: " + config_file);
+	configmanager.load("client", config_file);
 	configmanager.notificationCenter.addObserver(Poco::NObserver<TestObserver, narf::config::ConfigUpdateNotification>(testobserver, &TestObserver::handler));
-	int bar = configmanager.getInt("test.foo.bar", 43);
-	narf::console->println("ConfigManager test: test.foo.bar = " + std::to_string(bar));
+	int bar = configmanager.getInt("client.foo.bar", 43);
+	narf::console->println("ConfigManager test: client.foo.bar = " + std::to_string(bar));
 
 	if (SDL_Init(SDL_INIT_TIMER | SDL_INIT_VIDEO) < 0) {
 		fatalError("SDL_Init(SDL_INIT_EVERYTHING) failed: " + std::string(SDL_GetError()));
@@ -766,9 +766,9 @@ extern "C" int main(int argc, char **argv)
 
 	narf::console->println("Current video mode is " + std::to_string(w) + "x" + std::to_string(h));
 
-	bool fullscreen = configmanager.getBool("test.video.fullscreen", true);
-	float width_cfg = static_cast<float>(configmanager.getDouble("test.video.width", 0.6));
-	float height_cfg = static_cast<float>(configmanager.getDouble("test.video.height", 0.6));
+	bool fullscreen = configmanager.getBool("client.video.fullscreen", true);
+	float width_cfg = static_cast<float>(configmanager.getDouble("client.video.width", 0.6));
+	float height_cfg = static_cast<float>(configmanager.getDouble("client.video.height", 0.6));
 	if (!fullscreen) {
 		if (width_cfg > 1) {
 			w = (int)width_cfg;
@@ -796,7 +796,7 @@ extern "C" int main(int argc, char **argv)
 	srand(0x1234);
 	gen_world();
 
-	world->renderDistance = configmanager.getInt("test.video.render_distance", 5);
+	world->renderDistance = configmanager.getInt("client.video.renderDistance", 5);
 
 	player = world->newEntity();
 
@@ -826,8 +826,8 @@ extern "C" int main(int argc, char **argv)
 		return 1;
 	}
 
-	auto consoleFontFile = Poco::Path(narf::util::dataDir(), configmanager.getString("test.video.console_font", "DroidSansMono.ttf")).toString();
-	auto consoleFontSize = configmanager.getInt("test.video.console_font_size", 18);
+	auto consoleFontFile = Poco::Path(narf::util::dataDir(), configmanager.getString("client.video.consoleFont", "DroidSansMono.ttf")).toString();
+	auto consoleFontSize = configmanager.getInt("client.video.consoleFontSize", 18);
 
 	auto consoleFont = font_manager.addFont("console", consoleFontFile, (float)consoleFontSize);
 
@@ -836,7 +836,7 @@ extern "C" int main(int argc, char **argv)
 	auto consoleWidth = display->width();
 	auto consoleHeight = 175; // TODO: calculate dynamically based on screen size
 
-	auto shapeStr = configmanager.getString("test.video.console_cursor_shape", "default");
+	auto shapeStr = configmanager.getString("client.video.consoleCursorShape", "default");
 
 	narf::console->println("Console location: (" +
 		std::to_string(consoleX) + ", " + std::to_string(consoleY) + ") " +
