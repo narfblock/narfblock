@@ -14,6 +14,7 @@ struct narf::client::ClientConsoleImpl {
 	int y;
 	int width;
 	int height;
+	int paddingLeft;
 	narf::font::TextBuffer *textBuffer;
 	narf::font::TextBuffer *editBuffer;
 	std::vector<std::string> text;
@@ -27,6 +28,7 @@ narf::client::Console::Console() {
 	impl->font = nullptr;
 	impl->textBuffer = nullptr;
 	impl->editBuffer = nullptr;
+	impl->paddingLeft = 5; // TODO: make this configurable
 	last_blink = std::chrono::system_clock::now();
 	blink_cursor = true;
 	blink_rate = 600;  // Milliseconds
@@ -62,7 +64,7 @@ void narf::client::Console::setEditState(const narf::TextEditor &editor, bool ed
 
 
 void narf::client::Console::update() {
-	auto textX = static_cast<float>(impl->x);
+	auto textX = static_cast<float>(impl->x + impl->paddingLeft);
 
 	if (impl->textBuffer) {
 		impl->textBuffer->clear();
@@ -125,7 +127,7 @@ void narf::client::Console::render() {
 		}
 		if (blink_cursor) {
 			auto editY = static_cast<float>(impl->y + impl->lineHeight / 2);
-			auto x1 = float(impl->x) + impl->editBuffer->width(impl->editState.getString(), impl->editState.cursor) - 0.5f;
+			auto x1 = float(impl->x + impl->paddingLeft) + impl->editBuffer->width(impl->editState.getString(), impl->editState.cursor) - 0.5f;
 			auto y1 = editY - 1.0f;
 
 			glPushAttrib(GL_ALL_ATTRIB_BITS);
