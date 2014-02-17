@@ -59,27 +59,12 @@ public:
 
 	void render(narf::gl::Texture *tiles_tex, const narf::Camera *cam);
 
-	void put_block(const Block *b, uint32_t x, uint32_t y, uint32_t z) {
-		uint32_t cx, cy, cz, bx, by, bz;
-		calc_chunk_coords(x, y, z, &cx, &cy, &cz, &bx, &by, &bz);
-		Chunk *chunk = get_chunk(cx, cy, cz);
-		chunk->put_block(b, bx, by, bz);
-		chunk->rebuild_vertex_buffers();
-
-		// update neighboring chunk meshes since they may have holes exposed by removing this block
-		// or extra faces that are obstructed by adding this block
-		if (bx == 0) get_chunk((cx - 1) & mask_x_, cy, cz)->rebuild_vertex_buffers();
-		if (by == 0) get_chunk(cx, (cy - 1) & mask_y_, cz)->rebuild_vertex_buffers();
-		if (bz == 0 && cz > 0) get_chunk(cx, cy, cz - 1)->rebuild_vertex_buffers();
-		if (bx == chunk_size_x_ - 1) get_chunk((cx + 1) & mask_x_, cy, cz)->rebuild_vertex_buffers();
-		if (by == chunk_size_y_ - 1) get_chunk(cx, (cy + 1) & mask_y_, cz)->rebuild_vertex_buffers();
-		if (bz == chunk_size_z_ - 1 && cz < chunks_z_ - 1) get_chunk(cx, cy, cz + 1)->rebuild_vertex_buffers();
-	}
+	void put_block(const Block *b, uint32_t x, uint32_t y, uint32_t z) override;
 
 	int32_t renderDistance; // radius in chunks
 
 protected:
-	Chunk *new_chunk(uint32_t chunk_x, uint32_t chunk_y, uint32_t chunk_z) {
+	Chunk *new_chunk(uint32_t chunk_x, uint32_t chunk_y, uint32_t chunk_z) override {
 		return new narf::client::Chunk(this,
 		                 chunk_size_x_, chunk_size_y_, chunk_size_z_,
 		                 chunk_x * chunk_size_x_, chunk_y * chunk_size_y_, chunk_z * chunk_size_z_);
