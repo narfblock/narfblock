@@ -111,6 +111,7 @@ set (NARFBLOCK_COMMON_SOURCE_FILES
 	narf/math/floats.cpp
 	narf/util/tokenize.cpp
 	narf/util/path.cpp
+	narf/net/addr.cpp
 	)
 
 SET(NARFBLOCK_CLIENT_SOURCE_FILES
