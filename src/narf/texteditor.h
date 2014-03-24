@@ -21,6 +21,8 @@ namespace narf {
 		void delAtCursor(const int count);
 		void homeCursor();
 		void endCursor();
+
+		virtual void updated();
 		std::chrono::time_point<std::chrono::system_clock> last_edited;
 
 	private:

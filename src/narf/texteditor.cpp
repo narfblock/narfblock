@@ -10,22 +10,26 @@ narf::TextEditor::TextEditor() {
 narf::TextEditor::~TextEditor() {
 }
 
+void narf::TextEditor::updated() {
+	last_edited = std::chrono::system_clock::now();
+}
+
 void narf::TextEditor::clear() {
 	str_.clear();
 	cursor = 0;
-	last_edited = std::chrono::system_clock::now();
+	updated();
 }
 
 void narf::TextEditor::addString(const std::string &s) {
 	str_.insert(cursor, s);
 	cursor += 1;
-	last_edited = std::chrono::system_clock::now();
+	updated();
 }
 
 void narf::TextEditor::setString(const std::string &s) {
 	str_ = s;
 	cursor = int(str_.size());
-	last_edited = std::chrono::system_clock::now();
+	updated();
 }
 
 void narf::TextEditor::moveCursor(const int count) {
@@ -38,15 +42,15 @@ void narf::TextEditor::delAtCursor(const int count) {
 		cursor = std::max(0, cursor + count);
 	}
 	str_.erase(cursor, std::abs(count));
-	last_edited = std::chrono::system_clock::now();
+	updated();
 }
 
 void narf::TextEditor::homeCursor() {
 	cursor = 0;
-	last_edited = std::chrono::system_clock::now();
+	updated();
 }
 
 void narf::TextEditor::endCursor() {
 	cursor = int(str_.size());
-	last_edited = std::chrono::system_clock::now();
+	updated();
 }
