@@ -37,7 +37,7 @@ narf::CursesConsole::CursesConsole() {
 	cbreak(); // get one character at a time (no line buffering)
 	keypad(stdscr, TRUE); // get special keys
 	noecho();
-	//nodelay(stdscr, TRUE); // make getch() nonblocking
+	nodelay(stdscr, TRUE); // make getch() nonblocking
 
 	getmaxyx(stdscr, impl->numLines, impl->numCols);
 
@@ -85,32 +85,33 @@ void narf::CursesConsole::println(const std::string &s) {
 
 bool narf::CursesConsole::pollInput() {
 	int c;
-	do {
-		c = getch();
+	c = getch();
+	if (c == ERR) {
+		// no input available
+		return false;
+	}
 
-		// TODO: hax
+	// TODO: hax
 #ifndef _WIN32
-		if (c == KEY_RESIZE) {
-			endwin();
-			refresh();
-			getmaxyx(stdscr, impl->numLines, impl->numCols);
-			// TODO: resize windows
-			wresize(impl->consoleWin, impl->numLines - 2, impl->numCols);
-			wresize(impl->statusWin, 1, impl->numCols);
-			mvwin(impl->statusWin, impl->numLines - 2, 0);
-			wresize(impl->inputWin, 1, impl->numCols);
-			mvwin(impl->inputWin, impl->numLines - 1, 0);
-			wrefresh(impl->consoleWin);
+	if (c == KEY_RESIZE) {
+		endwin();
+		refresh();
+		getmaxyx(stdscr, impl->numLines, impl->numCols);
+		// TODO: resize windows
+		wresize(impl->consoleWin, impl->numLines - 2, impl->numCols);
+		wresize(impl->statusWin, 1, impl->numCols);
+		mvwin(impl->statusWin, impl->numLines - 2, 0);
+		wresize(impl->inputWin, 1, impl->numCols);
+		mvwin(impl->inputWin, impl->numLines - 1, 0);
+		wrefresh(impl->consoleWin);
 
-			// TODO: redraw status bar text
-			wrefresh(impl->statusWin);
+		// TODO: redraw status bar text
+		wrefresh(impl->statusWin);
+		wrefresh(impl->inputWin);
 
-			wrefresh(impl->inputWin);
-
-			println("Resized to " + std::to_string(impl->numCols) + "x" + std::to_string(impl->numLines));
-		}
+		println("Resized to " + std::to_string(impl->numCols) + "x" + std::to_string(impl->numLines));
+	}
 #endif
-	} while (c != 'q');
 
-	return true;
+	return c == 'q';
 }

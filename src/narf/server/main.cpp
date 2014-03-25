@@ -2,6 +2,19 @@
 #include "narf/cursesconsole.h"
 #include "narf/util/path.h"
 
+
+void serverLoop() {
+	while (1) {
+		// check for console input
+		// TODO
+		if (narf::console->pollInput()) {
+			// bogus
+			break;
+		}
+	}
+}
+
+
 int main(int argc, char **argv)
 {
 	narf::console = new narf::CursesConsole();
@@ -12,7 +25,8 @@ int main(int argc, char **argv)
 	narf::console->println("Executable directory: " + narf::util::exeDir());
 	narf::console->println("Data directory: " + narf::util::dataDir());
 	narf::console->println("Press 'q' to quit (temporary hack).");
-	narf::console->pollInput();
+
+	serverLoop();
 
 	delete narf::console;
 
