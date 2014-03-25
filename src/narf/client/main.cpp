@@ -390,8 +390,8 @@ void sim_frame(const narf::Input &input, double t, double dt)
 	}
 
 
-	// copy the text editor state so it can be rendered in draw2d
-	clientConsole->setEditState(input.textEditor, input.state() == narf::Input::InputStateText);
+	// tell the console whether to draw the cursor
+	clientConsole->setEditState(input.state() == narf::Input::InputStateText);
 
 	// TODO: decouple player direction and camera direction
 	cam.orientation.yaw -= input.look_rel().x;
@@ -532,7 +532,7 @@ double get_time()
 void game_loop()
 {
 	const float input_divider = static_cast<float>(configmanager.getDouble("client.misc.inputDivider", 1000));
-	narf::Input input(1.0f / input_divider, 1.0f / input_divider);
+	narf::Input input(clientConsole->getTextEditor(), 1.0f / input_divider, 1.0f / input_divider);
 	double t = 0.0;
 	double t1 = get_time();
 	const double physics_rate = configmanager.getDouble("client.misc.physicsRate", 60);

@@ -16,7 +16,8 @@ public:
 		InputStateText,
 	};
 
-	Input(float look_sensitivity_x, float look_sensitivity_y) :
+	Input(TextEditor &textEditor, float look_sensitivity_x, float look_sensitivity_y) :
+		textEditor(textEditor),
 		state_(InputStateNormal),
 		look_sensitivity_x_(look_sensitivity_x),
 		look_sensitivity_y_(look_sensitivity_y),
@@ -76,14 +77,14 @@ public:
 
 	const std::string &text() const { return text_; }
 
-	TextEditor textEditor;
-
 	State state() const { return state_; }
 
 private:
 
 	void processNormalEvent(const SDL_Event *event);
 	void processTextEvent(const SDL_Event *event);
+
+	TextEditor &textEditor;
 
 	State state_;
 

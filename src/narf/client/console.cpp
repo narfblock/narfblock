@@ -8,6 +8,9 @@ narf::Console *narf::console;
 
 
 struct narf::client::ClientConsoleImpl {
+
+	ClientConsoleImpl() : editState() {}
+
 	narf::font::Font *font;
 	int lineHeight;
 	int x;
@@ -37,6 +40,11 @@ narf::client::Console::Console() {
 }
 
 
+narf::TextEditor &narf::client::Console::getTextEditor() {
+	return impl->editState;
+}
+
+
 void narf::client::Console::setFont(narf::font::Font *font, int lineHeight) {
 	assert(impl->font == nullptr);
 	impl->font = font;
@@ -58,8 +66,7 @@ void narf::client::Console::setLocation(int x, int y, int width, int height) {
 }
 
 
-void narf::client::Console::setEditState(const narf::TextEditor &editor, bool editing) {
-	impl->editState = editor;
+void narf::client::Console::setEditState(bool editing) {
 	if (editing && !impl->editing) {
 		impl->editState.last_edited = std::chrono::system_clock::now();
 	}

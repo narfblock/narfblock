@@ -39,9 +39,12 @@ namespace narf {
 
 			void setLocation(int x, int y, int width, int height);
 			void setFont(narf::font::Font *font, int lineHeight);
-			void setEditState(const narf::TextEditor &editor, bool editing);
+			void setEditState(bool editing);
 			void setCursorShape(CursorShape shape);
 			void render();
+
+			narf::TextEditor &getTextEditor();
+
 		private:
 			ClientConsoleImpl *impl;
 			void update();
