@@ -335,7 +335,7 @@ void draw() {
 					((uint8_t*)result->pixels)[3 * (y * image->w + x) + b] = ((uint8_t*)image->pixels)[3 * ((image->h - y - 1) * image->w + x) + b];
 				}
 			}
-     }
+		}
 		SDL_SaveBMP(result, "pic.bmp");
 		SDL_FreeSurface(image);
 		SDL_FreeSurface(result);
