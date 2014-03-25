@@ -90,6 +90,9 @@ class TestObserver {
 			} else if (pNf->key == "client.video.consoleCursorShape") {
 				auto shapeStr = configmanager.getString(pNf->key);
 				clientConsole->setCursorShape(narf::client::Console::cursorShapeFromString(shapeStr));
+			} else if (pNf->key == "client.video.vsync") {
+				auto vsync = configmanager.getBool(pNf->key);
+				display->setVsync(vsync);
 			} else if (pNf->key == "client.foo.gravity") {
 				world->set_gravity((float)configmanager.getDouble(pNf->key));
 			}
@@ -765,6 +768,8 @@ extern "C" int main(int argc, char **argv)
 		SDL_Quit();
 		return 1;
 	}
+
+	display->setVsync(configmanager.getBool("client.video.vsync", false));
 
 	srand(0x1234);
 	gen_world();

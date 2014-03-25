@@ -11,6 +11,25 @@ narf::gl::Context::Context()
 }
 
 
+void narf::gl::Context::setVsync(bool enabled) {
+	int rc;
+	if (enabled) {
+		// try late swap tearing; if it fails, enable regular vsync
+		rc = SDL_GL_SetSwapInterval(-1);
+		if (rc == -1) {
+			console->println("WARNING: late swap tearing not supported; using regular vsync");
+			rc = SDL_GL_SetSwapInterval(1);
+		}
+	} else {
+		rc = SDL_GL_SetSwapInterval(0);
+	}
+
+	if (rc != 0) {
+		console->println("WARNING: SDL_GL_SetSwapInterval failed: " + std::string(SDL_GetError()));
+	}
+}
+
+
 bool narf::gl::Context::setDisplayMode(const char *title, int width, int height, bool fullscreen)
 {
 	Uint32 flags = SDL_WINDOW_OPENGL;
@@ -30,12 +49,6 @@ bool narf::gl::Context::setDisplayMode(const char *title, int width, int height,
 	if (!context_) {
 		console->println("ERROR: setDisplayMode: SDL_GL_CreateContext failed: " + std::string(SDL_GetError()));
 		return false;
-	}
-
-	// disable vsync
-	// TODO: make this a configuration option
-	if (SDL_GL_SetSwapInterval(0)) {
-		console->println("WARNING: setDisplayMode: SDL_GL_SetSwapInterval failed: " + std::string(SDL_GetError()));
 	}
 
 	GLenum glew_err = glewInit();

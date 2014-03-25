@@ -51,6 +51,8 @@ public:
 		SDL_GL_SwapWindow(window_);
 	}
 
+	void setVsync(bool enabled);
+
 	uint32_t width() const {
 		int w, h;
 		SDL_GetWindowSize(window_, &w, &h);
