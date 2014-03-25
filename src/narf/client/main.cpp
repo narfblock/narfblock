@@ -23,6 +23,7 @@
 #include "narf/font.h"
 #include "narf/input.h"
 #include "narf/block.h"
+#include "narf/cmd/cmd.h"
 #include "narf/config/config.h"
 #include "narf/math/math.h"
 #include "narf/util/path.h"
@@ -67,10 +68,6 @@ narf::font::TextBuffer *block_info_buffer;
 narf::font::TextBuffer *location_buffer;
 
 narf::BlockWrapper selected_block_face;
-
-// TODO: move this
-typedef void (*ConsoleCommand)(const std::string &args);
-std::map<std::string, ConsoleCommand> consoleCommands;
 
 // debug options
 bool wireframe = false;
@@ -362,31 +359,7 @@ void poll_input(narf::Input *input)
 void sim_frame(const narf::Input &input, double t, double dt)
 {
 	if (input.text() != "") {
-		auto text = input.text();
-		if (text[0] == '/') { // commands begin with slash
-			auto firstSpace = text.find_first_of(' ');
-			std::string cmdStr;
-			std::string params;
-			if (firstSpace == std::string::npos) {
-				// no space found - command only
-				cmdStr = text.substr(1);
-				params = "";
-			} else {
-				// space found - split on space to get command
-				cmdStr = text.substr(1, firstSpace - 1);
-				params = text.substr(firstSpace + 1);
-			}
-
-			auto cmdIter = consoleCommands.find(cmdStr);
-			if (cmdIter == consoleCommands.end()) {
-				narf::console->println("Unknown command '" + cmdStr + "'");
-			} else {
-				auto cmd = cmdIter->second;
-				cmd(params);
-			}
-		} else {
-			narf::console->println("Got text input: " + input.text());
-		}
+		narf::cmd::exec(input.text());
 	}
 
 
@@ -737,8 +710,8 @@ extern "C" int main(int argc, char **argv)
 
 	narf::console->println("Version: " + std::to_string(VERSION_MAJOR) + "." + std::to_string(VERSION_MINOR) + std::string(VERSION_RELEASE) + "+" VERSION_REV);
 
-	consoleCommands["set"] = cmdSet;
-	consoleCommands["quit"] = cmdQuit;
+	narf::cmd::cmds["set"] = cmdSet;
+	narf::cmd::cmds["quit"] = cmdQuit;
 
 	auto config_file = Poco::Path(narf::util::dataDir(), "client.ini").toString();
 	narf::console->println("Client config file: " + config_file);

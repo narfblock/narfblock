@@ -108,6 +108,7 @@ set (NARFBLOCK_COMMON_SOURCE_FILES
 	narf/entity.cpp
 	narf/texteditor.cpp
 	narf/world.cpp
+	narf/cmd/cmd.cpp
 	narf/config/config.cpp
 	narf/math/floats.cpp
 	narf/util/tokenize.cpp
