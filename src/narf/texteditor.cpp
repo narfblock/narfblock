@@ -35,6 +35,7 @@ void narf::TextEditor::setString(const std::string &s) {
 void narf::TextEditor::moveCursor(const int count) {
 	cursor += count;
 	cursor = std::max(0, std::min(cursor, (int)str_.size()));
+	updated();
 }
 
 void narf::TextEditor::delAtCursor(const int count) {
