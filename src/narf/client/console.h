@@ -35,7 +35,7 @@ namespace narf {
 			~Console();
 			void println(const std::string &s);
 
-			bool pollInput();
+			std::string pollInput() override;
 
 			void setLocation(int x, int y, int width, int height);
 			void setFont(narf::font::Font *font, int lineHeight);

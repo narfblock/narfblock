@@ -23,6 +23,6 @@ void narf::StdioConsole::println(const std::string &s) {
 }
 
 
-bool narf::StdioConsole::pollInput() {
-	return true;
+std::string narf::StdioConsole::pollInput() {
+	return "";
 }

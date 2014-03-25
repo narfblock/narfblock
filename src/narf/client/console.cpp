@@ -195,6 +195,6 @@ void narf::client::Console::println(const std::string &s) {
 }
 
 
-bool narf::client::Console::pollInput() {
-	return false;
+std::string narf::client::Console::pollInput() {
+	return impl->editState.getString();
 }

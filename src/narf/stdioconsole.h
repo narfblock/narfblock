@@ -10,7 +10,7 @@ namespace narf {
 		StdioConsole();
 		~StdioConsole();
 		void println(const std::string &s);
-		bool pollInput();
+		std::string pollInput() override;
 	};
 };
 

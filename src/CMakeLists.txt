@@ -106,6 +106,7 @@ configure_file (
 set (NARFBLOCK_COMMON_SOURCE_FILES
 	narf/chunk.cpp
 	narf/entity.cpp
+	narf/texteditor.cpp
 	narf/world.cpp
 	narf/config/config.cpp
 	narf/math/floats.cpp
@@ -116,7 +117,6 @@ set (NARFBLOCK_COMMON_SOURCE_FILES
 
 SET(NARFBLOCK_CLIENT_SOURCE_FILES
 	narf/input.cpp
-	narf/texteditor.cpp
 	narf/gl/context.cpp
 	narf/gl/texture.cpp
 	narf/font.cpp

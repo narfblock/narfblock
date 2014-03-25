@@ -1,4 +1,5 @@
 #include "narf/cursesconsole.h"
+#include "narf/texteditor.h"
 
 #if HAVE_CURSES_H
 #include <curses.h>
@@ -23,6 +24,8 @@ struct narf::CursesConsoleImpl {
 
 	int numLines;
 	int numCols;
+
+	TextEditor textEditor;
 };
 
 
@@ -54,10 +57,18 @@ narf::CursesConsole::CursesConsole() {
 	mvwprintw(impl->statusWin, 0, 0, "Status bar goes here");
 
 	impl->inputWin = newwin(1, impl->numCols, impl->numLines - 1, 0);
-	mvwprintw(impl->inputWin, 0, 0, "> ");
+	refreshInput();
 
 	wrefresh(impl->statusWin);
+}
+
+
+void narf::CursesConsole::refreshInput() {
+	mvwprintw(impl->inputWin, 0, 0, "> %s", impl->textEditor.getString().c_str());
+	wclrtoeol(impl->inputWin);
+	wmove(impl->inputWin, 0, impl->textEditor.cursor + 2);
 	wrefresh(impl->inputWin);
+
 }
 
 
@@ -83,17 +94,16 @@ void narf::CursesConsole::println(const std::string &s) {
 }
 
 
-bool narf::CursesConsole::pollInput() {
-	int c;
-	c = getch();
-	if (c == ERR) {
+std::string narf::CursesConsole::pollInput() {
+	int c = getch();
+	switch (c) {
+	case ERR:
 		// no input available
-		return false;
-	}
+		return "";
 
 	// TODO: hax
 #ifndef _WIN32
-	if (c == KEY_RESIZE) {
+	case KEY_RESIZE:
 		endwin();
 		refresh();
 		getmaxyx(stdscr, impl->numLines, impl->numCols);
@@ -110,8 +120,60 @@ bool narf::CursesConsole::pollInput() {
 		wrefresh(impl->inputWin);
 
 		println("Resized to " + std::to_string(impl->numCols) + "x" + std::to_string(impl->numLines));
-	}
+		break;
 #endif
 
-	return c == 'q';
+	// TODO: all of these special numeric cases are bogus -
+	// why doesn't curses translate them correctly?
+
+	case KEY_ENTER:
+	case 10:
+	case 13: {
+		auto text = impl->textEditor.getString();
+		impl->textEditor.clear();
+		refreshInput();
+		return text;
+	}
+
+	case KEY_BACKSPACE:
+	case 8:
+	case 127:
+		impl->textEditor.delAtCursor(-1);
+		break;
+
+	case KEY_DC: // delete character
+		impl->textEditor.delAtCursor(1);
+		break;
+
+	case KEY_LEFT:
+		impl->textEditor.moveCursor(-1);
+		break;
+
+	case KEY_RIGHT:
+		impl->textEditor.moveCursor(1);
+		break;
+
+	case KEY_HOME:
+		impl->textEditor.homeCursor();
+		break;
+
+	case KEY_END:
+		impl->textEditor.endCursor();
+		break;
+
+	default:
+		if (c >= ' ' && c < 127) {
+			// TODO: limited to ASCII for now - do better later (UTF-8?)
+			char str[] = {(char)c, '\0'};
+			impl->textEditor.addString(str);
+		} else {
+			char str[10];
+			snprintf(str, sizeof(str), "{%d}", c);
+			impl->textEditor.addString(str);
+		}
+		break;
+	}
+
+	refreshInput();
+	return "";
 }

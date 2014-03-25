@@ -11,7 +11,7 @@ namespace narf {
 	class Console {
 	public:
 		virtual void println(const std::string &s) = 0;
-		virtual bool pollInput() = 0; // TODO
+		virtual std::string pollInput() = 0;
 
 	//private: // TODO
 		Console() {}

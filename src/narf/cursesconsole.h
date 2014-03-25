@@ -5,6 +5,7 @@
 
 namespace narf {
 
+	class TextEditor;
 	struct CursesConsoleImpl;
 
 	class CursesConsole : public Console {
@@ -12,10 +13,14 @@ namespace narf {
 		CursesConsole();
 		~CursesConsole();
 		void println(const std::string &s);
-		bool pollInput();
+		std::string pollInput() override;
+
+		TextEditor &getTextEditor();
 
 	private:
 		CursesConsoleImpl *impl;
+
+		void refreshInput();
 	};
 };
 

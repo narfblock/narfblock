@@ -7,8 +7,13 @@ void serverLoop() {
 	while (1) {
 		// check for console input
 		// TODO
-		if (narf::console->pollInput()) {
-			// bogus
+		auto input = narf::console->pollInput();
+		if (input[0]) {
+			narf::console->println("Got input: '" + input + "'");
+		}
+
+		// TODO: use command parser
+		if (input == "/quit") {
 			break;
 		}
 	}
@@ -24,7 +29,7 @@ int main(int argc, char **argv)
 	narf::console->println("Executable filename:  " + narf::util::exeName());
 	narf::console->println("Executable directory: " + narf::util::exeDir());
 	narf::console->println("Data directory: " + narf::util::dataDir());
-	narf::console->println("Press 'q' to quit (temporary hack).");
+	narf::console->println("Type /quit to quit.");
 
 	serverLoop();
 
