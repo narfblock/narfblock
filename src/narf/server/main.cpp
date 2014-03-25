@@ -1,20 +1,23 @@
 #include "narf/version.h"
 #include "narf/cursesconsole.h"
+#include "narf/cmd/cmd.h"
 #include "narf/util/path.h"
+
+bool quitServerLoop = false;
+
+
+void cmdQuit(const std::string &args) {
+	narf::console->println("Quitting in response to user command");
+	quitServerLoop = true;
+}
 
 
 void serverLoop() {
-	while (1) {
+	while (!quitServerLoop) {
 		// check for console input
-		// TODO
 		auto input = narf::console->pollInput();
-		if (input[0]) {
-			narf::console->println("Got input: '" + input + "'");
-		}
-
-		// TODO: use command parser
-		if (input == "/quit") {
-			break;
+		if (input != "") {
+			narf::cmd::exec(input);
 		}
 	}
 }
@@ -30,6 +33,8 @@ int main(int argc, char **argv)
 	narf::console->println("Executable directory: " + narf::util::exeDir());
 	narf::console->println("Data directory: " + narf::util::dataDir());
 	narf::console->println("Type /quit to quit.");
+
+	narf::cmd::cmds["quit"] = cmdQuit;
 
 	serverLoop();
 
