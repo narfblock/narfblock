@@ -78,6 +78,10 @@ int screenshot = 0;
 
 GLfloat fogColor[4] = {0.5f, 0.5f, 0.5f, 1.0f};
 
+double physicsRate;
+double physicsTickStep;
+double maxFrameTime;
+
 bool quitGameLoop = false;
 
 class TestObserver {
@@ -96,6 +100,11 @@ class TestObserver {
 				display->setVsync(vsync);
 			} else if (pNf->key == "client.foo.gravity") {
 				world->set_gravity((float)configmanager.getDouble(pNf->key));
+			} else if (pNf->key == "client.misc.physicsRate") {
+				physicsRate = configmanager.getDouble(pNf->key);
+				physicsTickStep = 1.0 / physicsRate; // fixed time step
+			} else if (pNf->key == "client.misc.maxFrameTime") {
+				maxFrameTime = configmanager.getDouble(pNf->key, 0.25);
 			}
 		}
 };
@@ -531,9 +540,9 @@ void game_loop()
 	narf::Input input(clientConsole->getTextEditor(), 1.0f / input_divider, 1.0f / input_divider);
 	double t = 0.0;
 	double t1 = get_time();
-	const double physics_rate = configmanager.getDouble("client.misc.physicsRate", 60);
-	const double physics_tick_step = 1.0 / physics_rate; // fixed time step
-	const double max_frame_time = configmanager.getDouble("client.misc.maxFrameTime", 0.25);
+	physicsRate = configmanager.getDouble("client.misc.physicsRate", 60);
+	physicsTickStep = 1.0 / physicsRate; // fixed time step
+	maxFrameTime = configmanager.getDouble("client.misc.maxFrameTime", 0.25);
 
 	double t_accum = 0.0;
 
@@ -545,25 +554,25 @@ void game_loop()
 		double t2 = get_time();
 		double frame_time = t2 - t1;
 
-		if (frame_time > max_frame_time) {
-			frame_time = max_frame_time;
+		if (frame_time > maxFrameTime) {
+			frame_time = maxFrameTime;
 		}
 
 		t1 = t2;
 
 		t_accum += frame_time;
 
-		while (t_accum >= physics_tick_step)
+		while (t_accum >= physicsTickStep)
 		{
 			poll_input(&input);
 			if (input.exit() || quitGameLoop) {
 				return;
 			}
-			sim_frame(input, t, physics_tick_step);
+			sim_frame(input, t, physicsTickStep);
 			physics_steps++;
 
-			t_accum -= physics_tick_step;
-			t += physics_tick_step;
+			t_accum -= physicsTickStep;
+			t += physicsTickStep;
 		}
 
 		double fps_dt = get_time() - fps_t1;
