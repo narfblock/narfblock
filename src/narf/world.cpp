@@ -124,8 +124,7 @@ narf::Entity* narf::World::newEntity() {
 
 
 void narf::World::update(double t, double dt) {
-	for (auto entp = entities_.begin(); entp != entities_.end(); ++entp) {
-		auto ent = *entp;
+	for (auto& ent : entities_) {
 		ent->update(t, dt);
 	}
 }
