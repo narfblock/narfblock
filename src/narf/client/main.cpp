@@ -528,6 +528,7 @@ void sim_frame(const narf::Input &input, double t, double dt)
 				case narf::BlockFace::YNeg: y--; break;
 				case narf::BlockFace::ZPos: z++; break;
 				case narf::BlockFace::ZNeg: z--; break;
+				case narf::BlockFace::Invalid: assert(0); break;
 				}
 				b.id = 5;
 			}
@@ -703,19 +704,19 @@ void gen_world()
 	// TODO: put this in a config file
 	auto airType = genNormalBlockType(0, 0, 0, 0, 0, 0); // TODO
 	airType.solid = false;
-	auto air = world->addBlockType(airType);
+	world->addBlockType(airType); // air
 
 	auto adminiumType = genNormalBlockType(4, 4, 4, 4, 4, 4);
 	adminiumType.indestructible = true;
-	auto adminium = world->addBlockType(adminiumType);
+	world->addBlockType(adminiumType); // adminium
 
-	auto dirt = world->addBlockType(genNormalBlockType(2, 2, 2, 2, 2, 2)); // dirt
-	auto grassDirt = world->addBlockType(genNormalBlockType(3, 3, 3, 3, 0, 2)); // dirt with grass top
-	auto bloop = world->addBlockType(genNormalBlockType(4, 4, 4, 4, 4, 4)); // TODO
-	auto brick = world->addBlockType(genNormalBlockType(5, 5, 5, 5, 5, 5));
-	auto stone1 = world->addBlockType(genNormalBlockType(1, 1, 1, 1, 1, 1));
-	auto stone2 = world->addBlockType(genNormalBlockType(16, 16, 16, 16, 16, 16));
-	auto stone3 = world->addBlockType(genNormalBlockType(17, 17, 17, 17, 17, 17));
+	world->addBlockType(genNormalBlockType(2, 2, 2, 2, 2, 2)); // dirt
+	world->addBlockType(genNormalBlockType(3, 3, 3, 3, 0, 2)); // dirt with grass top
+	world->addBlockType(genNormalBlockType(4, 4, 4, 4, 4, 4)); // TODO
+	world->addBlockType(genNormalBlockType(5, 5, 5, 5, 5, 5)); // brick
+	world->addBlockType(genNormalBlockType(1, 1, 1, 1, 1, 1)); // stone1
+	auto stone2 = world->addBlockType(genNormalBlockType(16, 16, 16, 16, 16, 16)); // stone2
+	world->addBlockType(genNormalBlockType(17, 17, 17, 17, 17, 17)); // stone3
 
 	for (int z = 16; z < 23; z++) {
 		fill_rect_prism(30 + z, 35 + (10 - z), 30 + z, 35 + (10 - z), z, z + 1, stone2);
