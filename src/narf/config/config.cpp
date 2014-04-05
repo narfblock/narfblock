@@ -44,3 +44,22 @@ void narf::config::ConfigManager::enumerate(const std::string& key, Keys& range)
 	const std::string subkey = narf::util::join(std::vector<std::string>(tokens.begin() + 1, tokens.end()), ".");
 	configs[tokens[0]]->enumerate(subkey, range);
 }
+
+
+void narf::config::ConfigManager::initBool(const std::string& key, bool defaultValue) {
+	setBool(key, getBool(key, defaultValue));
+}
+
+
+void narf::config::ConfigManager::initInt(const std::string& key, int defaultValue) {
+	setInt(key, getInt(key, defaultValue));
+}
+
+
+void narf::config::ConfigManager::initDouble(const std::string& key, double defaultValue) {
+	setDouble(key, getDouble(key, defaultValue));
+}
+
+void narf::config::ConfigManager::initString(const std::string& key, const std::string& defaultValue) {
+	setString(key, getString(key, defaultValue));
+}

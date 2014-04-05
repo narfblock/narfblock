@@ -35,6 +35,13 @@ namespace narf {
 			void setRaw(const std::string& key, const std::string& value) override;
 			void enumerate(const std::string& key, Keys& range) const;
 			Poco::NotificationCenter notificationCenter;
+
+			// initializers that send notifications
+			void initBool(const std::string& key, bool defaultValue);
+			void initInt(const std::string& key, int defaultValue);
+			void initDouble(const std::string& key, double defaultValue);
+			void initString(const std::string& key, const std::string& defaultValue);
+
 		private:
 			mutable std::map<const std::string, ConfigIni*> configs;
 		};

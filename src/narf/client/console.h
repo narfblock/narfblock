@@ -38,6 +38,7 @@ namespace narf {
 			std::string pollInput() override;
 
 			void setLocation(int x, int y, int width, int height);
+			narf::font::Font* getFont() const;
 			void setFont(narf::font::Font *font);
 			void setEditState(bool editing);
 			void setCursorShape(CursorShape shape);

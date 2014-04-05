@@ -54,12 +54,26 @@ narf::TextEditor &narf::client::Console::getTextEditor() {
 }
 
 
+narf::font::Font* narf::client::Console::getFont() const {
+	return impl->font;
+}
+
+
 void narf::client::Console::setFont(narf::font::Font *font) {
-	assert(impl->font == nullptr);
 	impl->font = font;
 	impl->lineHeight = (int)font->height();
-	impl->textBuffer = new narf::font::TextBuffer(font);
-	impl->editBuffer = new narf::font::TextBuffer(font);
+
+	if (impl->textBuffer) {
+		impl->textBuffer->setFont(font);
+	} else {
+		impl->textBuffer = new narf::font::TextBuffer(font);
+	}
+
+	if (impl->editBuffer) {
+		impl->editBuffer->setFont(font);
+	} else {
+		impl->editBuffer = new narf::font::TextBuffer(font);
+	}
 
 	// re-render current text
 	update();

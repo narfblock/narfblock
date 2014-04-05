@@ -107,24 +107,27 @@ narf::font::Font* setFont(
 class TestObserver {
 	public:
 		void handler(const Poco::AutoPtr<narf::config::ConfigUpdateNotification>& pNf) {
-			narf::console->println("Config var updated: " + pNf->key);
-
 			// TODO: this could be done better...
 			if (pNf->key == "client.video.renderDistance") {
 				world->renderDistance = config.getInt(pNf->key);
+				narf::console->println("Setting renderDistance to " + std::to_string(world->renderDistance));
 			} else if (pNf->key == "client.video.consoleCursorShape") {
 				auto shapeStr = config.getString(pNf->key);
 				clientConsole->setCursorShape(narf::client::Console::cursorShapeFromString(shapeStr));
 			} else if (pNf->key == "client.video.vsync") {
 				auto vsync = config.getBool(pNf->key);
 				display->setVsync(vsync);
+				narf::console->println("Setting vsync to " + std::to_string(vsync));
 			} else if (pNf->key == "client.foo.gravity") {
 				world->set_gravity((float)config.getDouble(pNf->key));
+				narf::console->println("Setting gravity to " + std::to_string(world->get_gravity()));
 			} else if (pNf->key == "client.misc.physicsRate") {
 				physicsRate = config.getDouble(pNf->key);
 				physicsTickStep = 1.0 / physicsRate; // fixed time step
+				narf::console->println("Setting physicsRate to " + std::to_string(physicsRate));
 			} else if (pNf->key == "client.misc.maxFrameTime") {
 				maxFrameTime = config.getDouble(pNf->key, 0.25);
+				narf::console->println("Setting maxFrameTime to " + std::to_string(maxFrameTime));
 			} else if (pNf->key == "client.video.hudFont" ||
 			           pNf->key == "client.video.hudFontSize") {
 				auto font = setFont(
@@ -147,6 +150,8 @@ class TestObserver {
 				if (font) {
 					clientConsole->setFont(font);
 				}
+			} else {
+				narf::console->println("Config var updated: " + pNf->key);
 			}
 		}
 };
@@ -816,6 +821,7 @@ extern "C" int main(int argc, char **argv)
 
 	narf::console->println("Current video mode is " + std::to_string(w) + "x" + std::to_string(h));
 
+	// TODO: convert these to be modifiable at runtime and use config.init*
 	bool fullscreen = config.getBool("client.video.fullscreen", true);
 	float width_cfg = static_cast<float>(config.getDouble("client.video.width", 0.6));
 	float height_cfg = static_cast<float>(config.getDouble("client.video.height", 0.6));
@@ -843,12 +849,12 @@ extern "C" int main(int argc, char **argv)
 		return 1;
 	}
 
-	display->setVsync(config.getBool("client.video.vsync", false));
+	config.initBool("client.video.vsync", false);
 
 	srand(0x1234);
 	gen_world();
 
-	world->renderDistance = config.getInt("client.video.renderDistance", 5);
+	config.initInt("client.video.renderDistance", 5);
 
 	playerEID = world->newEntity();
 	{
@@ -875,39 +881,37 @@ extern "C" int main(int argc, char **argv)
 		return 1;
 	}
 
-	auto hudFontName = config.getString("client.video.hudFont", "DroidSansMono");
-	auto hudFontSize = config.getInt("client.video.hudFontSize", 30);
-	narf::console->println("Setting HUD font to " + hudFontName);
-	auto hudFont = font_manager.getFont(hudFontName, hudFontSize);
-	if (!hudFont) {
+	fps_text_buffer = new narf::font::TextBuffer(nullptr);
+	block_info_buffer = new narf::font::TextBuffer(nullptr);
+	entityInfoBuffer = new narf::font::TextBuffer(nullptr);
+	location_buffer = new narf::font::TextBuffer(nullptr);
+
+	config.initString("client.video.hudFont", "DroidSansMono");
+	config.initInt("client.video.hudFontSize", 30);
+	if (!fps_text_buffer->getFont()) {
 		fatalError("Error: could not load HUD font");
 		return 1;
 	}
 
-	auto consoleFontName = config.getString("client.video.consoleFont", "DroidSansMono");
-	auto consoleFontSize = config.getInt("client.video.consoleFontSize", 18);
-	narf::console->println("Setting Console font to " + consoleFontName);
-	auto consoleFont = font_manager.getFont(consoleFontName, consoleFontSize);
+	config.initString("client.video.consoleFont", "DroidSansMono");
+	config.initInt("client.video.consoleFontSize", 18);
+	if (!clientConsole->getFont()) {
+		fatalError("Error: could not load Console font");
+		return 1;
+	}
 
 	auto consoleX = 0;
 	auto consoleY = 0;
 	auto consoleWidth = display->width();
 	auto consoleHeight = 175; // TODO: calculate dynamically based on screen size
 
-	auto shapeStr = config.getString("client.video.consoleCursorShape", "default");
+	config.initString("client.video.consoleCursorShape", "default");
 
 	narf::console->println("Console location: (" +
 		std::to_string(consoleX) + ", " + std::to_string(consoleY) + ") " +
 		std::to_string(consoleWidth) + "x" + std::to_string(consoleHeight));
 
-	clientConsole->setFont(consoleFont);
 	clientConsole->setLocation(consoleX, consoleY, consoleWidth, consoleHeight);
-	clientConsole->setCursorShape(narf::client::Console::cursorShapeFromString(shapeStr));
-
-	fps_text_buffer = new narf::font::TextBuffer(hudFont);
-	block_info_buffer = new narf::font::TextBuffer(hudFont);
-	entityInfoBuffer = new narf::font::TextBuffer(hudFont);
-	location_buffer = new narf::font::TextBuffer(hudFont);
 
 	SDL_SetRelativeMouseMode(SDL_TRUE);
 
