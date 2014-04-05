@@ -58,7 +58,8 @@ public:
 	bool onGround; // on solid ground, i.e. can jump
 	bool antigrav; // magic!
 
-	void update(double t, double dt);
+	// return true if object is still alive or false if it should be deleted
+	bool update(double t, double dt);
 
 private:
 	World *world_;

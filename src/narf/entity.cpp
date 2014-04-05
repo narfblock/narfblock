@@ -70,8 +70,9 @@ void explode(narf::World *world, int32_t bx, int32_t by, int32_t bz, int32_t rad
 }
 
 
-void narf::Entity::update(double t, double dt)
+bool narf::Entity::update(double t, double dt)
 {
+	bool alive = true;
 	// cheesy Euler integration
 	auto acceleration = narf::math::Vector3f(0.0f, 0.0f, antigrav ? 0.0f : world_->get_gravity());
 
@@ -100,6 +101,7 @@ void narf::Entity::update(double t, double dt)
 		if (explodey) {
 			explode(world_, bx, by, bz, 5);
 			// TODO: delete this entity
+			alive = false;
 			explodey = false;
 			velocity.x = velocity.y = 0.0f;
 		}
@@ -117,4 +119,6 @@ void narf::Entity::update(double t, double dt)
 	if (!narf::math::AlmostEqual(velocity.z, 0.0f)) {
 		onGround = false;
 	}
+
+	return alive;
 }

@@ -128,6 +128,21 @@ narf::Entity::ID narf::World::newEntity() {
 }
 
 
+void narf::World::deleteEntity(narf::Entity::ID id) {
+	assert(entityRefs_ == 0);
+	if (entityRefs_ != 0) {
+		narf::console->println("!!!! ERROR: deleteEntity() called while an EntityRef is live");
+	}
+
+	for (auto entIter = std::begin(entities_); entIter != std::end(entities_); ++entIter) {
+		if (entIter->id == id) {
+			entities_.erase(entIter);
+			return;
+		}
+	}
+}
+
+
 narf::Entity* narf::World::getEntityRef(narf::Entity::ID id) {
 	// debug helper - make sure newEntity() doesn't get called while there is a live entity ref
 	entityRefs_++;
@@ -147,8 +162,15 @@ void narf::World::releaseEntityRef(narf::Entity::ID id) {
 
 
 void narf::World::update(double t, double dt) {
+	std::vector<Entity::ID> entsToDelete;
 	for (auto& ent : entities_) {
-		ent.update(t, dt);
+		if (!ent.update(t, dt)) {
+			entsToDelete.push_back(ent.id);
+		}
+	}
+
+	for (auto& eid : entsToDelete) {
+		deleteEntity(eid);
 	}
 }
 

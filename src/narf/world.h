@@ -123,6 +123,8 @@ public:
 	BlockTypeId addBlockType(const BlockType &bt);
 	const BlockType *getBlockType(BlockTypeId id) const;
 
+	void explosion(int32_t bx, int32_t by, int32_t bz, int32_t radius);
+
 protected:
 
 	Chunk **chunks_;
@@ -146,6 +148,10 @@ protected:
 
 	Entity* getEntityRef(Entity::ID id);
 	void releaseEntityRef(Entity::ID id);
+
+	void deleteEntity(Entity::ID id);
+
+	void update(Entity::ID entID, double t, double dt);
 
 	BlockTypeId numBlockTypes_;
 	BlockType blockTypes_[256];
