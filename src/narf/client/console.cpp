@@ -11,6 +11,15 @@ struct narf::client::ClientConsoleImpl {
 
 	ClientConsoleImpl() : editState() {}
 
+	~ClientConsoleImpl() {
+		if (textBuffer) {
+			delete textBuffer;
+		}
+		if (editBuffer) {
+			delete textBuffer;
+		}
+	}
+
 	narf::font::Font *font;
 	int lineHeight;
 	int x;
@@ -179,9 +188,6 @@ void narf::client::Console::render() {
 
 
 narf::client::Console::~Console() {
-	if (impl->textBuffer) {
-		delete impl->textBuffer;
-	}
 	delete impl;
 }
 
