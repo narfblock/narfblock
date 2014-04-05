@@ -482,7 +482,7 @@ void sim_frame(const narf::Input &input, double t, double dt)
 		}
 	}
 
-	if (input.action_ternary_begin()) {
+	if (input.action_ternary()) {
 		narf::console->println("got middle click");
 		// fire a new entity
 		auto eid = world->newEntity();
