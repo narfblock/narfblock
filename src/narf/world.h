@@ -56,11 +56,13 @@ static uint32_t ilog2(uint32_t v)
 narf::math::coord::Point3f nextBlockIntersect(narf::math::coord::Point3f base, narf::math::Vector3f direction);
 
 class World {
+friend class EntityRef;
 public:
 
 	World(uint32_t size_x, uint32_t size_y, uint32_t size_z, uint32_t chunk_size_x, uint32_t chunk_size_y, uint32_t chunk_size_z) :
 		size_x_(size_x), size_y_(size_y), size_z_(size_z),
 		chunk_size_x_(chunk_size_x), chunk_size_y_(chunk_size_y), chunk_size_z_(chunk_size_z),
+		entityRefs_(0),
 		numBlockTypes_(0)
 	{
 		// TODO: verify size is a multiple of chunk_size and a power of 2
@@ -112,7 +114,9 @@ public:
 	narf::math::coord::Point3f nextBlockIntersect(narf::math::coord::Point3f base, narf::math::Vector3f direction);
 	BlockWrapper rayTrace(narf::math::coord::Point3f basePoint, narf::math::Vector3f direction, float max_distance);
 
-	Entity* newEntity();
+	Entity::ID newEntity();
+
+	size_t getNumEntities() const { return entities_.size(); }
 
 	void update(double t, double dt);
 
@@ -135,7 +139,13 @@ protected:
 
 	float gravity_;
 
-	std::vector<narf::Entity*> entities_;
+	Entity::ID freeEntityID_;
+	uint32_t entityRefs_;
+	std::vector<narf::Entity> entities_;
+
+
+	Entity* getEntityRef(Entity::ID id);
+	void releaseEntityRef(Entity::ID id);
 
 	BlockTypeId numBlockTypes_;
 	BlockType blockTypes_[256];

@@ -34,6 +34,16 @@
 #include "narf/world.h"
 
 
+narf::EntityRef::EntityRef(narf::World* world, narf::Entity::ID id) :
+	ent(world->getEntityRef(id)), id(id), world(world) {
+}
+
+
+narf::EntityRef::~EntityRef() {
+	world->releaseEntityRef(id);
+}
+
+
 // TODO: move this to a subclass of entity
 void explode(narf::World *world, int32_t bx, int32_t by, int32_t bz, int32_t radius) {
 	narf::Block air;

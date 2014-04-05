@@ -75,12 +75,11 @@ void narf::client::World::renderSlice(narf::gl::Texture *tiles_tex, uint32_t cx_
 	}
 
 	// TODO: only render entities in this slice
-	for (auto entp = entities_.begin(); entp != entities_.end(); ++entp) {
-		auto ent = *entp;
+	for (auto& ent : entities_) {
 		// TODO: move this code to an Entity method
-		if (ent->model) {
+		if (ent.model) {
 			// temp hack: draw an entity as a cube for physics demo
-			::draw_cube(ent->position.x, ent->position.y, ent->position.z, 1, 0xFF);
+			::draw_cube(ent.position.x, ent.position.y, ent.position.z, 1, 0xFF);
 		}
 	}
 }

@@ -31,6 +31,7 @@
  */
 
 #include "narf/world.h"
+#include "narf/console.h"
 
 
 narf::World::~World() {
@@ -116,16 +117,38 @@ narf::Chunk *narf::World::get_chunk(uint32_t chunk_x, uint32_t chunk_y, uint32_t
 }
 
 
-narf::Entity* narf::World::newEntity() {
-	auto ent = new Entity(this);
-	entities_.push_back(ent);
-	return ent;
+narf::Entity::ID narf::World::newEntity() {
+	assert(entityRefs_ == 0);
+	if (entityRefs_ != 0) {
+		narf::console->println("!!!! ERROR: newEntity() called while an EntityRef is live");
+	}
+	auto id = freeEntityID_++;
+	entities_.emplace_back(this, id);
+	return id;
+}
+
+
+narf::Entity* narf::World::getEntityRef(narf::Entity::ID id) {
+	// debug helper - make sure newEntity() doesn't get called while there is a live entity ref
+	entityRefs_++;
+	// TODO: if this gets too slow, keep a sorted index of id -> Entity
+	for (auto& ent : entities_) {
+		if (ent.id == id) {
+			return &ent;
+		}
+	}
+	return nullptr;
+}
+
+
+void narf::World::releaseEntityRef(narf::Entity::ID id) {
+	entityRefs_--;
 }
 
 
 void narf::World::update(double t, double dt) {
 	for (auto& ent : entities_) {
-		ent->update(t, dt);
+		ent.update(t, dt);
 	}
 }
 

@@ -42,8 +42,8 @@
 
 narf::client::Console *clientConsole;
 
-narf::Entity *player;
-narf::Entity *bouncy_block; // temp hack
+narf::Entity::ID playerEID;
+narf::Entity::ID bouncyBlockEID; // temp hack
 
 narf::config::ConfigManager configmanager;
 
@@ -65,6 +65,7 @@ narf::gl::Texture *tiles_tex;
 narf::font::FontManager font_manager;
 narf::font::TextBuffer *fps_text_buffer;
 narf::font::TextBuffer *block_info_buffer;
+narf::font::TextBuffer *entityInfoBuffer;
 narf::font::TextBuffer *location_buffer;
 
 narf::BlockWrapper selected_block_face;
@@ -301,10 +302,17 @@ void draw2d() {
 			" " + BlockFace_str[selected_block_face.face] +
 			" (" + std::to_string((int)selected_block_face.face) + ")";
 
-		block_info_buffer->print(block_info_str, 0, (float)display->height() - 90, blue);
+		block_info_buffer->print(block_info_str, 0, (float)display->height() - 120, blue);
 	}
 
-	std::string location_str = "Pos: " + std::to_string(player->position.x) + ", " + std::to_string(player->position.y) + ", " + std::to_string(player->position.z);
+	entityInfoBuffer->clear();
+	entityInfoBuffer->print("numEntities: " + std::to_string(world->getNumEntities()), 0, (float)display->height() - 90, blue);
+
+	std::string location_str;
+	{
+		narf::EntityRef player(world, playerEID);
+		location_str = "Pos: " + std::to_string(player->position.x) + ", " + std::to_string(player->position.y) + ", " + std::to_string(player->position.z);
+	}
 	location_str += " Yaw: " + std::to_string(cam.orientation.yaw) + " Pitch: " + std::to_string(cam.orientation.pitch);
 	location_buffer->clear();
 	location_buffer->print(location_str, 0, (float)display->height() - 60, blue);
@@ -312,6 +320,7 @@ void draw2d() {
 	clientConsole->render();
 	fps_text_buffer->render();
 	block_info_buffer->render();
+	entityInfoBuffer->render();
 	location_buffer->render();
 }
 
@@ -382,55 +391,62 @@ void sim_frame(const narf::Input &input, double t, double dt)
 
 	float movePitch = 0.0f;
 
-	if (player->antigrav) {
-		// if flying, move in the direction of camera including pitch
-		movePitch = cam.orientation.pitch;
-	}
+	{
+		narf::EntityRef player(world, playerEID);
 
-	if (input.move_forward()) {
-		vel_rel += narf::math::Orientationf(movePitch, cam.orientation.yaw);
-	} else if (input.move_backward()) {
-		vel_rel -= narf::math::Orientationf(movePitch, cam.orientation.yaw);
-	}
-
-	if (input.strafe_left()) {
-		vel_rel += narf::math::Orientationf(0.0f, cam.orientation.yaw + (float)M_PI / 2);
-	} else if (input.strafe_right()) {
-		vel_rel -= narf::math::Orientationf(0.0f, cam.orientation.yaw + (float)M_PI / 2);
-	}
-
-	// normalize so that diagonal movement is not faster than cardinal directions
-	vel_rel = vel_rel.normalize() * movespeed;
-
-	if (input.jump()) {
-		if (player->onGround) {
-			vel_rel += narf::math::Vector3f(0.0f, 0.0f, 8.0f);
-		} else if (player->velocity.z > 0.0f) {
-			// still going up - double jump triggers flying
-			player->antigrav = true;
-			narf::console->println("entered antigrav mode");
+		if (player->antigrav) {
+			// if flying, move in the direction of camera including pitch
+			movePitch = cam.orientation.pitch;
 		}
-	}
 
-	// hax
-	player->velocity.x = vel_rel.x;
-	player->velocity.y = vel_rel.y;
-	player->velocity.z += vel_rel.z;
+		if (input.move_forward()) {
+			vel_rel += narf::math::Orientationf(movePitch, cam.orientation.yaw);
+		} else if (input.move_backward()) {
+			vel_rel -= narf::math::Orientationf(movePitch, cam.orientation.yaw);
+		}
 
-	if (player->antigrav) {
-		player->velocity.z = vel_rel.z;
+		if (input.strafe_left()) {
+			vel_rel += narf::math::Orientationf(0.0f, cam.orientation.yaw + (float)M_PI / 2);
+		} else if (input.strafe_right()) {
+			vel_rel -= narf::math::Orientationf(0.0f, cam.orientation.yaw + (float)M_PI / 2);
+		}
+
+		// normalize so that diagonal movement is not faster than cardinal directions
+		vel_rel = vel_rel.normalize() * movespeed;
+
+		if (input.jump()) {
+			if (player->onGround) {
+				vel_rel += narf::math::Vector3f(0.0f, 0.0f, 8.0f);
+			} else if (player->velocity.z > 0.0f) {
+				// still going up - double jump triggers flying
+				player->antigrav = true;
+				narf::console->println("entered antigrav mode");
+			}
+		}
+
+		// hax
+		player->velocity.x = vel_rel.x;
+		player->velocity.y = vel_rel.y;
+		player->velocity.z += vel_rel.z;
+
+		if (player->antigrav) {
+			player->velocity.z = vel_rel.z;
+		}
 	}
 
 	world->update(t, dt);
 
-	if (player->onGround && player->antigrav) {
-		player->antigrav = false;
-		narf::console->println("left antigrav mode");
-	}
+	{
+		narf::EntityRef player(world, playerEID);
+		if (player->onGround && player->antigrav) {
+			player->antigrav = false;
+			narf::console->println("left antigrav mode");
+		}
 
-	// lock camera to player
-	cam.position = player->position;
-	cam.position.z += 1.6f;
+		// lock camera to player
+		cam.position = player->position;
+		cam.position.z += 1.6f;
+	}
 
 	// Let's see what we're looking at
 	auto pos = narf::math::coord::Point3f(cam.position.x, cam.position.y, cam.position.z);
@@ -469,7 +485,11 @@ void sim_frame(const narf::Input &input, double t, double dt)
 	if (input.action_ternary_begin()) {
 		narf::console->println("got middle click");
 		// fire a new entity
-		auto ent = world->newEntity();
+		auto eid = world->newEntity();
+
+		narf::EntityRef ent(world, eid);
+		narf::EntityRef player(world, playerEID);
+
 		ent->position = cam.position;
 		ent->velocity = player->velocity + narf::math::Vector3f(cam.orientation).normalize() * 20.0f;
 		ent->model = true;
@@ -776,19 +796,25 @@ extern "C" int main(int argc, char **argv)
 
 	world->renderDistance = configmanager.getInt("client.video.renderDistance", 5);
 
-	player = world->newEntity();
+	playerEID = world->newEntity();
+	{
+		narf::EntityRef player(world, playerEID);
 
-	// initial player position
-	player->position = narf::math::Vector3f(15.0f, 10.0f, 16.0f);
+		// initial player position
+		player->position = narf::math::Vector3f(15.0f, 10.0f, 16.0f);
+	}
 
 	// initialize camera to look at origin
 	cam.orientation.yaw = atan2f(cam.position.y, cam.position.x);
 	cam.orientation.pitch = 0.0f;
 
-	bouncy_block = world->newEntity();
-	bouncy_block->position = narf::math::Vector3f(10.0f, 10.0f, 21.0f);
-	bouncy_block->bouncy = true;
-	bouncy_block->model = true;
+	bouncyBlockEID = world->newEntity();
+	{
+		narf::EntityRef bouncyBlock(world, bouncyBlockEID);
+		bouncyBlock->position = narf::math::Vector3f(10.0f, 10.0f, 21.0f);
+		bouncyBlock->bouncy = true;
+		bouncyBlock->model = true;
+	}
 
 	if (!init_textures()) {
 		fatalError("init_textures() failed");
@@ -826,6 +852,7 @@ extern "C" int main(int argc, char **argv)
 
 	fps_text_buffer = new narf::font::TextBuffer(font);
 	block_info_buffer = new narf::font::TextBuffer(font);
+	entityInfoBuffer = new narf::font::TextBuffer(font);
 	location_buffer = new narf::font::TextBuffer(font);
 
 	SDL_SetRelativeMouseMode(SDL_TRUE);

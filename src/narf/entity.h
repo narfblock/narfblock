@@ -41,7 +41,12 @@ class World;
 
 class Entity {
 public:
-	Entity(World *world) : bouncy(false), explodey(false), model(false), onGround(false), antigrav(false), world_(world) { }
+
+	typedef uint32_t ID;
+
+	Entity(World *world, ID id) : id(id), bouncy(false), explodey(false), model(false), onGround(false), antigrav(false), world_(world) { }
+
+	ID id;
 
 	math::Vector3f position;
 	math::Vector3f velocity;
@@ -58,6 +63,23 @@ public:
 private:
 	World *world_;
 
+};
+
+
+class EntityRef {
+public:
+	EntityRef(World* world, Entity::ID id);
+	~EntityRef();
+
+	Entity* ent;
+	Entity::ID id;
+	World* world;
+
+	Entity* operator ->() { return ent; }
+
+	// no copying
+	EntityRef(const EntityRef&) = delete;
+	EntityRef& operator=(const EntityRef&) = delete;
 };
 
 } // namespace narf
