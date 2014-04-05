@@ -29,10 +29,11 @@ namespace narf {
 			Font();
 			~Font();
 
-			bool load(const std::string &filename, float size);
+			bool load(const std::string &filename, int size);
 
 			// determine width in pixels of a string in this font
 			float width(const std::string &text, int nchars) const;
+			float height() const { return font_->height; }
 
 		private:
 			texture_atlas_t *atlas_;
@@ -43,6 +44,9 @@ namespace narf {
 		class TextBuffer {
 		public:
 			TextBuffer(const Font *font) : font_(font), buffer_(GL_ARRAY_BUFFER, GL_STATIC_DRAW) {}
+
+			void setFont(const Font* font) { font_ = font; }
+			const Font* getFont() { return font_; }
 
 			void print(const std::string &text, float x, float y);
 			void print(const std::string &text, float x, float y, const Color &color);
@@ -61,11 +65,11 @@ namespace narf {
 		class FontManager {
 		public:
 			FontManager() {}
-			Font* addFont(const std::string &fontname, const std::string &filename, float size);
-			Font* getFont(const std::string &fontname);
+			Font* getFont(const std::string &fontname, int size);
 
 			void render();
 		private:
+			std::string getKey(const std::string& fontname, int size) const;
 			std::map<const std::string, Font*> fonts_;
 		};
 	}

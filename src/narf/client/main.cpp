@@ -83,6 +83,26 @@ double physicsTickStep;
 double maxFrameTime;
 
 bool quitGameLoop = false;
+bool forceHudUpdate = false;
+
+
+narf::font::Font* setFont(
+	const std::string& useName, // e.g. "Console" or "HUD"
+	const std::string& nameVar, const std::string& nameDefault,
+	const std::string& sizeVar, int sizeDefault) {
+	auto fontName = configmanager.getString(nameVar, nameDefault);
+	auto fontSize = configmanager.getInt(sizeVar, sizeDefault);
+
+	narf::console->println("Setting " + useName + " font to " + fontName + " " + std::to_string(fontSize) + "px");
+
+	auto font = font_manager.getFont(fontName, fontSize);
+	if (!font) {
+		narf::console->println("Error: could not load font " + fontName);
+	}
+
+	return font;
+}
+
 
 class TestObserver {
 	public:
@@ -105,6 +125,28 @@ class TestObserver {
 				physicsTickStep = 1.0 / physicsRate; // fixed time step
 			} else if (pNf->key == "client.misc.maxFrameTime") {
 				maxFrameTime = configmanager.getDouble(pNf->key, 0.25);
+			} else if (pNf->key == "client.video.hudFont" ||
+			           pNf->key == "client.video.hudFontSize") {
+				auto font = setFont(
+					"HUD",
+					"client.video.hudFont", "DroidSansMono",
+					"client.video.hudFontSize", 30);
+				if (font) {
+					forceHudUpdate = true;
+					fps_text_buffer->setFont(font);
+					block_info_buffer->setFont(font);
+					entityInfoBuffer->setFont(font);
+					location_buffer->setFont(font);
+				}
+			} else if (pNf->key == "client.video.consoleFont" ||
+			           pNf->key == "client.video.consoleFontSize") {
+				auto font = setFont(
+					"console",
+					"client.video.consoleFont", "DroidSansMono",
+					"client.video.consoleFontSize", 18);
+				if (font) {
+					clientConsole->setFont(font);
+				}
 			}
 		}
 };
@@ -298,6 +340,8 @@ void draw2d() {
 
 	auto blue = narf::Color(0.0f, 0.0f, 1.0f);
 
+	auto hudFontHeight = block_info_buffer->getFont()->height();
+
 	block_info_buffer->clear();
 	if (selected_block_face.block) {
 		std::string block_info_str = "Block info: ";
@@ -311,11 +355,11 @@ void draw2d() {
 			" " + BlockFace_str[selected_block_face.face] +
 			" (" + std::to_string((int)selected_block_face.face) + ")";
 
-		block_info_buffer->print(block_info_str, 0, (float)display->height() - 120, blue);
+		block_info_buffer->print(block_info_str, 0, (float)display->height() - hudFontHeight * 4.0f, blue);
 	}
 
 	entityInfoBuffer->clear();
-	entityInfoBuffer->print("numEntities: " + std::to_string(world->getNumEntities()), 0, (float)display->height() - 90, blue);
+	entityInfoBuffer->print("numEntities: " + std::to_string(world->getNumEntities()), 0, (float)display->height() - hudFontHeight * 3.0f, blue);
 
 	std::string location_str;
 	{
@@ -324,7 +368,7 @@ void draw2d() {
 	}
 	location_str += " Yaw: " + std::to_string(cam.orientation.yaw) + " Pitch: " + std::to_string(cam.orientation.pitch);
 	location_buffer->clear();
-	location_buffer->print(location_str, 0, (float)display->height() - 60, blue);
+	location_buffer->print(location_str, 0, (float)display->height() - hudFontHeight * 2.0f, blue);
 
 	clientConsole->render();
 	fps_text_buffer->render();
@@ -576,13 +620,15 @@ void game_loop()
 		}
 
 		double fps_dt = get_time() - fps_t1;
-		if (fps_dt >= 1.0) {
+		if (fps_dt >= 1.0 || forceHudUpdate) {
+			forceHudUpdate = false;
 			// update fps counter
+			auto hudFontHeight = fps_text_buffer->getFont()->height();
 			std::string fps_str = std::to_string((double)physics_steps / fps_dt) + " physics steps/" +
 				std::to_string((double)draws / fps_dt) + " renders per second (dt " + std::to_string(fps_dt) + ")";
 			auto blue = narf::Color(0.0f, 0.0f, 1.0f);
 			fps_text_buffer->clear();
-			fps_text_buffer->print(fps_str, 0.0f, (float)display->height() - 30 /* TODO */, blue);
+			fps_text_buffer->print(fps_str, 0.0f, (float)display->height() - hudFontHeight, blue);
 			fps_t1 = get_time();
 			draws = physics_steps = 0;
 		}
@@ -830,19 +876,19 @@ extern "C" int main(int argc, char **argv)
 		return 1;
 	}
 
-	auto font_file = Poco::Path(narf::util::dataDir(), "DroidSansMono.ttf").toString();
-	narf::console->println("Loading font from " + font_file);
-
-	auto font = font_manager.addFont("DroidSansMono", font_file, 30);
-	if (!font) {
-		fatalError("Error: could not load DroidSansMono");
+	auto hudFontName = configmanager.getString("client.video.hudFont", "DroidSansMono");
+	auto hudFontSize = configmanager.getInt("client.video.hudFontSize", 30);
+	narf::console->println("Setting HUD font to " + hudFontName);
+	auto hudFont = font_manager.getFont(hudFontName, hudFontSize);
+	if (!hudFont) {
+		fatalError("Error: could not load HUD font");
 		return 1;
 	}
 
-	auto consoleFontFile = Poco::Path(narf::util::dataDir(), configmanager.getString("client.video.consoleFont", "DroidSansMono.ttf")).toString();
+	auto consoleFontName = configmanager.getString("client.video.consoleFont", "DroidSansMono");
 	auto consoleFontSize = configmanager.getInt("client.video.consoleFontSize", 18);
-
-	auto consoleFont = font_manager.addFont("console", consoleFontFile, (float)consoleFontSize);
+	narf::console->println("Setting Console font to " + consoleFontName);
+	auto consoleFont = font_manager.getFont(consoleFontName, consoleFontSize);
 
 	auto consoleX = 0;
 	auto consoleY = 0;
@@ -855,14 +901,14 @@ extern "C" int main(int argc, char **argv)
 		std::to_string(consoleX) + ", " + std::to_string(consoleY) + ") " +
 		std::to_string(consoleWidth) + "x" + std::to_string(consoleHeight));
 
-	clientConsole->setFont(consoleFont, consoleFontSize);
+	clientConsole->setFont(consoleFont);
 	clientConsole->setLocation(consoleX, consoleY, consoleWidth, consoleHeight);
 	clientConsole->setCursorShape(narf::client::Console::cursorShapeFromString(shapeStr));
 
-	fps_text_buffer = new narf::font::TextBuffer(font);
-	block_info_buffer = new narf::font::TextBuffer(font);
-	entityInfoBuffer = new narf::font::TextBuffer(font);
-	location_buffer = new narf::font::TextBuffer(font);
+	fps_text_buffer = new narf::font::TextBuffer(hudFont);
+	block_info_buffer = new narf::font::TextBuffer(hudFont);
+	entityInfoBuffer = new narf::font::TextBuffer(hudFont);
+	location_buffer = new narf::font::TextBuffer(hudFont);
 
 	SDL_SetRelativeMouseMode(SDL_TRUE);
 

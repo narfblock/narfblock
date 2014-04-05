@@ -54,10 +54,10 @@ narf::TextEditor &narf::client::Console::getTextEditor() {
 }
 
 
-void narf::client::Console::setFont(narf::font::Font *font, int lineHeight) {
+void narf::client::Console::setFont(narf::font::Font *font) {
 	assert(impl->font == nullptr);
 	impl->font = font;
-	impl->lineHeight = lineHeight;
+	impl->lineHeight = (int)font->height();
 	impl->textBuffer = new narf::font::TextBuffer(font);
 	impl->editBuffer = new narf::font::TextBuffer(font);
 

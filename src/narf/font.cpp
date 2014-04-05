@@ -1,9 +1,11 @@
 #include "narf/font.h"
+#include "narf/util/path.h"
 #include <math.h> // Need floor or something
 
 #include <Poco/TextIterator.h>
 #include <Poco/TextEncoding.h>
 #include <Poco/UTF8Encoding.h>
+#include <Poco/Path.h>
 
 
 narf::font::Font::Font() : font_(nullptr) {
@@ -11,13 +13,15 @@ narf::font::Font::Font() : font_(nullptr) {
 }
 
 narf::font::Font::~Font() {
-	texture_font_delete(font_);
+	if (font_) {
+		texture_font_delete(font_);
+	}
 }
 
 
-bool narf::font::Font::load(const std::string &filename, float size) {
-	font_ = texture_font_new(atlas_, filename.c_str(), size);
-	return font_ != nullptr;
+bool narf::font::Font::load(const std::string &filename, int size) {
+	font_ = texture_font_new(atlas_, filename.c_str(), (float)size);
+	return font_ != nullptr && font_->height != 0.0f;
 }
 
 
@@ -132,24 +136,26 @@ void narf::font::TextBuffer::clear() {
 }
 
 
-narf::font::Font* narf::font::FontManager::addFont(const std::string &fontname, const std::string &filename, float size) {
-	if (fonts_.count(fontname) > 0) {
-		return fonts_[fontname];
+narf::font::Font* narf::font::FontManager::getFont(const std::string &fontname, int size) {
+	auto key = getKey(fontname, size);
+	if (fonts_.count(key) > 0) {
+		return fonts_[key];
 	}
 
+	auto basename = Poco::Path(narf::util::dataDir(), fontname).toString();
 	auto f = new Font();
-	if (!f->load(filename, size)) {
-		return nullptr;
+	if (!f->load(basename + ".otf", size)) {
+		if (!f->load(basename + ".ttf", size)) {
+			delete f;
+			return nullptr;
+		}
 	}
 
-	fonts_.insert(std::make_pair(fontname, f));
+	fonts_.insert(std::make_pair(key, f));
 	return f;
 }
 
 
-narf::font::Font* narf::font::FontManager::getFont(const std::string &fontname) {
-	if (fonts_.count(fontname) > 0) {
-		return fonts_[fontname];
-	}
-	return 0;
+std::string narf::font::FontManager::getKey(const std::string& fontname, int size) const {
+	return fontname + "-" + std::to_string(size);
 }
