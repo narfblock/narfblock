@@ -796,8 +796,6 @@ extern "C" int main(int argc, char **argv)
 	narf::console->println("Client config file: " + config_file);
 	config.load("client", config_file);
 	config.notificationCenter.addObserver(Poco::NObserver<TestObserver, narf::config::ConfigUpdateNotification>(testobserver, &TestObserver::handler));
-	int bar = config.getInt("client.foo.bar", 43);
-	narf::console->println("config test: client.foo.bar = " + std::to_string(bar));
 
 	if (SDL_Init(SDL_INIT_TIMER | SDL_INIT_VIDEO) < 0) {
 		fatalError("SDL_Init(SDL_INIT_EVERYTHING) failed: " + std::string(SDL_GetError()));
