@@ -590,10 +590,6 @@ void game_loop()
 	narf::Input input(clientConsole->getTextEditor(), 1.0f / input_divider, 1.0f / input_divider);
 	double t = 0.0;
 	double t1 = get_time();
-	physicsRate = config.getDouble("client.misc.physicsRate", 60);
-	physicsTickStep = 1.0 / physicsRate; // fixed time step
-	maxFrameTime = config.getDouble("client.misc.maxFrameTime", 0.25);
-
 	double t_accum = 0.0;
 
 	double fps_t1 = get_time();
@@ -914,6 +910,9 @@ extern "C" int main(int argc, char **argv)
 	clientConsole->setLocation(consoleX, consoleY, consoleWidth, consoleHeight);
 
 	SDL_SetRelativeMouseMode(SDL_TRUE);
+
+	config.initDouble("client.misc.physicsRate", 60);
+	config.initDouble("client.misc.maxFrameTime", 0.25);
 
 	game_loop();
 
