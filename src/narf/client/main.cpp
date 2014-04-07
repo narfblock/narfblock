@@ -9,6 +9,8 @@
 
 #include <Poco/Path.h>
 #include <Poco/File.h>
+#include <Poco/BasicEvent.h>
+#include <Poco/Delegate.h>
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -104,57 +106,63 @@ narf::font::Font* setFont(
 }
 
 
-class TestObserver {
-	public:
-		void handler(const Poco::AutoPtr<narf::config::ConfigUpdateNotification>& pNf) {
-			// TODO: this could be done better...
-			if (pNf->key == "client.video.renderDistance") {
-				world->renderDistance = config.getInt(pNf->key);
-				narf::console->println("Setting renderDistance to " + std::to_string(world->renderDistance));
-			} else if (pNf->key == "client.video.consoleCursorShape") {
-				auto shapeStr = config.getString(pNf->key);
-				clientConsole->setCursorShape(narf::client::Console::cursorShapeFromString(shapeStr));
-			} else if (pNf->key == "client.video.vsync") {
-				auto vsync = config.getBool(pNf->key);
-				display->setVsync(vsync);
-				narf::console->println("Setting vsync to " + std::to_string(vsync));
-			} else if (pNf->key == "client.foo.gravity") {
-				world->set_gravity((float)config.getDouble(pNf->key));
-				narf::console->println("Setting gravity to " + std::to_string(world->get_gravity()));
-			} else if (pNf->key == "client.misc.physicsRate") {
-				physicsRate = config.getDouble(pNf->key);
-				physicsTickStep = 1.0 / physicsRate; // fixed time step
-				narf::console->println("Setting physicsRate to " + std::to_string(physicsRate));
-			} else if (pNf->key == "client.misc.maxFrameTime") {
-				maxFrameTime = config.getDouble(pNf->key, 0.25);
-				narf::console->println("Setting maxFrameTime to " + std::to_string(maxFrameTime));
-			} else if (pNf->key == "client.video.hudFont" ||
-			           pNf->key == "client.video.hudFontSize") {
-				auto font = setFont(
-					"HUD",
-					"client.video.hudFont", "DroidSansMono",
-					"client.video.hudFontSize", 30);
-				if (font) {
-					forceHudUpdate = true;
-					fps_text_buffer->setFont(font);
-					block_info_buffer->setFont(font);
-					entityInfoBuffer->setFont(font);
-					location_buffer->setFont(font);
-				}
-			} else if (pNf->key == "client.video.consoleFont" ||
-			           pNf->key == "client.video.consoleFontSize") {
-				auto font = setFont(
-					"console",
-					"client.video.consoleFont", "DroidSansMono",
-					"client.video.consoleFontSize", 18);
-				if (font) {
-					clientConsole->setFont(font);
-				}
-			} else {
-				narf::console->println("Config var updated: " + pNf->key);
+class ConfigEventHandler {
+public:
+	void onPropertyChanged(const Poco::Util::AbstractConfiguration::KeyValue& kv) {
+		// TODO: this could be done better...
+		auto key = kv.key();
+		narf::console->println("onPropertyChanged(" + key + ")");
+		//auto value = kv.value;
+		if (key == "client.video.renderDistance") {
+			world->renderDistance = config.getInt(key);
+			narf::console->println("Setting renderDistance to " + std::to_string(world->renderDistance));
+		} else if (key == "client.video.consoleCursorShape") {
+			auto shapeStr = config.getString(key);
+			clientConsole->setCursorShape(narf::client::Console::cursorShapeFromString(shapeStr));
+		} else if (key == "client.video.vsync") {
+			auto vsync = config.getBool(key);
+			display->setVsync(vsync);
+			narf::console->println("Setting vsync to " + std::to_string(vsync));
+		} else if (key == "client.foo.gravity") {
+			world->set_gravity((float)config.getDouble(key));
+			narf::console->println("Setting gravity to " + std::to_string(world->get_gravity()));
+		} else if (key == "client.misc.physicsRate") {
+			physicsRate = config.getDouble(key);
+			physicsTickStep = 1.0 / physicsRate; // fixed time step
+			narf::console->println("Setting physicsRate to " + std::to_string(physicsRate));
+		} else if (key == "client.misc.maxFrameTime") {
+			maxFrameTime = config.getDouble(key, 0.25);
+			narf::console->println("Setting maxFrameTime to " + std::to_string(maxFrameTime));
+		} else if (key == "client.video.hudFont" ||
+		           key == "client.video.hudFontSize") {
+			auto font = setFont(
+				"HUD",
+				"client.video.hudFont", "DroidSansMono",
+				"client.video.hudFontSize", 30);
+			if (font) {
+				forceHudUpdate = true;
+				fps_text_buffer->setFont(font);
+				block_info_buffer->setFont(font);
+				entityInfoBuffer->setFont(font);
+				location_buffer->setFont(font);
 			}
+		} else if (key == "client.video.consoleFont" ||
+		           key == "client.video.consoleFontSize") {
+			auto font = setFont(
+				"console",
+				"client.video.consoleFont", "DroidSansMono",
+				"client.video.consoleFontSize", 18);
+			if (font) {
+				clientConsole->setFont(font);
+			}
+		} else {
+			narf::console->println("Config var updated: " + key);
 		}
+	}
 };
+
+ConfigEventHandler configEventHandler;
+
 
 float clampf(float val, float min, float max)
 {
@@ -755,7 +763,7 @@ void cmdSet(const std::string &args) {
 		std::string key(tokens[0]);
 		std::string value(tokens[1]);
 		narf::console->println("Setting '" + key + "' to '" + value + "'");
-		config.setRaw(key, value);
+		config.setRawWithEvent(key, value);
 	} else {
 		narf::console->println("wrong number of parameters to set");
 	}
@@ -784,8 +792,6 @@ extern "C" int main(int argc, char **argv)
 #endif
 
 	clientConsole = new narf::client::Console();
-	TestObserver testobserver;
-
 	narf::console = clientConsole;
 
 	narf::console->println("Version: " + std::to_string(VERSION_MAJOR) + "." + std::to_string(VERSION_MINOR) + std::string(VERSION_RELEASE) + "+" VERSION_REV);
@@ -796,7 +802,8 @@ extern "C" int main(int argc, char **argv)
 	auto config_file = Poco::Path(narf::util::dataDir(), "client.ini").toString();
 	narf::console->println("Client config file: " + config_file);
 	config.load("client", config_file);
-	config.notificationCenter.addObserver(Poco::NObserver<TestObserver, narf::config::ConfigUpdateNotification>(testobserver, &TestObserver::handler));
+	config.propertyChanged += Poco::delegate(&configEventHandler, &ConfigEventHandler::onPropertyChanged);
+	config.enableEvents(true);
 
 	if (SDL_Init(SDL_INIT_TIMER | SDL_INIT_VIDEO) < 0) {
 		fatalError("SDL_Init(SDL_INIT_EVERYTHING) failed: " + std::string(SDL_GetError()));
