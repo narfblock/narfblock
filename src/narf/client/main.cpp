@@ -604,6 +604,8 @@ void game_loop()
 	unsigned physics_steps = 0;
 	unsigned draws = 0;
 
+	double physicsTime = 0.0, drawTime = 0.0;
+
 	while (1) {
 		double t2 = get_time();
 		double frame_time = t2 - t1;
@@ -616,6 +618,7 @@ void game_loop()
 
 		t_accum += frame_time;
 
+		auto physicsStart = get_time();
 		while (t_accum >= physicsTickStep)
 		{
 			poll_input(&input);
@@ -628,23 +631,31 @@ void game_loop()
 			t_accum -= physicsTickStep;
 			t += physicsTickStep;
 		}
+		physicsTime += get_time() - physicsStart;
 
 		double fps_dt = get_time() - fps_t1;
 		if (fps_dt >= 1.0 || forceHudUpdate) {
 			forceHudUpdate = false;
 			// update fps counter
+			char fpsStr[1000];
 			auto hudFontHeight = fps_text_buffer->getFont()->height();
-			std::string fps_str = std::to_string((double)physics_steps / fps_dt) + " physics steps/" +
-				std::to_string((double)draws / fps_dt) + " renders per second (dt " + std::to_string(fps_dt) + ")";
+			auto physMS = draws ? (physicsTime / draws) * 1000.0 : 0.0;
+			auto drawMS = draws ? (drawTime / draws) * 1000.0 : 0.0;
+			sprintf(fpsStr, "%.0f physics steps/s (%.2f ms/draw) %.0f draws/s (%.2f ms/draw)",
+				(double)physics_steps / fps_dt, physMS,
+				(double)draws / fps_dt, drawMS);
 			auto blue = narf::Color(0.0f, 0.0f, 1.0f);
 			fps_text_buffer->clear();
-			fps_text_buffer->print(fps_str, 0.0f, (float)display->height() - hudFontHeight, blue);
+			fps_text_buffer->print(fpsStr, 0.0f, (float)display->height() - hudFontHeight, blue);
 			fps_t1 = get_time();
 			draws = physics_steps = 0;
+			physicsTime = drawTime = 0.0;
 		}
 
+		auto drawStart = get_time();
 		draw();
 		draws++;
+		drawTime += get_time() - drawStart;
 	}
 }
 
