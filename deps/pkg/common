@@ -1,0 +1,59 @@
+##### This file should not be executed directly; it is sourced by other scripts.
+
+source "${deps}/host/${host_triplet}"
+export LDFLAGS_NOWL=$(echo "${LDFLAGS}" | sed -e "s/-Wl,//g")
+
+echo "Configuration for ${host_triplet}:"
+echo "CFLAGS:       ${CFLAGS}"
+echo "CXXFLAGS:     ${CXXFLAGS}"
+echo "LDFLAGS raw:  ${LDFLAGS_NOWL}"
+echo "LDFLAGS:      ${LDFLAGS}"
+
+
+pkg="$(basename $(dirname $0))"
+files="${deps}/files"
+
+set -o nounset
+set -o errexit
+
+function die() {
+	echo 2>&1 "$@"
+	exit 1
+}
+
+function fetch() {
+	file="$1"
+	expected_sha1="$2"
+	url="$3"
+
+	mkdir -p "${files}"
+	file="${files}/${file}"
+
+	if [ ! -e ${file} ]; then
+		echo "Fetching ${url} -> ${file}"
+		wget "${url}" -O "${file}"
+	fi
+
+	echo "Verifying ${file}"
+	actual_sha1=$(sha1sum ${file} | awk '{print $1}')
+	if [ "x${actual_sha1}" != "x${expected_sha1}" ]; then
+		echo 2>&1 "!!! ${file} from ${url}: SHA1 mismatch !!!"
+		echo "Expected: ${expected_sha1}"
+		echo "Actual:   ${actual_sha1}"
+		exit 1
+	fi
+}
+
+host_prefix=${host_triplet}-
+
+prefix=${deps}/${host_triplet}
+work=${deps}/work-${pkg}-${host_triplet}
+
+export CC=${host_prefix}gcc
+export CXX=${host_prefix}g++
+export AR=${host_prefix}ar
+export RANLIB=${host_prefix}ranlib
+export STRIP=${host_prefix}strip
+export WINDRES=${host_prefix}windres
+
+export PKG_CONFIG_PATH=${prefix}/lib/pkgconfig

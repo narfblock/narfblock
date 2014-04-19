@@ -1,0 +1,41 @@
+#!/bin/bash
+
+source "${deps}/pkg/common"
+
+src=SDL2-2.0.3.tar.gz
+sha1=21c45586a4e94d7622e371340edec5da40d06ecc
+url="http://libsdl.org/release/${src}"
+
+fetch $src $sha1 $url
+
+mkdir ${work}
+cd ${work}
+tar xf "${files}/${src}"
+cd SDL2-*
+
+# remove libtool junk from EXTRA_LDFLAGS
+sed \
+    -e 's/-XCClinker //' \
+    -i configure
+
+# do not mark functions for DLL export in static library build
+sed \
+    -e 's/__declspec(dllexport)//g' \
+    -i include/begin_code.h
+
+./configure --host=${host_triplet} --prefix=${prefix} \
+    --disable-render \
+    --disable-render-d3d \
+    --disable-haptic \
+    --disable-diskaudio \
+    --enable-static --disable-shared
+
+# TODO: disable directx video driver?
+#    --disable-threads \
+
+make ${make_flags} install
+
+# remove libtool junk
+rm ${prefix}/lib/libSDL2.la
+
+rm -rf ${work}

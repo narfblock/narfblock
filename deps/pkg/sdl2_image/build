@@ -1,0 +1,37 @@
+#!/bin/bash
+
+source "${deps}/pkg/common"
+
+src=SDL2_image-2.0.0.tar.gz
+sha1=20b1b0db9dd540d6d5e40c7da8a39c6a81248865
+url="https://www.libsdl.org/projects/SDL_image/release/${src}"
+
+fetch $src $sha1 $url
+
+mkdir ${work}
+cd ${work}
+tar xf "${files}/${src}"
+cd SDL2_image-*
+
+./configure WINDRES=${WINDRES} CPPFLAGS="-I${prefix}/include" \
+	--enable-png \
+	--disable-bmp \
+	--disable-gif \
+	--disable-jpg \
+	--disable-lbm \
+	--disable-pcx \
+	--disable-pnm \
+	--disable-tga \
+	--disable-tif \
+	--disable-xcf \
+	--disable-xpm \
+	--disable-xv \
+	--disable-webp \
+	--with-sdl-prefix=${prefix} --host=${host_triplet} --prefix=${prefix} --enable-static --disable-shared
+
+make ${make_flags} install
+
+# delete libtool junk
+rm ${prefix}/lib/libSDL2_image.la
+
+rm -rf ${work}

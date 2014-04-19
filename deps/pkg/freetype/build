@@ -1,0 +1,60 @@
+#!/bin/bash
+
+source "${deps}/pkg/common"
+
+src=freetype-2.5.3.tar.bz2
+sha1=d3c26cc17ec7fe6c36f4efc02ef92ab6aa3f4b46
+url="http://download.sourceforge.net/freetype/${src}"
+
+fetch $src $sha1 $url
+
+mkdir ${work}
+cd ${work}
+tar xf "${files}/${src}"
+cd freetype-*
+
+function disable_feature(){
+    sed -i -e "s/#define $1/#undef $1/" include/config/ftoption.h
+}
+
+function disable_module(){
+    sed -i -e "s/^.*+= $1\$/#&/" modules.cfg
+}
+
+disable_feature FT_CONFIG_OPTION_USE_LZW
+disable_feature FT_CONFIG_OPTION_USE_ZLIB
+disable_feature FT_CONFIG_OPTION_POSTSCRIPT_NAMES
+disable_feature FT_CONFIG_OPTION_ADOBE_GLYPH_LIST
+disable_feature FT_CONFIG_OPTION_MAC_FONTS
+disable_feature FT_CONFIG_OPTION_INCREMENTAL
+disable_feature TT_CONFIG_OPTION_POSTSCRIPT_NAMES
+disable_feature TT_CONFIG_OPTION_SFNT_NAMES
+
+disable_module type1
+disable_module cff
+disable_module cid
+disable_module pfr
+disable_module type42
+disable_module winfonts
+disable_module pcf
+disable_module bdf
+disable_module pshinter
+disable_module gzip
+disable_module lzw
+disable_module bzip2
+disable_module psaux
+disable_module psnames
+#disable_module ftbdf.c
+#disable_module ftcid.c
+#disable_module ftfstype.c
+#disable_module ftgasp.c
+
+./configure --host=${host_triplet} --prefix=${prefix} --without-png --disable-shared
+
+make ${make_flags}
+make ${make_flags} install
+
+# delete libtool cruft
+rm ${prefix}/lib/libfreetype.la
+
+rm -rf ${work}

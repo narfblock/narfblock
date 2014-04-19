@@ -1,0 +1,38 @@
+#!/bin/bash
+
+source "${deps}/pkg/common"
+
+src=poco-1.4.6p4.tar.gz
+sha1=49fc64bc23928d947fc8445e4e667f335bbe4274
+url="http://pocoproject.org/releases/poco-1.4.6/${src}"
+
+fetch $src $sha1 $url
+
+mkdir ${work}
+cd ${work}
+tar xf "${files}/${src}"
+cd poco-*
+
+sed \
+    -e 's/-mno-cygwin//g' \
+    -e "s/i686-pc-mingw32/${host_triplet}/g" \
+	-e "s/-O2/${CFLAGS}/g" \
+	< build/config/MinGW-CrossEnv > build/config/MinGW-custom
+
+sed -i \
+    -e 's/_MSC_VER/_WIN32/' \
+    -e 's/__int64/long long/' \
+    Foundation/include/Poco/Types.h
+
+cat >>Foundation/include/Poco/Config.h <<EOF
+    #define POCO_NO_FILECHANNEL
+    #define POCO_NO_SPLITTERCHANNEL
+    #define POCO_NO_SYSLOGCHANNEL
+    #define POCO_UTIL_NO_XMLCONFIGURATION
+EOF
+
+./configure --host=${host_triplet} --prefix=${prefix} --config=MinGW-custom
+
+make ${make_flags} install
+
+rm -rf ${work}

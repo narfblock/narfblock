@@ -1,0 +1,1 @@
+To build all dependencies for Win32 using MinGW-w64, run buildall

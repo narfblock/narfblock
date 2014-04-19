@@ -1,0 +1,36 @@
+#!/bin/bash
+
+source "${deps}/pkg/common"
+
+src=glew-1.10.0.tgz
+sha1=f41b45ca4a630ad1d00b8b87c5f493781a380300
+url="http://download.sourceforge.net/glew/${src}"
+
+fetch $src $sha1 $url
+
+mkdir ${work}
+cd ${work}
+tar xf "${files}/${src}"
+cd glew-*
+
+sed \
+	-e "s/i586-mingw32msvc/${host_triplet}/g" \
+	-e "s/GLEW_BUILD/GLEW_STATIC/g" \
+	< config/Makefile.linux-mingw32 > config/Makefile.custom
+
+echo "AR = ${host_prefix}ar" >> config/Makefile.custom
+echo "STRIP = ${host_prefix}strip" >> config/Makefile.custom
+
+SYSTEM=custom GLEW_DEST=${prefix} make ${make_flags} \
+	CFLAGS="${CFLAGS} -Iinclude" \
+	LDFLAGS.EXTRA="${LDFLAGS_NOWL}" \
+	glew.lib \
+	install
+
+# delete the DLL
+rm ${prefix}/lib/glew*.dll
+
+# install the static lib
+install -c -m 644 lib/libglew32.a ${prefix}/lib/
+
+rm -rf ${work}

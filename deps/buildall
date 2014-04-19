@@ -1,0 +1,43 @@
+#!/bin/bash
+# build narfblock dependencies for Win32
+
+set -o nounset
+set -o errexit
+
+cd "$(dirname $0)"
+
+deps="$PWD"
+export deps
+
+export make_flags='-j12'
+
+hosts="
+	i686-w64-mingw32
+	x86_64-w64-mingw32
+	"
+
+function build() {
+	echo "Building ${host_triplet}:$1"
+	logdir="${deps}/log/${host_triplet}"
+	logfile="${logdir}/$1"
+	mkdir -p "${logdir}"
+	"${deps}/pkg/$1/build" &> "${logfile}" || (echo "build failed - see ${logfile}" ; exit 1)
+}
+
+for host_triplet in ${hosts}; do
+	export host_triplet
+
+	# blow away any existing builds
+	rm -rf "${deps}/${host_triplet}"
+
+	build zlib
+	build libpng
+	build sdl2
+	build sdl2_image
+	build pdcurses
+	build freetype
+	build glew
+	build poco
+done
+
+echo "All done"

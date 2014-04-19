@@ -1,0 +1,29 @@
+#!/bin/bash
+
+source "${deps}/pkg/common"
+
+src=zlib-1.2.8.tar.gz
+sha1=a4d316c404ff54ca545ea71a27af7dbc29817088
+url="http://zlib.net/${src}"
+
+fetch $src $sha1 $url
+
+mkdir ${work}
+cd ${work}
+tar xf "${files}/${src}"
+cd zlib-*
+make ${make_flags} -f win32/Makefile.gcc \
+	PREFIX=${host_prefix} \
+	DESTDIR=${prefix} \
+	INCLUDE_PATH=/include \
+	LIBRARY_PATH=/lib \
+	BINARY_PATH=/bin \
+	SHARED_MODE=0 \
+	CFLAGS="${CFLAGS}" \
+	LDFLAGS="${LDFLAGS}" \
+	install
+
+# fix permissions
+chmod 0644 ${prefix}/lib/libz.a
+
+rm -rf ${work}

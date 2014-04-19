@@ -1,0 +1,30 @@
+#!/bin/bash
+
+source "${deps}/pkg/common"
+
+src=libpng-1.6.10.tar.xz
+sha1=adb44c93795446eaa4170bf9305b6f771eb368bc
+url="http://download.sourceforge.net/libpng/${src}"
+
+fetch $src $sha1 $url
+
+mkdir ${work}
+cd ${work}
+tar xf "${files}/${src}"
+cd libpng-*
+
+./configure \
+	--prefix=${prefix} \
+	--host=${host_triplet} \
+	LDFLAGS="-L${prefix}/lib ${LDFLAGS}" \
+	CPPFLAGS="-I${prefix}/include"
+
+make ${make_flags} install
+
+# fix permissions
+chmod 0644 ${prefix}/lib/libpng*.a
+
+# remove libtool junk
+rm ${prefix}/lib/libpng*.la
+
+rm -rf ${work}

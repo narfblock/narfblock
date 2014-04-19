@@ -1,0 +1,37 @@
+#!/bin/bash
+
+source "${deps}/pkg/common"
+
+src=PDCurses-3.4.tar.gz
+sha1=e36684442a6171cc3a5165c8c49c70f67db7288c
+url="http://download.sourceforge.net/pdcurses/${src}"
+
+fetch $src $sha1 $url
+
+mkdir ${work}
+cd ${work}
+tar xf "${files}/${src}"
+cd PDCurses-*/win32
+
+# build a custom makefile for the desired platform
+sed \
+	-e 's/$(PDCURSES_SRCDIR)\\/$(PDCURSES_SRCDIR)\//g' \
+	-e 's/type/cat/g' \
+	-e 's/copy/cp/g' \
+	-e "s/\\<gcc\\>/${CC}/g" \
+	-e "s/\\<ar\\>/${AR}/g" \
+	-e "s/\\<strip\\>/${STRIP}/g" \
+	-e "s/-O2 -Wall/${CFLAGS}/g" \
+	-e "s/-shared/& ${LDFLAGS}/g" \
+	< mingwin32.mak > custom.mak
+
+make ${make_flags} -f custom.mak DLL=N WIDE=Y UTF8=Y
+
+# the pdcurses mingw makefile doesn't have an install target, so install manually
+install -d -m 755 ${prefix}/lib
+install -d -m 755 ${prefix}/bin
+install -d -m 755 ${prefix}/include
+install -c -m 644 ../curses.h ${prefix}/include/curses.h
+install -c -m 644 pdcurses.a ${prefix}/lib/libpdcurses.a
+
+rm -rf ${work}
