@@ -12,7 +12,14 @@ mkdir ${work}
 cd ${work}
 tar xf "${files}/${src}"
 cd zlib-*
-make ${make_flags} -f win32/Makefile.gcc \
+
+sed \
+	-e "s/\$(PREFIX)windres/${WINDRES}/" \
+	-e "s/\$(PREFIX)strip/${STRIP}/" \
+	-e "s/\$(PREFIX)ar/${AR}/" \
+	< win32/Makefile.gcc > win32/Makefile.gcc.custom
+
+make ${make_flags} -f win32/Makefile.gcc.custom \
 	PREFIX=${host_prefix} \
 	DESTDIR=${prefix} \
 	INCLUDE_PATH=/include \
@@ -26,4 +33,4 @@ make ${make_flags} -f win32/Makefile.gcc \
 # fix permissions
 chmod 0644 ${prefix}/lib/libz.a
 
-rm -rf ${work}
+cd "${deps}"; rm -rf "${work}"

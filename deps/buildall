@@ -11,10 +11,10 @@ export deps
 
 export make_flags='-j12'
 
-hosts="
-	i686-w64-mingw32
-	x86_64-w64-mingw32
-	"
+hosts=""
+
+i686-w64-mingw32-gcc -v &> /dev/null && hosts="${hosts} i686-w64-mingw32"
+x86_64-w64-mingw32-gcc -v &> /dev/null && hosts="${hosts} x86_64-w64-mingw32"
 
 function build() {
 	echo "Building ${host_triplet}:$1"

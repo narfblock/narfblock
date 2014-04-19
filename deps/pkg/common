@@ -54,6 +54,14 @@ export CXX=${host_prefix}g++
 export AR=${host_prefix}ar
 export RANLIB=${host_prefix}ranlib
 export STRIP=${host_prefix}strip
+export LD=${host_prefix}ld
 export WINDRES=${host_prefix}windres
+
+# some native MinGW toolchains don't have some host-prefixed tools
+which "${AR}" || export AR=ar
+which "${STRIP}" || export STRIP=strip
+which "${RANLIB}" || export RANLIB=ranlib
+which "${LD}" || export LD=ld
+which "${WINDRES}" || export WINDRES=windres
 
 export PKG_CONFIG_PATH=${prefix}/lib/pkgconfig

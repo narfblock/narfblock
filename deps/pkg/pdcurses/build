@@ -34,4 +34,4 @@ install -d -m 755 ${prefix}/include
 install -c -m 644 ../curses.h ${prefix}/include/curses.h
 install -c -m 644 pdcurses.a ${prefix}/lib/libpdcurses.a
 
-rm -rf ${work}
+cd "${deps}"; rm -rf "${work}"

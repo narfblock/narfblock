@@ -34,4 +34,4 @@ make ${make_flags} install
 # delete libtool junk
 rm ${prefix}/lib/libSDL2_image.la
 
-rm -rf ${work}
+cd "${deps}"; rm -rf "${work}"

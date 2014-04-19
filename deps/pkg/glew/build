@@ -14,23 +14,27 @@ tar xf "${files}/${src}"
 cd glew-*
 
 sed \
-	-e "s/i586-mingw32msvc/${host_triplet}/g" \
+	-e "s/i586-mingw32msvc-gcc/${CC}/g" \
+	-e "s/i586-mingw32msvc-ld/${LD}/g" \
 	-e "s/GLEW_BUILD/GLEW_STATIC/g" \
 	< config/Makefile.linux-mingw32 > config/Makefile.custom
 
-echo "AR = ${host_prefix}ar" >> config/Makefile.custom
-echo "STRIP = ${host_prefix}strip" >> config/Makefile.custom
+# don't build DLL
+sed \
+	-e 's/lib lib\/$(LIB.SHARED)/lib/' \
+	< Makefile > Makefile.custom
 
-SYSTEM=custom GLEW_DEST=${prefix} make ${make_flags} \
+echo "AR = ${AR}" >> config/Makefile.custom
+echo "STRIP = ${STRIP}" >> config/Makefile.custom
+
+SYSTEM=custom GLEW_DEST=${prefix} make -f Makefile.custom ${make_flags} \
 	CFLAGS="${CFLAGS} -Iinclude" \
 	LDFLAGS.EXTRA="${LDFLAGS_NOWL}" \
 	glew.lib \
-	install
-
-# delete the DLL
-rm ${prefix}/lib/glew*.dll
+	install.include \
+	install.pkgconfig
 
 # install the static lib
 install -c -m 644 lib/libglew32.a ${prefix}/lib/
 
-rm -rf ${work}
+cd "${deps}"; rm -rf "${work}"

@@ -57,4 +57,4 @@ make ${make_flags} install
 # delete libtool cruft
 rm ${prefix}/lib/libfreetype.la
 
-rm -rf ${work}
+cd "${deps}"; rm -rf "${work}"

@@ -27,4 +27,4 @@ chmod 0644 ${prefix}/lib/libpng*.a
 # remove libtool junk
 rm ${prefix}/lib/libpng*.la
 
-rm -rf ${work}
+cd "${deps}"; rm -rf "${work}"
