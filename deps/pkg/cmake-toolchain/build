@@ -10,7 +10,7 @@ cd ${work}
 mkdir -p "${prefix}"
 
 rootpath="${prefix}"
-if [ "x$MSYSTEM" = "xMINGW32" ]; then
+if [ "x${MSYSTEM-}" = "xMINGW32" ]; then
 	# generate a path that will work with native CMake
 	rootpath=$(cd "${prefix}"; pwd -W)
 fi
