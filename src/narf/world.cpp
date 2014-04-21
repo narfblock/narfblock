@@ -34,6 +34,41 @@
 #include "narf/console.h"
 
 
+narf::World::World(uint32_t size_x, uint32_t size_y, uint32_t size_z, uint32_t chunk_size_x, uint32_t chunk_size_y, uint32_t chunk_size_z) :
+	size_x_(size_x), size_y_(size_y), size_z_(size_z),
+	chunk_size_x_(chunk_size_x), chunk_size_y_(chunk_size_y), chunk_size_z_(chunk_size_z),
+	entityRefs_(0),
+	numBlockTypes_(0)
+{
+	// TODO: verify size is a multiple of chunk_size and a power of 2
+
+	// world coordinate masks for wraparound
+	// z does not wrap around
+	mask_x_ = size_x_ - 1;
+	mask_y_ = size_y_ - 1;
+
+	// chunk shifts to get chunk coords from world coords
+	chunk_shift_x_ = ilog2(chunk_size_x);
+	chunk_shift_y_ = ilog2(chunk_size_y);
+	chunk_shift_z_ = ilog2(chunk_size_z);
+
+	// block masks to get block coords within chunk from world coords
+	block_mask_x_ = (1u << chunk_shift_x_) - 1;
+	block_mask_y_ = (1u << chunk_shift_y_) - 1;
+	block_mask_z_ = (1u << chunk_shift_z_) - 1;
+
+	// calculate size of world in chunks
+	chunks_x_ = size_x_ / chunk_size_x;
+	chunks_y_ = size_y_ / chunk_size_y;
+	chunks_z_ = size_z_ / chunk_size_z;
+
+	chunk_mask_x_ = chunks_x_ - 1;
+	chunk_mask_y_ = chunks_y_ - 1;
+
+	chunks_ = (Chunk**)calloc(chunks_x_ * chunks_y_ * chunks_z_, sizeof(Chunk*));
+}
+
+
 narf::World::~World() {
 	for (uint32_t i = 0; i < size_x_ * size_y_ * size_z_; i++) {
 		if (chunks_[i]) {
