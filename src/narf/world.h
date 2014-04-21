@@ -53,7 +53,6 @@ static uint32_t ilog2(uint32_t v)
 	return (uint32_t)(log((double)v) / log(2.0));
 }
 
-narf::math::coord::Point3f nextBlockIntersect(narf::math::coord::Point3f base, narf::math::Vector3f direction);
 
 class World {
 friend class EntityRef;
@@ -111,7 +110,6 @@ public:
 	void set_gravity(float g) { gravity_ = g; }
 	float get_gravity() { return gravity_; }
 
-	narf::math::coord::Point3f nextBlockIntersect(narf::math::coord::Point3f base, narf::math::Vector3f direction);
 	BlockWrapper rayTrace(narf::math::coord::Point3f basePoint, narf::math::Vector3f direction, float max_distance);
 
 	Entity::ID newEntity();

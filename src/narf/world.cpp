@@ -193,7 +193,7 @@ const narf::BlockType *narf::World::getBlockType(narf::BlockTypeId id) const {
 	return &blockTypes_[id];
 }
 
-narf::math::coord::Point3f narf::nextBlockIntersect(narf::math::coord::Point3f base, narf::math::Vector3f direction) {
+narf::math::coord::Point3f nextBlockIntersect(narf::math::coord::Point3f base, narf::math::Vector3f direction) {
 	int8_t xDir = (direction.x > 0) ? 1 : -1;
 	int8_t yDir = (direction.y > 0) ? 1 : -1;
 	int8_t zDir = (direction.z > 0) ? 1 : -1;
@@ -245,7 +245,7 @@ narf::BlockWrapper narf::World::rayTrace(narf::math::coord::Point3f basePoint, n
 	auto prevblockCoord = blockCoord;
 
 	while (distance < max_distance) {
-		point = narf::nextBlockIntersect(prevPoint, direction);
+		point = nextBlockIntersect(prevPoint, direction);
 		blockCoord.x = (int32_t)floor(point.x - (direction.x > 0 ? 1 : -1) * 0.000000000001);
 		blockCoord.y = (int32_t)floor(point.y - (direction.y > 0 ? 1 : -1) * 0.000000000001);
 		blockCoord.z = (int32_t)floor(point.z - (direction.z > 0 ? 1 : -1) * 0.000000000001);
