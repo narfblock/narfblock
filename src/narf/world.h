@@ -46,14 +46,6 @@
 
 namespace narf {
 
-// TODO: move this to util or something
-static uint32_t ilog2(uint32_t v)
-{
-	// TODO: do a better implementation
-	return (uint32_t)(log((double)v) / log(2.0));
-}
-
-
 class World {
 friend class EntityRef;
 public:

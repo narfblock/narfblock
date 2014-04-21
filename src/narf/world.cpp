@@ -48,9 +48,9 @@ narf::World::World(uint32_t size_x, uint32_t size_y, uint32_t size_z, uint32_t c
 	mask_y_ = size_y_ - 1;
 
 	// chunk shifts to get chunk coords from world coords
-	chunk_shift_x_ = ilog2(chunk_size_x);
-	chunk_shift_y_ = ilog2(chunk_size_y);
-	chunk_shift_z_ = ilog2(chunk_size_z);
+	chunk_shift_x_ = math::ilog2(chunk_size_x);
+	chunk_shift_y_ = math::ilog2(chunk_size_y);
+	chunk_shift_z_ = math::ilog2(chunk_size_z);
 
 	// block masks to get block coords within chunk from world coords
 	block_mask_x_ = (1u << chunk_shift_x_) - 1;
