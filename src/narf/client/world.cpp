@@ -38,21 +38,22 @@
 void draw_cube(float x, float y, float z, uint8_t type, unsigned draw_face_mask);
 
 
-void narf::client::World::put_block(const narf::Block *b, uint32_t x, uint32_t y, uint32_t z) {
-	uint32_t cx, cy, cz, bx, by, bz;
-	calc_chunk_coords(x, y, z, &cx, &cy, &cz, &bx, &by, &bz);
-	Chunk *chunk = get_chunk(cx, cy, cz);
-	chunk->put_block(b, bx, by, bz);
+void narf::client::World::put_block(const narf::Block *b, const narf::World::BlockCoord& wbc) {
+	ChunkCoord cc;
+	narf::Chunk::BlockCoord cbc;
+	calcChunkCoords(wbc, cc, cbc);
+	Chunk *chunk = get_chunk(cc);
+	chunk->put_block(b, cbc);
 	chunk->rebuild_vertex_buffers();
 
 	// update neighboring chunk meshes since they may have holes exposed by removing this block
 	// or extra faces that are obstructed by adding this block
-	if (bx == 0) get_chunk((cx - 1) & mask_x_, cy, cz)->rebuild_vertex_buffers();
-	if (by == 0) get_chunk(cx, (cy - 1) & mask_y_, cz)->rebuild_vertex_buffers();
-	if (bz == 0 && cz > 0) get_chunk(cx, cy, cz - 1)->rebuild_vertex_buffers();
-	if (bx == chunk_size_x_ - 1) get_chunk((cx + 1) & mask_x_, cy, cz)->rebuild_vertex_buffers();
-	if (by == chunk_size_y_ - 1) get_chunk(cx, (cy + 1) & mask_y_, cz)->rebuild_vertex_buffers();
-	if (bz == chunk_size_z_ - 1 && cz < chunks_z_ - 1) get_chunk(cx, cy, cz + 1)->rebuild_vertex_buffers();
+	if (cbc.x == 0) get_chunk({(cc.x - 1) & mask_x_, cc.y, cc.z})->rebuild_vertex_buffers();
+	if (cbc.y == 0) get_chunk({cc.x, (cc.y - 1) & mask_y_, cc.z})->rebuild_vertex_buffers();
+	if (cbc.z == 0 && cc.z > 0) get_chunk({cc.x, cc.y, cc.z - 1})->rebuild_vertex_buffers();
+	if (cbc.x == chunk_size_x_ - 1) get_chunk({(cc.x + 1) & mask_x_, cc.y, cc.z})->rebuild_vertex_buffers();
+	if (cbc.y == chunk_size_y_ - 1) get_chunk({cc.x, (cc.y + 1) & mask_y_, cc.z})->rebuild_vertex_buffers();
+	if (cbc.z == chunk_size_z_ - 1 && cc.z < chunks_z_ - 1) get_chunk({cc.x, cc.y, cc.z + 1})->rebuild_vertex_buffers();
 }
 
 
@@ -69,7 +70,8 @@ void narf::client::World::renderSlice(narf::gl::Texture *tiles_tex, uint32_t cx_
 			// TODO: clip any chunks that are completely out of the camera's view before calling Chunk::render()
 			// TODO: clip in a sphere around the camera
 			for (uint32_t cz = 0; cz < chunks_z_; cz++) {
-				get_chunk(cx, cy, cz)->render();
+				ChunkCoord cc(cx, cy, cz);
+				get_chunk(cc)->render();
 			}
 		}
 	}

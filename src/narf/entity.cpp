@@ -45,7 +45,7 @@ narf::EntityRef::~EntityRef() {
 
 
 // TODO: move this to a subclass of entity
-void explode(narf::World *world, int32_t bx, int32_t by, int32_t bz, int32_t radius) {
+void explode(narf::World *world, const narf::World::BlockCoord& bc, int32_t radius) {
 	narf::Block air;
 	air.id = 0;
 
@@ -55,14 +55,14 @@ void explode(narf::World *world, int32_t bx, int32_t by, int32_t bz, int32_t rad
 		for (int32_t y = 0; y < radius; y++) {
 			for (int32_t z = 0; z < radius; z++) {
 				if (x * x + y * y + z * z < radiusSquared) {
-					world->put_block(&air, bx + x, by + y, bz + z);
-					world->put_block(&air, bx - x, by + y, bz + z);
-					world->put_block(&air, bx + x, by - y, bz + z);
-					world->put_block(&air, bx - x, by - y, bz + z);
-					world->put_block(&air, bx + x, by + y, bz - z);
-					world->put_block(&air, bx - x, by + y, bz - z);
-					world->put_block(&air, bx + x, by - y, bz - z);
-					world->put_block(&air, bx - x, by - y, bz - z);
+					world->put_block(&air, {bc.x + x, bc.y + y, bc.z + z});
+					world->put_block(&air, {bc.x - x, bc.y + y, bc.z + z});
+					world->put_block(&air, {bc.x + x, bc.y - y, bc.z + z});
+					world->put_block(&air, {bc.x - x, bc.y - y, bc.z + z});
+					world->put_block(&air, {bc.x + x, bc.y + y, bc.z - z});
+					world->put_block(&air, {bc.x - x, bc.y + y, bc.z - z});
+					world->put_block(&air, {bc.x + x, bc.y - y, bc.z - z});
+					world->put_block(&air, {bc.x - x, bc.y - y, bc.z - z});
 				}
 			}
 		}
@@ -94,12 +94,10 @@ bool narf::Entity::update(double t, double dt)
 	}
 
 	// TODO: bogus collision detection
-	uint32_t bx = (uint32_t)position.x;
-	uint32_t by = (uint32_t)position.y;
-	uint32_t bz = (uint32_t)position.z;
-	if (world_->get_block(bx, by, bz)->id != 0) {
+	World::BlockCoord bc((uint32_t)position.x, (uint32_t)position.y, (uint32_t)position.z);
+	if (world_->get_block(bc)->id != 0) {
 		if (explodey) {
-			explode(world_, bx, by, bz, 5);
+			explode(world_, bc, 5);
 			// TODO: delete this entity
 			alive = false;
 			explodey = false;

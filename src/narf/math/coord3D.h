@@ -59,6 +59,7 @@ namespace narf {
 					T x;
 					T y;
 					T z;
+					Point3() {}
 					Point3(T x, T y, T z) : x(x), y(y), z(z) {};
 					bool operator==(Point3<T>& rhs) const {
 						return narf::math::AlmostEqual(x, rhs.x) && narf::math::AlmostEqual(y, rhs.y) && narf::math::AlmostEqual(z, rhs.z);

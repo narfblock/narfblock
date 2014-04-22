@@ -40,6 +40,7 @@
 
 #include <vector>
 
+#include "narf/block.h"
 #include "narf/chunk.h"
 #include "narf/entity.h"
 #include "narf/math/math.h"
@@ -49,15 +50,20 @@ namespace narf {
 class World {
 friend class EntityRef;
 public:
+	// block coordinate within world
+	typedef math::coord::Point3<uint32_t> BlockCoord;
+
+	// chunk coordinate (in units of chunks) within world
+	typedef math::coord::Point3<uint32_t> ChunkCoord;
 
 	World(uint32_t size_x, uint32_t size_y, uint32_t size_z, uint32_t chunk_size_x, uint32_t chunk_size_y, uint32_t chunk_size_z);
 
 	virtual ~World();
 
-	const Block *get_block(uint32_t x, uint32_t y, uint32_t z);
-	virtual void put_block(const Block *b, uint32_t x, uint32_t y, uint32_t z);
+	const Block *get_block(const BlockCoord& c);
+	virtual void put_block(const Block *b, const BlockCoord& c);
 
-	bool is_opaque(uint32_t x, uint32_t y, uint32_t z);
+	bool is_opaque(const BlockCoord& c);
 
 	uint32_t size_x() const { return size_x_; }
 	uint32_t size_y() const { return size_y_; }
@@ -80,8 +86,6 @@ public:
 
 	BlockTypeId addBlockType(const BlockType &bt);
 	const BlockType *getBlockType(BlockTypeId id) const;
-
-	void explosion(int32_t bx, int32_t by, int32_t bz, int32_t radius);
 
 protected:
 
@@ -114,14 +118,14 @@ protected:
 	BlockTypeId numBlockTypes_;
 	BlockType blockTypes_[256];
 
-	void calc_chunk_coords(
-		uint32_t x, uint32_t y, uint32_t z,
-		uint32_t *chunk_x, uint32_t *chunk_y, uint32_t *chunk_z,
-		uint32_t *block_x, uint32_t *block_y, uint32_t *block_z) const;
+	void calcChunkCoords(
+		const World::BlockCoord& wbc,
+		ChunkCoord& cc,
+		Chunk::BlockCoord& cbc) const;
 
 	virtual Chunk *new_chunk(uint32_t chunk_x, uint32_t chunk_y, uint32_t chunk_z);
 
-	Chunk *get_chunk(uint32_t chunk_x, uint32_t chunk_y, uint32_t chunk_z);
+	Chunk *get_chunk(const ChunkCoord& cc);
 
 };
 

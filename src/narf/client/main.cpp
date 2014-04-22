@@ -526,26 +526,24 @@ void sim_frame(const narf::Input &input, double t, double dt)
 				std::to_string(selected_block_face.z));
 
 			narf::Block b;
-			uint32_t x = selected_block_face.x;
-			uint32_t y = selected_block_face.y;
-			uint32_t z = selected_block_face.z;
+			narf::World::BlockCoord wbc(selected_block_face.x, selected_block_face.y, selected_block_face.z);
 			if (input.action_secondary_begin()) {
 				// remove block at cursor
 				b.id = 0;
 			} else {
 				// add new block next to selected face
 				switch (selected_block_face.face) {
-				case narf::BlockFace::XPos: x++; break;
-				case narf::BlockFace::XNeg: x--; break;
-				case narf::BlockFace::YPos: y++; break;
-				case narf::BlockFace::YNeg: y--; break;
-				case narf::BlockFace::ZPos: z++; break;
-				case narf::BlockFace::ZNeg: z--; break;
+				case narf::BlockFace::XPos: wbc.x++; break;
+				case narf::BlockFace::XNeg: wbc.x--; break;
+				case narf::BlockFace::YPos: wbc.y++; break;
+				case narf::BlockFace::YNeg: wbc.y--; break;
+				case narf::BlockFace::ZPos: wbc.z++; break;
+				case narf::BlockFace::ZNeg: wbc.z--; break;
 				case narf::BlockFace::Invalid: assert(0); break;
 				}
 				b.id = 5;
 			}
-			world->put_block(&b, x, y, z);
+			world->put_block(&b, wbc);
 		}
 	}
 
@@ -676,7 +674,7 @@ void fill_rect_prism(uint32_t x1, uint32_t x2, uint32_t y1, uint32_t y2, uint32_
 			for (uint32_t x = x1; x < x2; x++) {
 				narf::Block b;
 				b.id = block_id;
-				world->put_block(&b, x, y, z);
+				world->put_block(&b, {x, y, z});
 			}
 		}
 	}
@@ -744,20 +742,20 @@ void gen_world()
 
 	// generate some random blocks above the ground
 	for (int i = 0; i < 1000; i++) {
-		int x = randi(0, WORLD_X_MAX - 1);
-		int y = randi(0, WORLD_Y_MAX - 1);
-		int z = randi(16, 23);
+		uint32_t x = randi(0, WORLD_X_MAX - 1);
+		uint32_t y = randi(0, WORLD_Y_MAX - 1);
+		uint32_t z = randi(16, 23);
 		narf::Block b;
 		b.id = (uint8_t)randi(2, 3);
-		world->put_block(&b, x, y, z);
+		world->put_block(&b, {x, y, z});
 	}
 
-	for (int i = 0; i < 10; i++) {
+	for (uint32_t i = 0; i < 10; i++) {
 		narf::Block b;
 		b.id = stone2;
-		world->put_block(&b, 5 + i, 5, 16);
-		world->put_block(&b, 5, 5 + i, 16);
-		world->put_block(&b, 5 + i, 15, 16);
+		world->put_block(&b, {5 + i, 5, 16});
+		world->put_block(&b, {5, 5 + i, 16});
+		world->put_block(&b, {5 + i, 15, 16});
 	}
 
 	world->set_gravity(-24.0f);

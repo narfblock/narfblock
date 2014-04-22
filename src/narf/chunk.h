@@ -38,6 +38,7 @@
 #include <assert.h>
 
 #include "narf/block.h"
+#include "narf/math/coord3D.h"
 
 namespace narf {
 
@@ -45,6 +46,9 @@ class World;
 
 class Chunk {
 public:
+
+	// block coordinate within chunk
+	typedef math::coord::Point3<uint32_t> BlockCoord;
 
 	Chunk(
 		World *world,
@@ -65,18 +69,18 @@ public:
 	void generate(); // generate terrain for a fresh chunk
 
 	// coordinates are relative to chunk
-	const Block *get_block(uint32_t x, uint32_t y, uint32_t z) const
+	const Block *get_block(const BlockCoord& c) const
 	{
-		assert(x < size_x_ && y < size_y_ && z < size_z_);
+		assert(c.x < size_x_ && c.y < size_y_ && c.z < size_z_);
 
-		return &blocks_[((z * size_y_) + y) * size_x_ + x];
+		return &blocks_[((c.z * size_y_) + c.y) * size_x_ + c.x];
 	}
 
-	void put_block(const Block *b, uint32_t x, uint32_t y, uint32_t z);
+	void put_block(const Block *b, const BlockCoord& c);
 
-	bool is_opaque(uint32_t x, uint32_t y, uint32_t z) const
+	bool is_opaque(const BlockCoord& c) const
 	{
-		return get_block(x, y, z)->id != 0;
+		return get_block(c)->id != 0;
 	}
 
 protected:
@@ -86,8 +90,8 @@ protected:
 	uint32_t size_x_, size_y_, size_z_; // size of this chunk in blocks
 	uint32_t pos_x_, pos_y_, pos_z_; // position within the world of this chunk in blocks
 
-	void fillRectPrism(uint32_t x1, uint32_t x2, uint32_t y1, uint32_t y2, uint32_t z1, uint32_t z2, uint8_t block_id);
-	void fillPlane(uint32_t z, uint8_t block_id);
+	void fillRectPrism(const BlockCoord& c1, const BlockCoord& c2, uint8_t block_id);
+	void fillXYPlane(uint32_t z, uint8_t block_id);
 };
 
 } // namespace narf

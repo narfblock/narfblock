@@ -136,8 +136,9 @@ void narf::client::Chunk::build_vertex_buffers()
 	for (uint32_t z = 0; z < size_z_; z++) {
 		for (uint32_t y = 0; y < size_y_; y++) {
 			for (uint32_t x = 0; x < size_x_; x++) {
-				if (is_opaque(x, y, z)) {
-					const narf::Block *b = get_block(x, y, z);
+				BlockCoord c(x, y, z);
+				if (is_opaque(c)) {
+					const narf::Block *b = get_block(c);
 
 					uint32_t world_x = x + pos_x_;
 					uint32_t world_y = y + pos_y_;
@@ -151,32 +152,32 @@ void narf::client::Chunk::build_vertex_buffers()
 					assert(type != nullptr);
 
 					// don't render sides of the cube that are obscured by other opaque cubes
-					if (!world_->is_opaque(world_x, world_y + 1, world_z)) {
+					if (!world_->is_opaque({world_x, world_y + 1, world_z})) {
 						float quad[] = {fx+1,fy+1,fz+0, fx+0,fy+1,fz+0, fx+0,fy+1,fz+1, fx+1,fy+1,fz+1};
 						draw_quad(vbo_, type->texCoords[BlockFace::YPos], quad);
 					}
 
-					if (!world_->is_opaque(world_x, world_y - 1, world_z)) {
+					if (!world_->is_opaque({world_x, world_y - 1, world_z})) {
 						float quad[] = {fx+0,fy+0,fz+0, fx+1,fy+0,fz+0, fx+1,fy+0,fz+1, fx+0,fy+0,fz+1};
 						draw_quad(vbo_, type->texCoords[BlockFace::YNeg], quad);
 					}
 
-					if (!world_->is_opaque(world_x + 1, world_y, world_z)) {
+					if (!world_->is_opaque({world_x + 1, world_y, world_z})) {
 						float quad[] = {fx+1,fy+0,fz+0, fx+1,fy+1,fz+0, fx+1,fy+1,fz+1, fx+1,fy+0,fz+1};
 						draw_quad(vbo_, type->texCoords[BlockFace::XPos], quad);
 					}
 
-					if (!world_->is_opaque(world_x - 1, world_y, world_z)) {
+					if (!world_->is_opaque({world_x - 1, world_y, world_z})) {
 						float quad[] = {fx+0,fy+1,fz+0, fx+0,fy+0,fz+0, fx+0,fy+0,fz+1, fx+0,fy+1,fz+1};
 						draw_quad(vbo_, type->texCoords[BlockFace::XNeg], quad);
 					}
 
-					if (world_z == world_->size_z() - 1 || !world_->is_opaque(world_x, world_y, world_z + 1)) {
+					if (world_z == world_->size_z() - 1 || !world_->is_opaque({world_x, world_y, world_z + 1})) {
 						float quad[] = {fx+0,fy+0,fz+1, fx+1,fy+0,fz+1, fx+1,fy+1,fz+1, fx+0,fy+1,fz+1};
 						draw_quad(vbo_, type->texCoords[BlockFace::ZPos], quad);
 					}
 
-					if (world_z != 0 && !world_->is_opaque(world_x, world_y, world_z - 1)) {
+					if (world_z != 0 && !world_->is_opaque({world_x, world_y, world_z - 1})) {
 						float quad[] = {fx+0,fy+1,fz+0, fx+1,fy+1,fz+0, fx+1,fy+0,fz+0, fx+0,fy+0,fz+0};
 						draw_quad(vbo_, type->texCoords[BlockFace::ZNeg], quad);
 					}

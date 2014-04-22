@@ -59,7 +59,7 @@ public:
 
 	void render(narf::gl::Texture *tiles_tex, const narf::Camera *cam);
 
-	void put_block(const Block *b, uint32_t x, uint32_t y, uint32_t z) override;
+	void put_block(const Block *b, const narf::World::BlockCoord& wbc) override;
 
 	int32_t renderDistance; // radius in chunks
 
@@ -70,8 +70,8 @@ protected:
 		                 chunk_x * chunk_size_x_, chunk_y * chunk_size_y_, chunk_z * chunk_size_z_);
 	}
 
-	Chunk *get_chunk(uint32_t chunk_x, uint32_t chunk_y, uint32_t chunk_z) {
-		return static_cast<narf::client::Chunk*>(narf::World::get_chunk(chunk_x, chunk_y, chunk_z));
+	Chunk *get_chunk(const narf::World::ChunkCoord& wcc) {
+		return static_cast<narf::client::Chunk*>(narf::World::get_chunk(wcc));
 	}
 
 	void renderSlice(narf::gl::Texture *tiles_tex, uint32_t cx_min, uint32_t cx_max, uint32_t cy_min, uint32_t cy_max);

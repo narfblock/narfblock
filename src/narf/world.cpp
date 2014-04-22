@@ -79,38 +79,42 @@ narf::World::~World() {
 }
 
 
-const narf::Block *narf::World::get_block(uint32_t x, uint32_t y, uint32_t z) {
-	uint32_t cx, cy, cz, bx, by, bz;
-	calc_chunk_coords(x, y, z, &cx, &cy, &cz, &bx, &by, &bz);
-	Chunk *chunk = get_chunk(cx, cy, cz);
-	return chunk->get_block(bx, by, bz);
+const narf::Block *narf::World::get_block(const World::BlockCoord& wbc) {
+	ChunkCoord cc;
+	narf::Chunk::BlockCoord cbc;
+	calcChunkCoords(wbc, cc, cbc);
+	Chunk *chunk = get_chunk(cc);
+	return chunk->get_block(cbc);
 }
 
 
-void narf::World::put_block(const narf::Block *b, uint32_t x, uint32_t y, uint32_t z) {
-	uint32_t cx, cy, cz, bx, by, bz;
-	calc_chunk_coords(x, y, z, &cx, &cy, &cz, &bx, &by, &bz);
-	Chunk *chunk = get_chunk(cx, cy, cz);
-	chunk->put_block(b, bx, by, bz);
+void narf::World::put_block(const narf::Block *b, const World::BlockCoord& wbc) {
+	ChunkCoord cc;
+	narf::Chunk::BlockCoord cbc;
+	calcChunkCoords(wbc, cc, cbc);
+	Chunk *chunk = get_chunk(cc);
+	chunk->put_block(b, cbc);
 }
 
 
-bool narf::World::is_opaque(uint32_t x, uint32_t y, uint32_t z) {
-	uint32_t cx, cy, cz, bx, by, bz;
-	calc_chunk_coords(x, y, z, &cx, &cy, &cz, &bx, &by, &bz);
-	Chunk *chunk = get_chunk(cx, cy, cz);
-	return chunk->is_opaque(bx, by, bz);
+bool narf::World::is_opaque(const narf::World::BlockCoord& wbc) {
+	ChunkCoord cc;
+	narf::Chunk::BlockCoord cbc;
+	calcChunkCoords(wbc, cc, cbc);
+	Chunk *chunk = get_chunk(cc);
+	return chunk->is_opaque(cbc);
 }
 
 
-void narf::World::calc_chunk_coords(
-	uint32_t x, uint32_t y, uint32_t z,
-	uint32_t *chunk_x, uint32_t *chunk_y, uint32_t *chunk_z,
-	uint32_t *block_x, uint32_t *block_y, uint32_t *block_z) const {
+void narf::World::calcChunkCoords(
+	const narf::World::BlockCoord& wbc,
+	ChunkCoord& cc,
+	narf::Chunk::BlockCoord& cbc) const {
 
 	// wrap around
-	x = x & mask_x_;
-	y = y & mask_y_;
+	auto x = wbc.x & mask_x_;
+	auto y = wbc.y & mask_y_;
+	auto z = wbc.z;
 
 	// clamp z to world height
 	// TODO
@@ -118,13 +122,13 @@ void narf::World::calc_chunk_coords(
 		z = size_z_ - 1;
 	}
 
-	*chunk_x = x >> chunk_shift_x_;
-	*chunk_y = y >> chunk_shift_y_;
-	*chunk_z = z >> chunk_shift_z_;
+	cc.x = x >> chunk_shift_x_;
+	cc.y = y >> chunk_shift_y_;
+	cc.z = z >> chunk_shift_z_;
 
-	*block_x = x & block_mask_x_;
-	*block_y = y & block_mask_y_;
-	*block_z = z & block_mask_z_;
+	cbc.x = x & block_mask_x_;
+	cbc.y = y & block_mask_y_;
+	cbc.z = z & block_mask_z_;
 }
 
 
@@ -136,9 +140,10 @@ narf::Chunk *narf::World::new_chunk(uint32_t chunk_x, uint32_t chunk_y, uint32_t
 }
 
 
-narf::Chunk *narf::World::get_chunk(uint32_t chunk_x, uint32_t chunk_y, uint32_t chunk_z) {
-	chunk_x &= chunk_mask_x_;
-	chunk_y &= chunk_mask_y_;
+narf::Chunk *narf::World::get_chunk(const narf::World::ChunkCoord& wcc) {
+	auto chunk_x = wcc.x & chunk_mask_x_;
+	auto chunk_y = wcc.y & chunk_mask_y_;
+	auto chunk_z = wcc.z;
 	assert(chunk_z < chunks_z_);
 	Chunk *chunk = chunks_[((chunk_z * chunks_y_) + chunk_y) * chunks_x_ + chunk_x];
 	if (!chunk) {
@@ -276,15 +281,15 @@ narf::BlockWrapper narf::World::rayTrace(narf::math::coord::Point3f basePoint, n
 	narf::math::coord::Point3f prevPoint = basePoint;
 	narf::math::coord::Point3f point = basePoint;
 
-	narf::math::coord::Point3<int32_t> blockCoord(0, 0, 0);
+	BlockCoord blockCoord(0, 0, 0);
 	auto prevblockCoord = blockCoord;
 
 	while (distance < max_distance) {
 		point = nextBlockIntersect(prevPoint, direction);
-		blockCoord.x = (int32_t)floor(point.x - (direction.x > 0 ? 1 : -1) * 0.000000000001);
-		blockCoord.y = (int32_t)floor(point.y - (direction.y > 0 ? 1 : -1) * 0.000000000001);
-		blockCoord.z = (int32_t)floor(point.z - (direction.z > 0 ? 1 : -1) * 0.000000000001);
-		block = get_block(blockCoord.x, blockCoord.y, blockCoord.z);
+		blockCoord.x = (uint32_t)floor(point.x - (direction.x > 0 ? 1 : -1) * 0.000000000001);
+		blockCoord.y = (uint32_t)floor(point.y - (direction.y > 0 ? 1 : -1) * 0.000000000001);
+		blockCoord.z = (uint32_t)floor(point.z - (direction.z > 0 ? 1 : -1) * 0.000000000001);
+		block = get_block(blockCoord);
 		if (block->id != 0) {
 			found = true;
 			break;
@@ -320,7 +325,7 @@ narf::BlockWrapper narf::World::rayTrace(narf::math::coord::Point3f basePoint, n
 		}
 	}
 
-	BlockWrapper tmp = {block, blockCoord.x, blockCoord.y, blockCoord.z, face};
+	BlockWrapper tmp = {block, (int32_t)blockCoord.x, (int32_t)blockCoord.y, (int32_t)blockCoord.z, face};
 	return tmp;
 }
 

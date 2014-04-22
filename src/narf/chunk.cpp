@@ -33,34 +33,37 @@
 #include "narf/chunk.h"
 #include "narf/world.h"
 
-void narf::Chunk::put_block(const Block *b, uint32_t x, uint32_t y, uint32_t z) {
-	Block *to_replace = &blocks_[z * size_x_ * size_y_ + y * size_x_ + x];
+void narf::Chunk::put_block(const Block *b, const BlockCoord& c) {
+	Block *to_replace = &blocks_[c.z * size_x_ * size_y_ + c.y * size_x_ + c.x];
 	if (!world_->getBlockType(to_replace->id)->indestructible) {
 		*to_replace = *b;
 	}
 }
 
 
-void narf::Chunk::fillRectPrism(uint32_t x1, uint32_t x2, uint32_t y1, uint32_t y2, uint32_t z1, uint32_t z2, uint8_t block_id) {
-	for (uint32_t z = z1; z < z2; z++) {
-		for (uint32_t y = y1; y < y2; y++) {
-			for (uint32_t x = x1; x < x2; x++) {
+void narf::Chunk::fillRectPrism(const BlockCoord& c1, const BlockCoord& c2, uint8_t block_id) {
+	for (uint32_t z = c1.z; z < c2.z; z++) {
+		for (uint32_t y = c1.y; y < c2.y; y++) {
+			for (uint32_t x = c1.x; x < c2.x; x++) {
 				narf::Block b;
 				b.id = block_id;
-				put_block(&b, x, y, z);
+				BlockCoord c(x, y, z);
+				put_block(&b, c);
 			}
 		}
 	}
 }
 
-void narf::Chunk::fillPlane(uint32_t z, uint8_t block_id) {
-	fillRectPrism(0, size_x_, 0, size_y_, z, z + 1, block_id);
+void narf::Chunk::fillXYPlane(uint32_t z, uint8_t block_id) {
+	BlockCoord c1(0, 0, z);
+	BlockCoord c2(size_x_, size_y_, z + 1);
+	fillRectPrism(c1, c2, block_id);
 }
 
 void narf::Chunk::generate() {
 	if (pos_z_ == 0) {
-		fillPlane(0, 1); // adminium
-		fillRectPrism(0, size_x_, 0, size_y_, 1, size_z_ - 1, 2); // dirt
-		fillPlane(size_z_ - 1, 3); // dirt with grass
+		fillXYPlane(0, 1); // adminium
+		fillRectPrism({0, 0, 1}, {size_x_, size_y_, size_z_ - 1}, 2); // dirt
+		fillXYPlane(size_z_ - 1, 3); // dirt with grass
 	}
 }
