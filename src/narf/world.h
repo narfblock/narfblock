@@ -36,7 +36,6 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <assert.h>
-#include <math.h> // TODO: for log; remove later
 
 #include <vector>
 
