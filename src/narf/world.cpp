@@ -233,11 +233,7 @@ const narf::BlockType *narf::World::getBlockType(narf::BlockTypeId id) const {
 	return &blockTypes_[id];
 }
 
-narf::math::coord::Point3f nextBlockIntersect(narf::math::coord::Point3f base, narf::math::Vector3f direction) {
-	float xDir = (direction.x > 0) ? 1.0f : -1.0f;
-	float yDir = (direction.y > 0) ? 1.0f : -1.0f;
-	float zDir = (direction.z > 0) ? 1.0f : -1.0f;
-
+static narf::math::coord::Point3f nextBlockIntersect(const narf::math::coord::Point3f& base, const narf::math::Vector3f& direction, float xDir, float yDir, float zDir) {
 	const narf::math::Plane<float> planes[] = {
 		{{xDir > 0 ? (float)floor(base.x + xDir) : (float)ceil(base.x + xDir), 0, 0}, {1,0,0}},
 		{{0, yDir > 0 ? (float)floor(base.y + yDir) : (float)ceil(base.y + yDir), 0}, {0,1,0}},
@@ -259,27 +255,29 @@ narf::math::coord::Point3f nextBlockIntersect(narf::math::coord::Point3f base, n
 }
 
 narf::BlockWrapper narf::World::rayTrace(narf::math::coord::Point3f basePoint, narf::math::Vector3f direction, float max_distance) {
-	float distance = 0;
 	const Block* block;
 	bool found = false;
 
 	narf::math::coord::Point3f prevPoint = basePoint;
 	narf::math::coord::Point3f point = basePoint;
 
+	float xDir = (direction.x > 0) ? 1.0f : -1.0f;
+	float yDir = (direction.y > 0) ? 1.0f : -1.0f;
+	float zDir = (direction.z > 0) ? 1.0f : -1.0f;
+
 	BlockCoord blockCoord(0, 0, 0);
 	auto prevblockCoord = blockCoord;
 
-	while (distance < max_distance) {
-		point = nextBlockIntersect(prevPoint, direction);
-		blockCoord.x = (uint32_t)floor(point.x - (direction.x > 0 ? 1 : -1) * 0.000000000001);
-		blockCoord.y = (uint32_t)floor(point.y - (direction.y > 0 ? 1 : -1) * 0.000000000001);
-		blockCoord.z = (uint32_t)floor(point.z - (direction.z > 0 ? 1 : -1) * 0.000000000001);
+	while (basePoint.distanceTo(point) < max_distance) {
+		point = nextBlockIntersect(prevPoint, direction, xDir, yDir, zDir);
+		blockCoord.x = (uint32_t)floor(point.x - xDir * 0.000000000001);
+		blockCoord.y = (uint32_t)floor(point.y - yDir * 0.000000000001);
+		blockCoord.z = (uint32_t)floor(point.z - zDir * 0.000000000001);
 		block = get_block(blockCoord);
 		if (block->id != 0) {
 			found = true;
 			break;
 		}
-		distance = basePoint.distanceTo(point);
 		prevPoint = point;
 		prevblockCoord = blockCoord;
 	}
