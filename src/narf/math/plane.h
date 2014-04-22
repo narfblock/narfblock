@@ -52,15 +52,15 @@ namespace narf {
 				return Vector3<T>(p) - normal() * distanceTo(p);
 			}
 
-			coord::Point3<T> intersect(coord::Point3<T> p1, coord::Point3<T> p2) {
+			coord::Point3<T> intersect(coord::Point3<T> p1, coord::Point3<T> p2) const {
 				return intersect(p1, Vector3<T>(p2 - p1).normalize());
 			}
 
-			coord::Point3<T> intersect(narf::math::Ray<T> ray) {
+			coord::Point3<T> intersect(narf::math::Ray<T> ray) const {
 				return intersect(ray.initialPoint(), ray.direction());
 			}
 
-			coord::Point3<T> intersect(coord::Point3<T> p1, Vector3<T> direction) {
+			coord::Point3<T> intersect(coord::Point3<T> p1, Vector3<T> direction) const {
 				auto planePoint = narf::math::Vector3<T>(nearestPoint(p1));
 				auto d = (planePoint - p1).dot(normal()) / (direction.dot(normal()));
 				return direction * d + p1;
