@@ -234,40 +234,25 @@ const narf::BlockType *narf::World::getBlockType(narf::BlockTypeId id) const {
 }
 
 narf::math::coord::Point3f nextBlockIntersect(narf::math::coord::Point3f base, narf::math::Vector3f direction) {
-	int8_t xDir = (direction.x > 0) ? 1 : -1;
-	int8_t yDir = (direction.y > 0) ? 1 : -1;
-	int8_t zDir = (direction.z > 0) ? 1 : -1;
-	float distance;
-	narf::math::Vector3f normal;
-	narf::math::coord::Point3f nextPoint(0, 0, 0);
+	float xDir = (direction.x > 0) ? 1.0f : -1.0f;
+	float yDir = (direction.y > 0) ? 1.0f : -1.0f;
+	float zDir = (direction.z > 0) ? 1.0f : -1.0f;
+
+	const narf::math::Plane<float> planes[] = {
+		{{xDir > 0 ? (float)floor(base.x + xDir) : (float)ceil(base.x + xDir), 0, 0}, {1,0,0}},
+		{{0, yDir > 0 ? (float)floor(base.y + yDir) : (float)ceil(base.y + yDir), 0}, {0,1,0}},
+		{{0, 0, zDir > 0 ? (float)floor(base.z + zDir) : (float)ceil(base.z + zDir)}, {0,0,1}}
+	};
+
+	float distance = FLT_MAX;
 	auto finalPoint = base;
 
-	narf::math::Plane<float> plane(0, 0, 0, 0);
-	narf::math::coord::Point3f planePoint(0, 0, 0);
-
-	normal = narf::math::Vector3f(1, 0, 0);
-	planePoint = narf::math::coord::Point3f(xDir > 0 ? (float)floor(base.x + xDir) : (float)ceil(base.x + xDir), 0, 0);
-	plane = narf::math::Plane<float>(planePoint, normal);
-	nextPoint = plane.intersect(base, direction);
-	finalPoint = nextPoint;
-	distance = base.distanceTo(nextPoint);
-
-	normal = narf::math::Vector3f(0, 1, 0);
-	planePoint = narf::math::coord::Point3f(0, yDir > 0 ? (float)floor(base.y + yDir) : (float)ceil(base.y + yDir), 0);
-	plane = narf::math::Plane<float>(planePoint, normal);
-	nextPoint = plane.intersect(base, direction);
-	if (base.distanceTo(nextPoint) < distance) {
-		finalPoint = nextPoint;
-		distance = base.distanceTo(nextPoint);
-	}
-
-	normal = narf::math::Vector3f(0, 0, 1);
-	planePoint = narf::math::coord::Point3f(0, 0, zDir > 0 ? (float)floor(base.z + zDir) : (float)ceil(base.z + zDir));
-	plane = narf::math::Plane<float>(planePoint, normal);
-	nextPoint = plane.intersect(base, direction);
-	if (base.distanceTo(nextPoint) < distance) {
-		finalPoint = nextPoint;
-		distance = base.distanceTo(nextPoint);
+	for (const auto& plane : planes) {
+		auto nextPoint = plane.intersect(base, direction);
+		if (base.distanceTo(nextPoint) < distance) {
+			finalPoint = nextPoint;
+			distance = base.distanceTo(nextPoint);
+		}
 	}
 
 	return finalPoint;
