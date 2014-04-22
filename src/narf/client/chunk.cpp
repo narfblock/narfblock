@@ -171,7 +171,7 @@ void narf::client::Chunk::build_vertex_buffers()
 						draw_quad(vbo_, type->texCoords[BlockFace::XNeg], quad);
 					}
 
-					if (!world_->is_opaque(world_x, world_y, world_z + 1)) {
+					if (world_z == world_->size_z() - 1 || !world_->is_opaque(world_x, world_y, world_z + 1)) {
 						float quad[] = {fx+0,fy+0,fz+1, fx+1,fy+0,fz+1, fx+1,fy+1,fz+1, fx+0,fy+1,fz+1};
 						draw_quad(vbo_, type->texCoords[BlockFace::ZPos], quad);
 					}
