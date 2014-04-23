@@ -1,6 +1,8 @@
 #ifndef NARFBLOCK_MATH_COORD_3D_H
 #define NARFBLOCK_MATH_COORD_3D_H
 
+#include <iterator>
+
 #include <math.h>
 #include <assert.h>
 #include "narf/math/floats.h"
@@ -61,8 +63,11 @@ namespace narf {
 					T z;
 					Point3() {}
 					Point3(T x, T y, T z) : x(x), y(y), z(z) {};
-					bool operator==(Point3<T>& rhs) const {
+					bool operator==(const Point3<T>& rhs) const {
 						return narf::math::AlmostEqual(x, rhs.x) && narf::math::AlmostEqual(y, rhs.y) && narf::math::AlmostEqual(z, rhs.z);
+					}
+					bool operator!=(const Point3<T>& rhs) const {
+						return !(*this == rhs);
 					}
 					operator Spherical<T> () const {
 						float radius = distanceTo(0, 0, 0);
@@ -128,6 +133,88 @@ namespace narf {
 				return A.distanceTo(B);
 			}
 
+#define Coord3Type typename
+			template<Coord3Type T>
+			class Coord3IterProducer {
+			public:
+				virtual T next(const T& pos) const = 0;
+			};
+
+			template<typename T>
+			class Coord3Iter {
+			private:
+				const Coord3IterProducer<T>* producer_;
+				T pos_;
+
+			public:
+				Coord3Iter(const Coord3IterProducer<T>* producer, T pos) :
+					producer_(producer), pos_(pos) {}
+
+				bool operator!=(const Coord3Iter& other) const {
+					// TODO: using Point3 operator!= somehow pulls in Angle, which doesn't work for ints
+					// so define equality by hand here
+					return pos_.x != other.pos_.x ||
+						pos_.y != other.pos_.y ||
+						pos_.z != other.pos_.z;
+				}
+
+				T operator*() const {
+					return pos_;
+				}
+
+				const Coord3Iter& operator++() {
+					pos_ = producer_->next(pos_);
+					return *this;
+				}
+			};
+
+
+			template<Coord3Type T>
+			class ZYXCoordIter : Coord3IterProducer<T> {
+			private:
+				T start_;
+				T end_;
+
+			public:
+				ZYXCoordIter(const T& start, const T& end) {
+					start_.x = std::min(start.x, end.x);
+					start_.y = std::min(start.y, end.y);
+					start_.z = std::min(start.z, end.z);
+
+					end_.x = std::max(start.x, end.x);
+					end_.y = std::max(start.y, end.y);
+					end_.z = std::max(start.z, end.z);
+				}
+
+				Coord3Iter<T> begin() const {
+					return Coord3Iter<T>(this, start_);
+				}
+
+				Coord3Iter<T> end() const {
+					return Coord3Iter<T>(this, end_);
+				}
+
+				T next(const T& pos) const {
+					auto n(pos);
+					n.x++;
+					if (n.x == end_.x) {
+						n.x = start_.x;
+						n.y++;
+					}
+
+					if (n.y == end_.y) {
+						n.y = start_.y;
+						n.z++;
+					}
+
+					if (n.z == end_.z) {
+						// iteration complete
+						n = end_;
+					}
+
+					return n;
+				}
+			};
 		}
 	}
 }

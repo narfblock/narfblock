@@ -42,15 +42,11 @@ void narf::Chunk::put_block(const Block *b, const BlockCoord& c) {
 
 
 void narf::Chunk::fillRectPrism(const BlockCoord& c1, const BlockCoord& c2, uint8_t block_id) {
-	for (uint32_t z = c1.z; z < c2.z; z++) {
-		for (uint32_t y = c1.y; y < c2.y; y++) {
-			for (uint32_t x = c1.x; x < c2.x; x++) {
-				narf::Block b;
-				b.id = block_id;
-				BlockCoord c(x, y, z);
-				put_block(&b, c);
-			}
-		}
+	math::coord::ZYXCoordIter<BlockCoord> iter(c1, c2);
+	for (const auto& c : iter) {
+		narf::Block b;
+		b.id = block_id;
+		put_block(&b, c);
 	}
 }
 

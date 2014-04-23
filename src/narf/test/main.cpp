@@ -129,5 +129,11 @@ int main(int argc, char **argv)
 		}
 
 	}
+
+	printf("ZYXCoordIter test 0,0,0->2,2,2\n");
+	narf::math::coord::ZYXCoordIter<narf::math::coord::Point3<uint32_t>> iter({0, 0, 0}, {2, 2, 2});
+	for (const auto& c : iter) {
+		printf("%u,%u,%u\n", c.x, c.y, c.z);
+	}
 	return 0;
 }

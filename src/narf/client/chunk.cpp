@@ -133,55 +133,51 @@ void narf::client::Chunk::build_vertex_buffers()
 	vbo_.clear();
 
 	// draw blocks
-	for (uint32_t z = 0; z < size_z_; z++) {
-		for (uint32_t y = 0; y < size_y_; y++) {
-			for (uint32_t x = 0; x < size_x_; x++) {
-				BlockCoord c(x, y, z);
-				if (is_opaque(c)) {
-					const narf::Block *b = get_block(c);
+	math::coord::ZYXCoordIter<BlockCoord> iter({0, 0, 0}, {size_x_, size_y_, size_z_});
+	for (const auto& c : iter) {
+		if (is_opaque(c)) {
+			const narf::Block *b = get_block(c);
 
-					uint32_t world_x = x + pos_x_;
-					uint32_t world_y = y + pos_y_;
-					uint32_t world_z = z + pos_z_;
+			uint32_t world_x = c.x + pos_x_;
+			uint32_t world_y = c.y + pos_y_;
+			uint32_t world_z = c.z + pos_z_;
 
-					// TODO: handle the edges separately so this can use chunk-local accesses for most cases
+			// TODO: handle the edges separately so this can use chunk-local accesses for most cases
 
-					float fx = (float)world_x, fy = (float)world_y, fz = (float)world_z;
+			float fx = (float)world_x, fy = (float)world_y, fz = (float)world_z;
 
-					auto type = world_->getBlockType(b->id);
-					assert(type != nullptr);
+			auto type = world_->getBlockType(b->id);
+			assert(type != nullptr);
 
-					// don't render sides of the cube that are obscured by other opaque cubes
-					if (!world_->is_opaque({world_x, world_y + 1, world_z})) {
-						float quad[] = {fx+1,fy+1,fz+0, fx+0,fy+1,fz+0, fx+0,fy+1,fz+1, fx+1,fy+1,fz+1};
-						draw_quad(vbo_, type->texCoords[BlockFace::YPos], quad);
-					}
+			// don't render sides of the cube that are obscured by other opaque cubes
+			if (!world_->is_opaque({world_x, world_y + 1, world_z})) {
+				float quad[] = {fx+1,fy+1,fz+0, fx+0,fy+1,fz+0, fx+0,fy+1,fz+1, fx+1,fy+1,fz+1};
+				draw_quad(vbo_, type->texCoords[BlockFace::YPos], quad);
+			}
 
-					if (!world_->is_opaque({world_x, world_y - 1, world_z})) {
-						float quad[] = {fx+0,fy+0,fz+0, fx+1,fy+0,fz+0, fx+1,fy+0,fz+1, fx+0,fy+0,fz+1};
-						draw_quad(vbo_, type->texCoords[BlockFace::YNeg], quad);
-					}
+			if (!world_->is_opaque({world_x, world_y - 1, world_z})) {
+				float quad[] = {fx+0,fy+0,fz+0, fx+1,fy+0,fz+0, fx+1,fy+0,fz+1, fx+0,fy+0,fz+1};
+				draw_quad(vbo_, type->texCoords[BlockFace::YNeg], quad);
+			}
 
-					if (!world_->is_opaque({world_x + 1, world_y, world_z})) {
-						float quad[] = {fx+1,fy+0,fz+0, fx+1,fy+1,fz+0, fx+1,fy+1,fz+1, fx+1,fy+0,fz+1};
-						draw_quad(vbo_, type->texCoords[BlockFace::XPos], quad);
-					}
+			if (!world_->is_opaque({world_x + 1, world_y, world_z})) {
+				float quad[] = {fx+1,fy+0,fz+0, fx+1,fy+1,fz+0, fx+1,fy+1,fz+1, fx+1,fy+0,fz+1};
+				draw_quad(vbo_, type->texCoords[BlockFace::XPos], quad);
+			}
 
-					if (!world_->is_opaque({world_x - 1, world_y, world_z})) {
-						float quad[] = {fx+0,fy+1,fz+0, fx+0,fy+0,fz+0, fx+0,fy+0,fz+1, fx+0,fy+1,fz+1};
-						draw_quad(vbo_, type->texCoords[BlockFace::XNeg], quad);
-					}
+			if (!world_->is_opaque({world_x - 1, world_y, world_z})) {
+				float quad[] = {fx+0,fy+1,fz+0, fx+0,fy+0,fz+0, fx+0,fy+0,fz+1, fx+0,fy+1,fz+1};
+				draw_quad(vbo_, type->texCoords[BlockFace::XNeg], quad);
+			}
 
-					if (world_z == world_->size_z() - 1 || !world_->is_opaque({world_x, world_y, world_z + 1})) {
-						float quad[] = {fx+0,fy+0,fz+1, fx+1,fy+0,fz+1, fx+1,fy+1,fz+1, fx+0,fy+1,fz+1};
-						draw_quad(vbo_, type->texCoords[BlockFace::ZPos], quad);
-					}
+			if (world_z == world_->size_z() - 1 || !world_->is_opaque({world_x, world_y, world_z + 1})) {
+				float quad[] = {fx+0,fy+0,fz+1, fx+1,fy+0,fz+1, fx+1,fy+1,fz+1, fx+0,fy+1,fz+1};
+				draw_quad(vbo_, type->texCoords[BlockFace::ZPos], quad);
+			}
 
-					if (world_z != 0 && !world_->is_opaque({world_x, world_y, world_z - 1})) {
-						float quad[] = {fx+0,fy+1,fz+0, fx+1,fy+1,fz+0, fx+1,fy+0,fz+0, fx+0,fy+0,fz+0};
-						draw_quad(vbo_, type->texCoords[BlockFace::ZNeg], quad);
-					}
-				}
+			if (world_z != 0 && !world_->is_opaque({world_x, world_y, world_z - 1})) {
+				float quad[] = {fx+0,fy+1,fz+0, fx+1,fy+1,fz+0, fx+1,fy+0,fz+0, fx+0,fy+0,fz+0};
+				draw_quad(vbo_, type->texCoords[BlockFace::ZNeg], quad);
 			}
 		}
 	}

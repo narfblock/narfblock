@@ -668,20 +668,17 @@ int randi(int min, int max)
 	return (int)randf((float)min, (float)max); // HAX
 }
 
-void fill_rect_prism(uint32_t x1, uint32_t x2, uint32_t y1, uint32_t y2, uint32_t z1, uint32_t z2, uint8_t block_id) {
-	for (uint32_t z = z1; z < z2; z++) {
-		for (uint32_t y = y1; y < y2; y++) {
-			for (uint32_t x = x1; x < x2; x++) {
-				narf::Block b;
-				b.id = block_id;
-				world->put_block(&b, {x, y, z});
-			}
-		}
+void fillRectPrism(const narf::World::BlockCoord& c1, const narf::World::BlockCoord& c2, uint8_t block_id) {
+	narf::math::coord::ZYXCoordIter<narf::World::BlockCoord> iter(c1, c2);
+	for (const auto& c : iter) {
+		narf::Block b;
+		b.id = block_id;
+		world->put_block(&b, c);
 	}
 }
 
 void fill_plane(uint32_t z, uint8_t block_id) {
-	fill_rect_prism(0, WORLD_X_MAX, 0, WORLD_Y_MAX, z, z + 1, block_id);
+	fillRectPrism({0, 0, z}, {WORLD_X_MAX, WORLD_Y_MAX, z + 1}, block_id);
 }
 
 
@@ -736,8 +733,13 @@ void gen_world()
 	auto stone2 = world->addBlockType(genNormalBlockType(16, 16, 16, 16, 16, 16)); // stone2
 	world->addBlockType(genNormalBlockType(17, 17, 17, 17, 17, 17)); // stone3
 
-	for (int z = 16; z < 23; z++) {
-		fill_rect_prism(30 + z, 35 + (10 - z), 30 + z, 35 + (10 - z), z, z + 1, stone2);
+	for (uint32_t z = 16; z < 23; z++) {
+		//fillRectPrism(30 + z, 35 + (z - 16), 30 + z, 35 + (z - 16), z, z + 1, stone2);
+		auto size = (23 - 16) - (z - 16);
+		fillRectPrism(
+			{30 + z, 30 + z, z},
+			{30 + z + size * 2 - 1, 30 + z + size * 2 - 1, z + 1},
+			stone2);
 	}
 
 	// generate some random blocks above the ground
