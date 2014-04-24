@@ -177,6 +177,10 @@ namespace narf {
 
 			public:
 				ZYXCoordIter(const T& start, const T& end) {
+					assert(start.x != end.x);
+					assert(start.y != end.y);
+					assert(start.z != end.z);
+
 					start_.x = std::min(start.x, end.x);
 					start_.y = std::min(start.y, end.y);
 					start_.z = std::min(start.z, end.z);
