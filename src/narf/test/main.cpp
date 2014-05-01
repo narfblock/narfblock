@@ -135,5 +135,17 @@ int main(int argc, char **argv)
 	for (const auto& c : iter) {
 		printf("%u,%u,%u\n", c.x, c.y, c.z);
 	}
+
+#define TEST_ILOG2(n) printf("ilog2(%u) = %u (%s)\n", n, narf::math::ilog2(n), narf::math::ilog2(n) == (uint32_t)(log((double)n) / log(2.0)) ? "OK" : "FAIL")
+
+	TEST_ILOG2(0);
+	TEST_ILOG2(1);
+	TEST_ILOG2(2);
+	TEST_ILOG2(3);
+	TEST_ILOG2(4);
+	TEST_ILOG2(5);
+	TEST_ILOG2(6);
+	TEST_ILOG2(15);
+	TEST_ILOG2(16);
 	return 0;
 }
