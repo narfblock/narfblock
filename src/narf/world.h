@@ -76,7 +76,7 @@ public:
 	void set_gravity(float g) { gravity_ = g; }
 	float get_gravity() { return gravity_; }
 
-	void rayTrace(narf::math::coord::Point3f basePoint, narf::math::Vector3f direction,
+	static void rayTrace(narf::math::coord::Point3f basePoint, narf::math::Vector3f direction,
 		std::function<bool(const narf::math::coord::Point3f&, const BlockCoord&, const BlockFace&)> test);
 
 	Entity::ID newEntity();
