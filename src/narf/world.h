@@ -38,6 +38,7 @@
 #include <assert.h>
 
 #include <vector>
+#include <functional>
 
 #include "narf/block.h"
 #include "narf/chunk.h"
@@ -75,7 +76,8 @@ public:
 	void set_gravity(float g) { gravity_ = g; }
 	float get_gravity() { return gravity_; }
 
-	BlockWrapper rayTrace(narf::math::coord::Point3f basePoint, narf::math::Vector3f direction, float max_distance);
+	void rayTrace(narf::math::coord::Point3f basePoint, narf::math::Vector3f direction,
+		std::function<bool(const narf::math::coord::Point3f&, const BlockCoord&, const BlockFace&)> test);
 
 	Entity::ID newEntity();
 

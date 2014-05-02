@@ -516,9 +516,27 @@ void sim_frame(const narf::Input &input, double t, double dt)
 
 	// Let's see what we're looking at
 	auto pos = narf::math::coord::Point3f(cam.position.x, cam.position.y, cam.position.z);
-	selected_block_face = world->rayTrace(pos, cam.orientation, 7.5);
+	auto maxInteractDistance = 7.5f;
+	selected_block_face = {};
+	bool traceHitBlock = false;
+	world->rayTrace(pos, cam.orientation,
+		[&](const narf::math::coord::Point3f& point, const narf::World::BlockCoord& blockCoord, const narf::BlockFace& face){
+			// TODO: stop the trace if it runs off the edge of the world vertically
+			if (point.distanceTo(pos) >= maxInteractDistance) {
+				return true; // ran out of distance
+			}
 
-	if (selected_block_face.block != nullptr) {
+			auto block = world->get_block(blockCoord);
+			if (block->id != 0) {
+				// found a solid block
+				selected_block_face = {block, (int32_t)blockCoord.x, (int32_t)blockCoord.y, (int32_t)blockCoord.z, face};
+				traceHitBlock = true;
+				return true; // stop the trace
+			}
+			return false; // keep going
+		});
+
+	if (traceHitBlock) {
 		if (input.action_primary_begin() || input.action_secondary_begin()) {
 			narf::console->println("got " + std::string(input.action_primary_begin() ? "left" : "right") + " click " +
 				std::to_string(selected_block_face.x) + " " +

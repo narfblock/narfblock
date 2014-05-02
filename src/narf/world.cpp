@@ -254,61 +254,48 @@ static narf::math::coord::Point3f nextBlockIntersect(const narf::math::coord::Po
 	return finalPoint;
 }
 
-narf::BlockWrapper narf::World::rayTrace(narf::math::coord::Point3f basePoint, narf::math::Vector3f direction, float max_distance) {
-	const Block* block;
-	bool found = false;
-
+void narf::World::rayTrace(narf::math::coord::Point3f basePoint, narf::math::Vector3f direction, std::function<bool(const narf::math::coord::Point3f&, const BlockCoord&, const BlockFace&)> test) {
 	narf::math::coord::Point3f prevPoint = basePoint;
-	narf::math::coord::Point3f point = basePoint;
+	narf::World::BlockCoord prevBlockCoord(0, 0, 0);
 
 	float xDir = (direction.x > 0) ? 1.0f : -1.0f;
 	float yDir = (direction.y > 0) ? 1.0f : -1.0f;
 	float zDir = (direction.z > 0) ? 1.0f : -1.0f;
 
-	BlockCoord blockCoord(0, 0, 0);
-	auto prevblockCoord = blockCoord;
+	while (1) {
+		auto point = nextBlockIntersect(prevPoint, direction, xDir, yDir, zDir);
 
-	while (basePoint.distanceTo(point) < max_distance) {
-		point = nextBlockIntersect(prevPoint, direction, xDir, yDir, zDir);
+		BlockCoord blockCoord(0, 0, 0);
 		blockCoord.x = (uint32_t)floor(point.x - xDir * 0.000000000001);
 		blockCoord.y = (uint32_t)floor(point.y - yDir * 0.000000000001);
 		blockCoord.z = (uint32_t)floor(point.z - zDir * 0.000000000001);
-		block = get_block(blockCoord);
-		if (block->id != 0) {
-			found = true;
-			break;
+
+		BlockFace face = narf::BlockFace::Invalid;
+		if (blockCoord.x != prevBlockCoord.x) {
+			if (blockCoord.x > prevBlockCoord.x) {
+				face = narf::XNeg;
+			} else {
+				face = narf::XPos;
+			}
+		} else if (blockCoord.y != prevBlockCoord.y) {
+			if (blockCoord.y > prevBlockCoord.y) {
+				face = narf::YNeg;
+			} else {
+				face = narf::YPos;
+			}
+		} else if (blockCoord.z != prevBlockCoord.z) {
+			if (blockCoord.z > prevBlockCoord.z) {
+				face = narf::ZNeg;
+			} else {
+				face = narf::ZPos;
+			}
 		}
+
+		if (test(point, blockCoord, face)) {
+			return;
+		}
+
 		prevPoint = point;
-		prevblockCoord = blockCoord;
+		prevBlockCoord = blockCoord;
 	}
-
-	if (!found) {
-		narf::BlockWrapper tmp = {nullptr};
-		return tmp;
-	}
-
-	BlockFace face = narf::Invalid;
-	if (blockCoord.x != prevblockCoord.x) {
-		if (blockCoord.x > prevblockCoord.x) {
-			face = narf::XNeg;
-		} else {
-			face = narf::XPos;
-		}
-	} else if (blockCoord.y != prevblockCoord.y) {
-		if (blockCoord.y > prevblockCoord.y) {
-			face = narf::YNeg;
-		} else {
-			face = narf::YPos;
-		}
-	} else if (blockCoord.z != prevblockCoord.z) {
-		if (blockCoord.z > prevblockCoord.z) {
-			face = narf::ZNeg;
-		} else {
-			face = narf::ZPos;
-		}
-	}
-
-	BlockWrapper tmp = {block, (int32_t)blockCoord.x, (int32_t)blockCoord.y, (int32_t)blockCoord.z, face};
-	return tmp;
 }
-
