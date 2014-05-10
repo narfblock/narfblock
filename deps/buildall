@@ -30,6 +30,7 @@ for host_triplet in ${hosts}; do
 	# blow away any existing builds
 	rm -rf "${deps}/${host_triplet}"
 
+	build enet
 	build zlib
 	build libpng
 	build sdl2

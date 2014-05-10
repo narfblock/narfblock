@@ -3,6 +3,8 @@
 #include "narf/cmd/cmd.h"
 #include "narf/util/path.h"
 
+#include <enet/enet.h>
+
 bool quitServerLoop = false;
 
 
@@ -29,6 +31,12 @@ int main(int argc, char **argv)
 
 	narf::console->println("Hello, world - I'm a server.");
 	narf::console->println("Version: " + std::to_string(VERSION_MAJOR) + "." + std::to_string(VERSION_MINOR) + std::string(VERSION_RELEASE) + "+" VERSION_REV);
+
+	if (enet_initialize() != 0) {
+		narf::console->println("Error initializing ENet");
+		return 1;
+	}
+
 	narf::console->println("Executable filename:  " + narf::util::exeName());
 	narf::console->println("Executable directory: " + narf::util::exeDir());
 	narf::console->println("Data directory: " + narf::util::dataDir());
@@ -39,6 +47,6 @@ int main(int argc, char **argv)
 	serverLoop();
 
 	delete narf::console;
-
+	enet_deinitialize();
 	return 0;
 }

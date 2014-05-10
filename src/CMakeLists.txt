@@ -29,6 +29,7 @@ find_package (Curses REQUIRED)
 find_package (Poco REQUIRED)
 find_package (PNG REQUIRED)
 find_package (ZLIB REQUIRED)
+find_package (ENet REQUIRED)
 
 include (DownloadFont)
 
@@ -93,6 +94,7 @@ include_directories (
 	"${CURSES_INCLUDE_DIR}"
 	"${PocoFoundation_INCLUDE_DIR}"
 	"${PocoUtil_INCLUDE_DIR}"
+	"${ENet_INCLUDE_DIRS}"
 	"${PROJECT_SOURCE_DIR}"
 	"${PROJECT_BINARY_DIR}"
 	)
@@ -156,6 +158,7 @@ target_link_libraries (narfblock
 	${OPENGL_LIBRARY}
 	${SDL2IMAGE_LIBRARY}
 	${SDL2_LIBRARY}
+	${ENet_LIBRARIES}
 	${CMAKE_THREAD_LIBS_INIT}
 	)
 
@@ -172,6 +175,7 @@ target_link_libraries (narfblock-server
 	${PocoFoundation_LIBRARY}
 	${CMAKE_THREAD_LIBS_INIT}
 	${CURSES_LIBRARY}
+	${ENet_LIBRARIES}
 	)
 
 # unit test executable
