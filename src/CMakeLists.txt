@@ -189,6 +189,7 @@ add_executable (narfblock-test
 target_link_libraries (narfblock-test
 	${PocoUtil_LIBRARY}
 	${PocoFoundation_LIBRARY}
+	${ENet_LIBRARIES}
 	${CMAKE_THREAD_LIBS_INIT}
 	)
 

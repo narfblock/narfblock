@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
 
 bool narf::net::splitHostPort(const std::string &addr, std::string &host, uint16_t &port) {
 	size_t portPos;
@@ -51,4 +52,12 @@ bool narf::net::splitHostPort(const std::string &addr, std::string &host, uint16
 	}
 
 	return true;
+}
+
+
+std::string narf::net::to_string(const ENetAddress& address) {
+	char buf[3 * 4 + 3 + 1 + 5 + 1]; // 3-digit octet * 4 octets + 3 dots + colon + 5-digit port + terminator
+	uint32_t host = ntohl(address.host);
+	snprintf(buf, sizeof(buf), "%u.%u.%u.%u:%u", host >> 24, (host >> 16) & 0xFF, (host >> 8) & 0xFF, host & 0xFF, address.port);
+	return buf;
 }

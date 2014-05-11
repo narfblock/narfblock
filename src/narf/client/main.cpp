@@ -12,6 +12,8 @@
 #include <Poco/BasicEvent.h>
 #include <Poco/Delegate.h>
 
+#include <enet/enet.h>
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -28,6 +30,7 @@
 #include "narf/cmd/cmd.h"
 #include "narf/config/config.h"
 #include "narf/math/math.h"
+#include "narf/net/net.h"
 #include "narf/util/path.h"
 #include "narf/util/tokenize.h"
 
@@ -71,6 +74,20 @@ narf::font::TextBuffer *entityInfoBuffer;
 narf::font::TextBuffer *location_buffer;
 
 narf::BlockWrapper selected_block_face;
+
+ENetHost* client = nullptr;
+ENetPeer* server = nullptr;
+
+enum class ConnectState {
+	Unconnected,
+	Connecting,
+	Connected,
+};
+
+ConnectState connectState = ConnectState::Unconnected;
+double connectTimeoutEnd = 0.0;
+
+const double connectTimeout = 5.0;
 
 // debug options
 bool wireframe = false;
@@ -422,6 +439,18 @@ void draw() {
 }
 
 
+void chat(const std::string& text) {
+	if (connectState != ConnectState::Connected) {
+		narf::console->println("Not connected");
+		return;
+	}
+
+	auto packet = enet_packet_create(text.c_str(), text.length(), ENET_PACKET_FLAG_RELIABLE);
+	enet_peer_send(server, 0, packet);
+	enet_host_flush(client); // TODO: probably not necessary?
+}
+
+
 void poll_input(narf::Input *input)
 {
 	SDL_Event e;
@@ -437,7 +466,11 @@ void poll_input(narf::Input *input)
 void sim_frame(const narf::Input &input, double t, double dt)
 {
 	if (input.text() != "") {
-		narf::cmd::exec(input.text());
+		if (input.text()[0] == '/') { // commands begin with slash
+			narf::cmd::exec(input.text().substr(1));
+		} else {
+			chat(input.text());
+		}
 	}
 
 
@@ -607,6 +640,51 @@ double get_time()
 	return (double)SDL_GetTicks() * 0.001; // SDL tick is a millisecond; convert to seconds
 }
 
+void pollNet()
+{
+	if (connectState != ConnectState::Connecting &&
+		connectState != ConnectState::Connected) {
+		return;
+	}
+
+	// wait for the connection to succeed
+	ENetEvent evt;
+	if (enet_host_service(client, &evt, 0) > 0) {
+		switch (evt.type) {
+		case ENET_EVENT_TYPE_CONNECT:
+			connectState = ConnectState::Connected;
+			narf::console->println("Connected to server " + narf::net::to_string(evt.peer->address));
+			break;
+
+		case ENET_EVENT_TYPE_DISCONNECT:
+			narf::console->println("Disconnected from " + narf::net::to_string(evt.peer->address));
+			evt.peer->data = nullptr;
+			connectState = ConnectState::Unconnected;
+			break;
+
+		case ENET_EVENT_TYPE_RECEIVE: {
+			//narf::console->println("Got packet from " + narf::net::to_string(evt.peer->address) + " channel " + std::to_string(evt.channelID) + " size " + std::to_string(evt.packet->dataLength));
+			std::string text((char*)evt.packet->data, evt.packet->dataLength);
+			narf::console->println(text);
+			break;
+		}
+
+		case ENET_EVENT_TYPE_NONE:
+			// make the compiler shut up about unhandled enum value
+			break;
+		}
+	}
+
+	if (connectState == ConnectState::Connecting &&
+		get_time() >= connectTimeoutEnd) {
+		narf::console->println("Connection attempt timed out"); // TODO: use to_string
+
+		enet_peer_reset(server);
+		// TODO: is server valid at this point? do we need to destroy it?
+		server = nullptr;
+		connectState = ConnectState::Unconnected;
+	}
+}
 
 void game_loop()
 {
@@ -641,6 +719,9 @@ void game_loop()
 			if (input.exit() || quitGameLoop) {
 				return;
 			}
+
+			pollNet();
+
 			sim_frame(input, t, physicsTickStep);
 			physics_steps++;
 
@@ -803,6 +884,59 @@ void cmdQuit(const std::string &args) {
 	quitGameLoop = true;
 }
 
+void cmdConnect(const std::string& args) {
+	if (connectState != ConnectState::Unconnected) {
+		narf::console->println("already connected");
+		// TODO: disconnect?
+		return;
+	}
+
+	auto addrStr = args; // TODO: parse extra parameters?
+
+	std::string host;
+	uint16_t port;
+	if (!narf::net::splitHostPort(addrStr, host, port)) {
+		narf::console->println("connect: could not parse address '" + addrStr + "'");
+		return;
+	}
+
+	if (port == 0) {
+		port = narf::net::DEFAULT_PORT;
+	}
+
+	narf::console->println("Connecting to " + host + ":" + std::to_string(port) + "...");
+
+	ENetAddress addr;
+	// TODO: this does a blocking DNS lookup
+	if (enet_address_set_host(&addr, host.c_str()) < 0) {
+		narf::console->println("Name lookup failed for '" + host + "'");
+		return;
+	}
+	addr.port = port;
+
+	server = enet_host_connect(client, &addr, narf::net::MAX_CHANNELS, 0);
+	if (!server) {
+		narf::console->println("connect: enet_host_connect failed");
+		// TODO: destroy client
+		return;
+	}
+
+	narf::console->println("Connecting to " + narf::net::to_string(addr) + "...");
+	connectState = ConnectState::Connecting;
+	connectTimeoutEnd = get_time() + connectTimeout;
+}
+
+
+void cmdDisconnect(const std::string& args) {
+	if (connectState != ConnectState::Unconnected){
+		narf::console->println("Disconnecting...");
+		enet_peer_disconnect(server, (uint32_t)narf::net::DisconnectType::UserQuit);
+		enet_host_flush(client);
+	} else {
+		narf::console->println("Not connected");
+	}
+}
+
 
 void fatalError(const std::string& msg) {
 	if (narf::console) {
@@ -825,14 +959,27 @@ extern "C" int main(int argc, char **argv)
 
 	narf::console->println("Version: " + std::to_string(VERSION_MAJOR) + "." + std::to_string(VERSION_MINOR) + std::string(VERSION_RELEASE) + "+" VERSION_REV);
 
+	if (enet_initialize() != 0) {
+		narf::console->println("Error initializing ENet");
+		return 1;
+	}
+
 	narf::cmd::cmds["set"] = cmdSet;
 	narf::cmd::cmds["quit"] = cmdQuit;
+	narf::cmd::cmds["connect"] = cmdConnect;
+	narf::cmd::cmds["disconnect"] = cmdDisconnect;
 
 	auto config_file = Poco::Path(narf::util::dataDir(), "client.ini").toString();
 	narf::console->println("Client config file: " + config_file);
 	config.load("client", config_file);
 	config.propertyChanged += Poco::delegate(&configEventHandler, &ConfigEventHandler::onPropertyChanged);
 	config.enableEvents(true);
+
+	client = enet_host_create(nullptr, 1, narf::net::MAX_CHANNELS, 0, 0);
+	if (!client) {
+		fatalError("Could not create ENet client");
+		return 1;
+	}
 
 	if (SDL_Init(SDL_INIT_TIMER | SDL_INIT_VIDEO) < 0) {
 		fatalError("SDL_Init(SDL_INIT_EVERYTHING) failed: " + std::string(SDL_GetError()));
@@ -952,6 +1099,15 @@ extern "C" int main(int argc, char **argv)
 
 	game_loop();
 
+	if (connectState == ConnectState::Connected) {
+		enet_peer_disconnect(server, (uint32_t)narf::net::DisconnectType::UserQuit);
+	} else if (connectState == ConnectState::Connecting) {
+		enet_peer_reset(server);
+	}
+
+	enet_host_flush(client);
+	enet_host_destroy(client);
+	enet_deinitialize();
 	SDL_Quit();
 	return 0;
 }
