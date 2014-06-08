@@ -35,6 +35,8 @@ bool narf::gl::Context::setDisplayMode(const char *title, int width, int height,
 	Uint32 flags = SDL_WINDOW_OPENGL;
 	if (fullscreen) {
 		flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
+	} else {
+		flags |= SDL_WINDOW_RESIZABLE;
 	}
 
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
@@ -56,8 +58,6 @@ bool narf::gl::Context::setDisplayMode(const char *title, int width, int height,
 		console->println("Error initializing GLEW: " + std::string((const char *)glewGetErrorString(glew_err)));
 		return false;
 	}
-
-	glViewport(0, 0, width, height);
 
 	// set window icon
 #ifdef _WIN32

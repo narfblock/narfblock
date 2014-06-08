@@ -166,6 +166,13 @@ void narf::Input::processTextEvent(const SDL_Event *event) {
 	case SDL_TEXTINPUT:
 		textEditor.addString(event->text.text);
 		return;
+
+	case SDL_MOUSEMOTION:
+	case SDL_MOUSEBUTTONDOWN:
+	case SDL_MOUSEBUTTONUP:
+		// eat mouse input for now
+		// TODO: mouse-based cursor movement and selection
+		return;
 	}
 
 	// pass any unhandled input to normal handler

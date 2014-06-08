@@ -345,6 +345,15 @@ void draw_cursor() {
 }
 
 
+void updateConsoleSize() {
+	auto consoleX = 0;
+	auto consoleY = 0;
+	auto consoleWidth = display->width();
+	auto consoleHeight = 175; // TODO: calculate dynamically based on screen size
+	clientConsole->setLocation(consoleX, consoleY, consoleWidth, consoleHeight);
+}
+
+
 void draw2d() {
 	// draw 2d overlays
 
@@ -400,6 +409,7 @@ void draw2d() {
 	location_buffer->clear();
 	location_buffer->print(location_str, 0, (float)display->height() - hudFontHeight * 2.0f, blue);
 
+	updateConsoleSize();
 	clientConsole->render();
 	fps_text_buffer->render();
 	block_info_buffer->render();
@@ -410,6 +420,8 @@ void draw2d() {
 
 void draw() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	glViewport(0, 0, display->width(), display->height());
 
 	draw3d();
 	draw2d();
@@ -476,6 +488,12 @@ void sim_frame(const narf::Input &input, double t, double dt)
 
 	// tell the console whether to draw the cursor
 	clientConsole->setEditState(input.state() == narf::Input::InputStateText);
+
+	if (input.state() == narf::Input::InputStateText) {
+		SDL_SetRelativeMouseMode(SDL_FALSE);
+	} else {
+		SDL_SetRelativeMouseMode(SDL_TRUE);
+	}
 
 	// TODO: decouple player direction and camera direction
 	cam.orientation.yaw -= input.look_rel().x;
@@ -1079,18 +1097,7 @@ extern "C" int main(int argc, char **argv)
 		return 1;
 	}
 
-	auto consoleX = 0;
-	auto consoleY = 0;
-	auto consoleWidth = display->width();
-	auto consoleHeight = 175; // TODO: calculate dynamically based on screen size
-
 	config.initString("client.video.consoleCursorShape", "default");
-
-	narf::console->println("Console location: (" +
-		std::to_string(consoleX) + ", " + std::to_string(consoleY) + ") " +
-		std::to_string(consoleWidth) + "x" + std::to_string(consoleHeight));
-
-	clientConsole->setLocation(consoleX, consoleY, consoleWidth, consoleHeight);
 
 	SDL_SetRelativeMouseMode(SDL_TRUE);
 

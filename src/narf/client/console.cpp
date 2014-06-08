@@ -81,11 +81,16 @@ void narf::client::Console::setFont(narf::font::Font *font) {
 
 
 void narf::client::Console::setLocation(int x, int y, int width, int height) {
-	impl->x = x;
-	impl->y = y;
-	impl->width = width;
-	impl->height = height;
-	update();
+	if (impl->x != x ||
+		impl->y != y ||
+		impl->width != width ||
+		impl->height != height) {
+		impl->x = x;
+		impl->y = y;
+		impl->width = width;
+		impl->height = height;
+		update();
+	}
 }
 
 
