@@ -31,9 +31,10 @@
  */
 
 #include <assert.h>
-#include <algorithm>
 
 #include "narf/client/world.h"
+
+#include <algorithm>
 
 void draw_cube(float x, float y, float z, uint8_t type, unsigned draw_face_mask);
 
