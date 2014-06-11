@@ -9,7 +9,7 @@ cd "$(dirname $0)"
 deps="$PWD"
 export deps
 
-export make_flags='-j12'
+export make_flags=${make_flags:--j2}
 
 hosts=""
 
