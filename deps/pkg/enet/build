@@ -14,10 +14,6 @@ tar xf "${files}/${src}"
 cd enet-*
 
 ./configure --host=${host_triplet} --prefix=${prefix} \
-    --disable-render \
-    --disable-render-d3d \
-    --disable-haptic \
-    --disable-diskaudio \
     --enable-static --disable-shared
 
 make ${make_flags} install
