@@ -1,14 +1,6 @@
 ##### This file should not be executed directly; it is sourced by other scripts.
 
 source "${deps}/host/${host_triplet}"
-export LDFLAGS_NOWL=$(echo "${LDFLAGS}" | sed -e "s/-Wl,//g")
-
-echo "Configuration for ${host_triplet}:"
-echo "CFLAGS:       ${CFLAGS}"
-echo "CXXFLAGS:     ${CXXFLAGS}"
-echo "LDFLAGS raw:  ${LDFLAGS_NOWL}"
-echo "LDFLAGS:      ${LDFLAGS}"
-
 
 pkg="$(basename $(dirname $0))"
 files="${deps}/files"
@@ -58,10 +50,31 @@ export LD=${host_prefix}ld
 export WINDRES=${host_prefix}windres
 
 # some native MinGW toolchains don't have some host-prefixed tools
-which "${AR}" || export AR=ar
-which "${STRIP}" || export STRIP=strip
-which "${RANLIB}" || export RANLIB=ranlib
-which "${LD}" || export LD=ld
-which "${WINDRES}" || export WINDRES=windres
+which "${AR}" &> /dev/null || export AR=ar
+which "${STRIP}" &> /dev/null || export STRIP=strip
+which "${RANLIB}" &> /dev/null || export RANLIB=ranlib
+which "${LD}" &> /dev/null || export LD=ld
+which "${WINDRES}" &> /dev/null || export WINDRES=windres
 
 export PKG_CONFIG_PATH=${prefix}/lib/pkgconfig
+
+export CFLAGS="${CFLAGS} -I${prefix}/include"
+export LDFLAGS="${LDFLAGS} -L${prefix}/lib"
+
+export LDFLAGS_NOWL=$(echo "${LDFLAGS}" | sed -e "s/-Wl,//g")
+
+echo "Configuration for ${host_triplet}:"
+echo "CFLAGS:           ${CFLAGS}"
+echo "CXXFLAGS:         ${CXXFLAGS}"
+echo "LDFLAGS raw:      ${LDFLAGS_NOWL}"
+echo "LDFLAGS:          ${LDFLAGS}"
+echo "PKG_CONFIG_PATH:  ${PKG_CONFIG_PATH}"
+echo
+echo "CC:               ${CC}"
+echo "CXX:              ${CXX}"
+echo "AR:               ${AR}"
+echo "RANLIB:           ${RANLIB}"
+echo "STRIP:            ${STRIP}"
+echo "LD:               ${LD}"
+echo "WINDRES:          ${WINDRES}"
+echo
