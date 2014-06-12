@@ -14,9 +14,9 @@ tar xf "${files}/${src}"
 cd zlib-*
 
 sed \
-	-e "s/\$(PREFIX)windres/${WINDRES}/" \
-	-e "s/\$(PREFIX)strip/${STRIP}/" \
-	-e "s/\$(PREFIX)ar/${AR}/" \
+	-e "s|\$(PREFIX)windres|${WINDRES}|" \
+	-e "s|\$(PREFIX)strip|${STRIP}|" \
+	-e "s|\$(PREFIX)ar|${AR}|" \
 	< win32/Makefile.gcc > win32/Makefile.gcc.custom
 
 make ${make_flags} -f win32/Makefile.gcc.custom \

@@ -18,11 +18,11 @@ sed \
 	-e 's/$(PDCURSES_SRCDIR)\\/$(PDCURSES_SRCDIR)\//g' \
 	-e 's/type/cat/g' \
 	-e 's/copy/cp/g' \
-	-e "s/\\<gcc\\>/${CC}/g" \
-	-e "s/\\<ar\\>/${AR}/g" \
-	-e "s/\\<strip\\>/${STRIP}/g" \
-	-e "s/-O2 -Wall/${CFLAGS}/g" \
-	-e "s/-shared/& ${LDFLAGS}/g" \
+	-e "s|\\<gcc\\>|${CC}|g" \
+	-e "s|\\<ar\\>|${AR}|g" \
+	-e "s|\\<strip\\>|${STRIP}|g" \
+	-e "s|-O2 -Wall|${CFLAGS}|g" \
+	-e "s|-shared|& ${LDFLAGS}|g" \
 	< mingwin32.mak > custom.mak
 
 make ${make_flags} -f custom.mak DLL=N WIDE=Y UTF8=Y

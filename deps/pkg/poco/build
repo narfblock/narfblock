@@ -16,10 +16,10 @@ cd poco-*
 sed \
     -e 's/-mno-cygwin//g' \
     -e "s/i686-pc-mingw32/${host_triplet}/g" \
-	-e "s/-O2/${CFLAGS}/g" \
-	-e "s/\$(CROSSENV)-ar/${AR}/" \
-	-e "s/\$(CROSSENV)-ranlib/${RANLIB}/" \
-	< build/config/MinGW-CrossEnv > build/config/MinGW-custom
+    -e "s|-O2|${CFLAGS}|g" \
+    -e "s|\$(CROSSENV)-ar|${AR}|" \
+    -e "s|\$(CROSSENV)-ranlib|${RANLIB}|" \
+    < build/config/MinGW-CrossEnv > build/config/MinGW-custom
 
 sed -i \
     -e 's/_MSC_VER/_WIN32/' \

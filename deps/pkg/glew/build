@@ -14,8 +14,8 @@ tar xf "${files}/${src}"
 cd glew-*
 
 sed \
-	-e "s/i586-mingw32msvc-gcc/${CC}/g" \
-	-e "s/i586-mingw32msvc-ld/${LD}/g" \
+	-e "s|i586-mingw32msvc-gcc|${CC}|g" \
+	-e "s|i586-mingw32msvc-ld|${LD}|g" \
 	-e "s/GLEW_BUILD/GLEW_STATIC/g" \
 	< config/Makefile.linux-mingw32 > config/Makefile.custom
 
