@@ -17,18 +17,23 @@ function disable_feature(){
     sed -i -e "s/#define $1/#undef $1/" include/config/ftoption.h
 }
 
+function enable_feature(){
+    sed -i -e "s:/\* #define $1 \*/:#define $1:" include/config/ftoption.h
+}
+
 function disable_module(){
     sed -i -e "s/^.*+= $1\$/#&/" modules.cfg
 }
 
 disable_feature FT_CONFIG_OPTION_USE_LZW
-disable_feature FT_CONFIG_OPTION_USE_ZLIB
 disable_feature FT_CONFIG_OPTION_POSTSCRIPT_NAMES
 disable_feature FT_CONFIG_OPTION_ADOBE_GLYPH_LIST
 disable_feature FT_CONFIG_OPTION_MAC_FONTS
 disable_feature FT_CONFIG_OPTION_INCREMENTAL
 disable_feature TT_CONFIG_OPTION_POSTSCRIPT_NAMES
 disable_feature TT_CONFIG_OPTION_SFNT_NAMES
+
+enable_feature FT_CONFIG_OPTION_SYSTEM_ZLIB
 
 disable_module type1
 disable_module cff
@@ -39,7 +44,6 @@ disable_module winfonts
 disable_module pcf
 disable_module bdf
 disable_module pshinter
-disable_module gzip
 disable_module lzw
 disable_module bzip2
 disable_module psaux
