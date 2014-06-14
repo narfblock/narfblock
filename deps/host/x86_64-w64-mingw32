@@ -1,3 +1,4 @@
 export CFLAGS='-Wall -O2 -m64 -mtune=generic -fno-ident'
 export CXXFLAGS="${CFLAGS}"
 export LDFLAGS='-Wl,--dynamicbase -Wl,--nxcompat'
+export arch=x86_64

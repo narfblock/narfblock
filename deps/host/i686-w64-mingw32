@@ -2,3 +2,4 @@
 export CFLAGS='-Wall -O2 -m32 -march=pentium3 -mtune=generic -mno-sse -mmmx -fno-ident'
 export CXXFLAGS="${CFLAGS}"
 export LDFLAGS='-Wl,--dynamicbase -Wl,--nxcompat -Wl,--large-address-aware'
+export arch=x86
