@@ -37,4 +37,9 @@ SYSTEM=custom GLEW_DEST=${prefix} make -f Makefile.custom ${MAKEFLAGS} \
 # install the static lib
 install -c -m 644 lib/libglew32.a ${prefix}/lib/
 
+cat >> ${prefix}/deps.cmake << EOF
+set(GLEW_INCLUDE_DIR "${prefix}/include" CACHE PATH "")
+set(GLEW_LIBRARY "${prefix}/lib/libglew32.a" CACHE FILEPATH "")
+EOF
+
 cd "${deps}"; rm -rf "${work}"

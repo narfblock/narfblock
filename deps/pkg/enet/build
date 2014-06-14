@@ -21,4 +21,9 @@ make ${MAKEFLAGS} install
 # remove libtool junk
 rm ${prefix}/lib/libenet.la
 
+cat >> ${prefix}/deps.cmake << EOF
+set(ENet_INCLUDE_DIRS "${prefix}/include" CACHE PATH "")
+set(ENet_LIBRARY "${prefix}/lib/libenet.a" CACHE FILEPATH "")
+EOF
+
 cd "${deps}"; rm -rf "${work}"

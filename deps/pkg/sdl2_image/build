@@ -36,6 +36,7 @@ rm ${prefix}/lib/libSDL2_image.la
 
 cat >> ${prefix}/deps.cmake << EOF
 set(SDL2IMAGE_INCLUDE_DIR "${prefix}/include/SDL2" CACHE PATH "")
+set(SDL2IMAGE_LIBRARY "${prefix}/lib/libSDL2_image.a" CACHE FILEPATH "")
 EOF
 
 cd "${deps}"; rm -rf "${work}"

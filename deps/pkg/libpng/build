@@ -27,4 +27,9 @@ chmod 0644 ${prefix}/lib/libpng*.a
 # remove libtool junk
 rm ${prefix}/lib/libpng*.la
 
+cat >> ${prefix}/deps.cmake << EOF
+set(PNG_PNG_INCLUDE_DIR "${prefix}/include" CACHE PATH "")
+set(PNG_LIBRARY "${prefix}/lib/libpng.a" CACHE FILEPATH "")
+EOF
+
 cd "${deps}"; rm -rf "${work}"

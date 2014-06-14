@@ -33,4 +33,9 @@ make ${MAKEFLAGS} -f win32/Makefile.gcc.custom \
 # fix permissions
 chmod 0644 ${prefix}/lib/libz.a
 
+cat >> ${prefix}/deps.cmake << EOF
+set(ZLIB_INCLUDE_DIR "${prefix}/include" CACHE PATH "")
+set(ZLIB_LIBRARY "${prefix}/lib/libz.a" CACHE FILEPATH "")
+EOF
+
 cd "${deps}"; rm -rf "${work}"

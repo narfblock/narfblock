@@ -63,6 +63,7 @@ rm ${prefix}/lib/libfreetype.la
 
 cat >> ${prefix}/deps.cmake << EOF
 set(FREETYPE_INCLUDE_DIRS "${prefix}/include/freetype2" CACHE PATH "")
+set(FREETYPE_LIBRARY "${prefix}/lib/libfreetype.a" CACHE FILEPATH "")
 EOF
 
 cd "${deps}"; rm -rf "${work}"
