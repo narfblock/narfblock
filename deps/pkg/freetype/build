@@ -53,7 +53,7 @@ disable_module psnames
 #disable_module ftfstype.c
 #disable_module ftgasp.c
 
-./configure --host=${host_triplet} --prefix=${prefix} --without-png --disable-shared
+./configure --build=${build_triplet} --host=${host_triplet} --prefix=${prefix} --without-png --disable-shared
 
 make ${MAKEFLAGS}
 make ${MAKEFLAGS} install

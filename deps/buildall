@@ -9,6 +9,8 @@ cd "$(dirname $0)"
 deps="$PWD"
 export deps
 
+export build_triplet=$(gcc -dumpmachine)
+
 export MAKEFLAGS=${MAKEFLAGS:--j2}
 
 hosts=""
