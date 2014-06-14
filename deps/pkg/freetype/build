@@ -61,4 +61,8 @@ make ${MAKEFLAGS} install
 # delete libtool cruft
 rm ${prefix}/lib/libfreetype.la
 
+cat >> ${prefix}/deps.cmake << EOF
+set(FREETYPE_INCLUDE_DIRS "${prefix}/include/freetype2" CACHE PATH "")
+EOF
+
 cd "${deps}"; rm -rf "${work}"

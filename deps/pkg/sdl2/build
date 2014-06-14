@@ -38,4 +38,8 @@ make ${MAKEFLAGS} install
 # remove libtool junk
 rm ${prefix}/lib/libSDL2.la
 
+cat >> ${prefix}/deps.cmake << EOF
+set(SDL2_INCLUDE_DIR "${prefix}/include/SDL2" CACHE PATH "")
+EOF
+
 cd "${deps}"; rm -rf "${work}"
