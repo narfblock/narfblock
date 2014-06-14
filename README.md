@@ -28,6 +28,28 @@ Or on Windows with MinGW in an MSYS shell:
 
 	cmake -G "MSYS Makefiles" ../src && make
 
+## Cross-Compiling for Windows on Linux
+
+First install a suitable MinGW-w64 cross-compiler toolchain.
+On Debian, this is provided by the mingw-w64 package.
+
+The easiest way to get the required dependencies for MinGW on Linux is to build them using the scripts provided in the deps directory:
+
+	(cd deps && ./buildall)
+
+Then point CMake at the generated toolchain file and configuration (example to compile for 32-bit Windows; substitute x86\_64 instead of i686 to compile for 64-bit Windows):
+
+	(cd build && \
+		cmake \
+			-DCMAKE_TOOLCHAIN_FILE=../deps/i686-w64-mingw32/CMake-i686-w64-mingw32.toolchain \
+			-C ../deps/i686-w64-mingw32/deps.cmake ../src && \
+			make)
+
+## Enabling Debug
+
+By default, CMake selects a release build; to build for debug:
+
+	(cd build && cmake -DCMAKE_BUILD_TYPE=Debug ../src && make)
 
 ## Credits
 
