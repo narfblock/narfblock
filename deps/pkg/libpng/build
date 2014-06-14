@@ -19,7 +19,7 @@ cd libpng-*
 	LDFLAGS="-L${prefix}/lib ${LDFLAGS}" \
 	CPPFLAGS="-I${prefix}/include"
 
-make ${make_flags} install
+make ${MAKEFLAGS} install
 
 # fix permissions
 chmod 0644 ${prefix}/lib/libpng*.a

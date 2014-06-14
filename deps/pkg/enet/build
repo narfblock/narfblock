@@ -16,7 +16,7 @@ cd enet-*
 ./configure --host=${host_triplet} --prefix=${prefix} \
     --enable-static --disable-shared
 
-make ${make_flags} install
+make ${MAKEFLAGS} install
 
 # remove libtool junk
 rm ${prefix}/lib/libenet.la

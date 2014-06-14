@@ -35,6 +35,6 @@ EOF
 
 ./configure --host=${host_triplet} --prefix=${prefix} --config=MinGW-custom
 
-make ${make_flags} install
+make ${MAKEFLAGS} install
 
 cd "${deps}"; rm -rf "${work}"

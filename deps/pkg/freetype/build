@@ -55,8 +55,8 @@ disable_module psnames
 
 ./configure --host=${host_triplet} --prefix=${prefix} --without-png --disable-shared
 
-make ${make_flags}
-make ${make_flags} install
+make ${MAKEFLAGS}
+make ${MAKEFLAGS} install
 
 # delete libtool cruft
 rm ${prefix}/lib/libfreetype.la

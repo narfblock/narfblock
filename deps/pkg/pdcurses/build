@@ -25,7 +25,7 @@ sed \
 	-e "s|-shared|& ${LDFLAGS}|g" \
 	< mingwin32.mak > custom.mak
 
-make ${make_flags} -f custom.mak DLL=N WIDE=Y UTF8=Y
+make ${MAKEFLAGS} -f custom.mak DLL=N WIDE=Y UTF8=Y
 
 # the pdcurses mingw makefile doesn't have an install target, so install manually
 install -d -m 755 ${prefix}/lib

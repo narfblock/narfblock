@@ -29,7 +29,7 @@ cd SDL2_image-*
 	--disable-webp \
 	--with-sdl-prefix=${prefix} --host=${host_triplet} --prefix=${prefix} --enable-static --disable-shared
 
-make ${make_flags} install
+make ${MAKEFLAGS} install
 
 # delete libtool junk
 rm ${prefix}/lib/libSDL2_image.la

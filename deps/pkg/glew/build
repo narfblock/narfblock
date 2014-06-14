@@ -27,7 +27,7 @@ sed \
 echo "AR = ${AR}" >> config/Makefile.custom
 echo "STRIP = ${STRIP}" >> config/Makefile.custom
 
-SYSTEM=custom GLEW_DEST=${prefix} make -f Makefile.custom ${make_flags} \
+SYSTEM=custom GLEW_DEST=${prefix} make -f Makefile.custom ${MAKEFLAGS} \
 	CFLAGS="${CFLAGS} -Iinclude" \
 	LDFLAGS.EXTRA="${LDFLAGS_NOWL}" \
 	glew.lib \
