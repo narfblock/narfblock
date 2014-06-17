@@ -3,7 +3,6 @@ set (FREETYPE_GL_SRC
   texture-atlas.c    texture-atlas.h
   texture-font.c     texture-font.h
   vector.c           vector.h
-  platform.c         platform.h
   opengl.h)
 
 

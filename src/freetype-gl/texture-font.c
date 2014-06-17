@@ -43,7 +43,6 @@
 #include <math.h>
 #include <wchar.h>
 #include "texture-font.h"
-#include "platform.h"
 
 #define HRES  64
 #define HRESf 64.f
