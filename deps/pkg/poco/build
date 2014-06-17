@@ -38,9 +38,9 @@ EOF
 make ${MAKEFLAGS} install
 
 cat >> ${prefix}/deps.cmake << EOF
-set(PocoFoundation_INCLUDE_DIR "${prefix}/include/Poco" CACHE PATH "")
+set(PocoFoundation_INCLUDE_DIR "${prefix}/include" CACHE PATH "")
 set(PocoFoundation_LIBRARY "${prefix}/lib/libPocoFoundation.a" CACHE FILEPATH "")
-set(PocoUtil_INCLUDE_DIR "${prefix}/include/Poco" CACHE PATH "")
+set(PocoUtil_INCLUDE_DIR "${prefix}/include" CACHE PATH "")
 set(PocoUtil_LIBRARY "${prefix}/lib/libPocoUtil.a" CACHE FILEPATH "")
 EOF
 
