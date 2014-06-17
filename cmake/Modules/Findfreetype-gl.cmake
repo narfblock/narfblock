@@ -1,7 +1,3 @@
-
-
-set (FREETYPE_GL_REVISION 226)
-set (FREETYPE_GL_URL_BASE "https://freetype-gl.googlecode.com/svn-history/r${FREETYPE_GL_REVISION}/trunk/")
 set (FREETYPE_GL_SRC
   freetype-gl.h      vec234.h
   markup.h
@@ -18,25 +14,7 @@ set (FREETYPE_GL_SRC
 
 
 set(FREETYPE_GL_SRC_LIST ${FREETYPE_GL_SRC})
-set(FREETYPE_GL_DIR "${CMAKE_BINARY_DIR}/freetype-gl")
-
-if (NOT EXISTS "${FREETYPE_GL_DIR}/")
-  message(STATUS "Creating ${FREETYPE_GL_DIR}")
-  file (MAKE_DIRECTORY "${FREETYPE_GL_DIR}")
-endif()
-
-
-foreach (i IN LISTS FREETYPE_GL_SRC_LIST)
-  if (NOT EXISTS "${FREETYPE_GL_DIR}/${i}")
-		message(STATUS "Downloading ${i}")
-    file(DOWNLOAD "${FREETYPE_GL_URL_BASE}${i}" "${FREETYPE_GL_DIR}/${i}")
-  endif()
-endforeach()
-
-execute_process(COMMAND ${PATCH_COMMAND} --merge --binary -d "${FREETYPE_GL_DIR}" -i "${CMAKE_SOURCE_DIR}/../cmake/freetype-gl.platform.patch")
-execute_process(COMMAND ${PATCH_COMMAND} --merge --binary -d "${FREETYPE_GL_DIR}" -i "${CMAKE_SOURCE_DIR}/../cmake/freetype-gl.win32.patch")
-
-configure_file ("${CMAKE_SOURCE_DIR}/../cmake/freetype-gl.CMakeLists.txt" "${FREETYPE_GL_DIR}/CMakeLists.txt" COPYONLY)
+set(FREETYPE_GL_DIR "${CMAKE_SOURCE_DIR}/freetype-gl")
 
 add_subdirectory("${FREETYPE_GL_DIR}" "${FREETYPE_GL_DIR}")
 
