@@ -407,19 +407,6 @@ typedef struct texture_font_t
 
 
 /**
- * Request the loading of several glyphs at once.
- *
- * @param self      a valid texture font
- * @param charcodes character codepoints to be loaded.
- *
- * @return Number of missed glyph if the texture is not big enough to hold
- *         every glyphs.
- */
-  size_t
-  texture_font_load_glyphs( texture_font_t * self,
-                            const wchar_t * charcodes );
-
-/**
  * Get the kerning between two horizontal glyphs.
  *
  * @param self      a valid texture glyph
