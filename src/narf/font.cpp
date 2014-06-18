@@ -32,10 +32,9 @@ float narf::font::Font::width(const std::string &text, int nchars) const {
 
 	float width = 0;
 
-	wchar_t prev = 0;
+	uint32_t prev = 0;
 	for (int n = 0; i != end && n < nchars; ++i, ++n) {
-		// TODO: freetype-gl wants wchar_t, which won't work for non-BMP chars on Win32
-		auto c = static_cast<wchar_t>(*i);
+		auto c = *i;
 		texture_glyph_t *glyph = texture_font_get_glyph(font_, c);
 		if (glyph) {
 			if (prev) {
@@ -68,10 +67,9 @@ void narf::font::TextBuffer::print(const std::string &text, float x, float y, co
 	Poco::UTF8Encoding utf8Encoding;
 	Poco::TextIterator i(text, utf8Encoding);
 	Poco::TextIterator end(text);
-	wchar_t prev = 0;
+	uint32_t prev = 0;
 	for (; i != end; ++i) {
-		// TODO: freetype-gl wants wchar_t, which won't work for non-BMP chars on Win32
-		auto c = static_cast<wchar_t>(*i);
+		auto c = *i;
 		texture_glyph_t *glyph = texture_font_get_glyph(font_->font_, c);
 		if (glyph != NULL) {
 			if (prev) {

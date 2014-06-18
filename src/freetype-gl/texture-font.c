@@ -41,7 +41,6 @@
 #include <stdio.h>
 #include <assert.h>
 #include <math.h>
-#include <wchar.h>
 #include "texture-font.h"
 
 #define HRES  64
@@ -190,7 +189,7 @@ texture_glyph_delete( texture_glyph_t *self )
 // ---------------------------------------------- texture_glyph_get_kerning ---
 float
 texture_glyph_get_kerning( const texture_glyph_t * self,
-                           const wchar_t charcode )
+                           const uint32_t charcode )
 {
     size_t i;
 
@@ -404,7 +403,7 @@ texture_font_delete( texture_font_t *self )
 // ----------------------------------------------- texture_font_load_glyph ---
 size_t
 texture_font_load_glyph( texture_font_t * self,
-                         const wchar_t charcode )
+                         const uint32_t charcode )
 {
     size_t j, x, y, width, height, depth, w, h;
     FT_Library library;
@@ -439,7 +438,7 @@ texture_font_load_glyph( texture_font_t * self,
             glyph = *(texture_glyph_t **) vector_get( self->glyphs, j );
             // If charcode is -1, we don't care about outline type or thickness
             if( (glyph->charcode == charcode) &&
-                ((charcode == (wchar_t)(-1) ) ||
+                ((charcode == (uint32_t)(-1) ) ||
                  ((glyph->outline_type == self->outline_type) &&
                   (glyph->outline_thickness == self->outline_thickness)) ))
             {
@@ -646,7 +645,7 @@ skip:
 // ------------------------------------------------- texture_font_get_glyph ---
 texture_glyph_t *
 texture_font_get_glyph( texture_font_t * self,
-                        wchar_t charcode )
+                        uint32_t charcode )
 {
     size_t i;
     texture_glyph_t *glyph;
@@ -663,7 +662,7 @@ texture_font_get_glyph( texture_font_t * self,
         glyph = *(texture_glyph_t **) vector_get( self->glyphs, i );
         // If charcode is -1, we don't care about outline type or thickness
         if( (glyph->charcode == charcode) &&
-            ((charcode == (wchar_t)(-1) ) ||
+            ((charcode == (uint32_t)(-1) ) ||
              ((glyph->outline_type == self->outline_type) &&
               (glyph->outline_thickness == self->outline_thickness)) ))
         {
@@ -674,7 +673,7 @@ texture_font_get_glyph( texture_font_t * self,
     /* charcode -1 is special : it is used for line drawing (overline,
      * underline, strikethrough) and background.
      */
-    if( charcode == (wchar_t)(-1) )
+    if( charcode == (uint32_t)(-1) )
     {
         size_t width  = self->atlas->width;
         size_t height = self->atlas->height;
@@ -690,7 +689,7 @@ texture_font_get_glyph( texture_font_t * self,
             return NULL;
         }
         texture_atlas_set_region( self->atlas, region.x, region.y, 4, 4, data, 0 );
-        glyph->charcode = (wchar_t)(-1);
+        glyph->charcode = (uint32_t)(-1);
         glyph->s0 = (region.x+2)/(float)width;
         glyph->t0 = (region.y+2)/(float)height;
         glyph->s1 = (region.x+3)/(float)width;
