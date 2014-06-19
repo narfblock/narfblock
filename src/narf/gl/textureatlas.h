@@ -45,14 +45,12 @@
 #define __TEXTURE_ATLAS_H__
 
 #include <stdlib.h>
-
-#include "vector.h"
+#include <stdint.h>
+#include <vector>
 
 /**
- * @file   texture-atlas.h
+ * @file
  * @author Nicolas Rougier (Nicolas.Rougier@inria.fr)
- *
- * @defgroup texture-atlas Texture atlas
  *
  * A texture atlas is used to pack several small regions into a single texture.
  *
@@ -62,37 +60,7 @@
  * More precisely, this is an implementation of the Skyline Bottom-Left
  * algorithm based on C++ sources provided by Jukka Jylänki at:
  * http://clb.demon.fi/files/RectangleBinPack/
- *
- *
- * Example Usage:
- * @code
- * #include "texture-atlas.h"
- *
- * ...
- *
- * / Creates a new atlas of 512x512 with a depth of 1
- * texture_atlas_t * atlas = texture_atlas_new( 512, 512, 1 );
- *
- * // Allocates a region of 20x20
- * Region region = texture_atlas_get_region( atlas, 20, 20 );
- *
- * // Fill region with some data
- * texture_atlas_set_region( atlas, region.x, region.y, region.width, region.height, data, stride )
- *
- * ...
- *
- * @endcode
- *
- * @{
  */
-
-class TextureAtlasNode {
-public:
-    uint32_t x;
-    uint32_t y;
-    uint32_t width;
-};
-
 
 /**
  * A texture atlas is used to pack several small regions into a single texture.
@@ -127,10 +95,16 @@ private:
     int fit(size_t index, uint32_t width, uint32_t height);
     void merge();
 
+    struct Node {
+        uint32_t x;
+        uint32_t y;
+        uint32_t width;
+    };
+
     /**
      * Allocated nodes
      */
-    vector_t * nodes_;
+    std::vector<Node> nodes_;
 
     /**
      *  Width (in pixels) of the underlying texture

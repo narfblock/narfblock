@@ -38,7 +38,7 @@
 #include <stdint.h>
 
 #include "vector.h"
-#include "texture-atlas.h"
+#include "narf/gl/textureatlas.h"
 
 /**
  * @file   texture-font.h

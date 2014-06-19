@@ -121,8 +121,8 @@ SET(NARFBLOCK_CLIENT_SOURCE_FILES
 	narf/input.cpp
 	narf/gl/context.cpp
 	narf/gl/texture.cpp
+	narf/gl/textureatlas.cpp
 	narf/font.cpp
-	narf/texture-atlas.cpp
 	narf/texture-font.cpp
 	narf/vector.cpp
 

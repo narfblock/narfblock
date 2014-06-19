@@ -37,19 +37,18 @@
 #include <assert.h>
 #include <limits.h>
 #include "narf/gl/gl.h"
-#include "texture-atlas.h"
+#include "narf/gl/textureatlas.h"
 
 TextureAtlas::TextureAtlas(uint32_t width, uint32_t height, uint32_t depth) :
     width_(width), height_(height), depth_(depth),
     used_(0), id_(0) {
     // We want a one pixel border around the whole atlas to avoid any artefact when
     // sampling texture
-    TextureAtlasNode node = {1, 1, width - 2};
+    Node node = {1, 1, width - 2};
+    nodes_.push_back(node);
 
     assert((depth == 1) || (depth == 3) || (depth == 4));
-    nodes_ = vector_new(sizeof(TextureAtlasNode));
 
-    vector_push_back(nodes_, &node);
     data_ = (unsigned char *)calloc(width * height * depth, sizeof(unsigned char));
     if (data_ == nullptr) {
         fprintf(stderr,
@@ -59,7 +58,6 @@ TextureAtlas::TextureAtlas(uint32_t width, uint32_t height, uint32_t depth) :
 }
 
 TextureAtlas::~TextureAtlas() {
-    vector_delete(nodes_);
     if (data_) {
         free(data_);
     }
@@ -88,25 +86,25 @@ int TextureAtlas::fit(size_t index, uint32_t width, uint32_t height) {
     int x, y, width_left;
     size_t i;
 
-    auto node = (TextureAtlasNode*)vector_get(nodes_, index);
-    x = node->x;
-    y = node->y;
+    const auto& node = nodes_[index];
+    x = node.x;
+    y = node.y;
     width_left = width;
     i = index;
 
     if (x + width > width_ - 1 ) {
         return -1;
     }
-    y = node->y;
+    y = node.y;
     while (width_left > 0) {
-        node = (TextureAtlasNode*)vector_get(nodes_, i);
-        if (node->y > y) {
-            y = node->y;
+        const auto& node = nodes_[i];
+        if (node.y > y) {
+            y = node.y;
         }
         if (y + height > height_ - 1) {
             return -1;
         }
-        width_left -= node->width;
+        width_left -= node.width;
         ++i;
     }
     return y;
@@ -114,12 +112,12 @@ int TextureAtlas::fit(size_t index, uint32_t width, uint32_t height) {
 
 
 void TextureAtlas::merge() {
-    for (size_t i = 0; i < nodes_->size - 1; ++i) {
-        auto node = (TextureAtlasNode*)vector_get(nodes_, i);
-        auto next = (TextureAtlasNode*)vector_get(nodes_, i + 1);
-        if (node->y == next->y) {
-            node->width += next->width;
-            vector_erase(nodes_, i + 1);
+    for (size_t i = 0; i < nodes_.size() - 1; ++i) {
+        auto& node = nodes_[i];
+        auto& next = nodes_[i + 1];
+        if (node.y == next.y) {
+            node.width += next.width;
+            nodes_.erase(nodes_.begin() + i + 1);
             --i;
         }
     }
@@ -133,16 +131,16 @@ TextureAtlas::Region TextureAtlas::getRegion(uint32_t regionWidth, uint32_t regi
     best_height = INT_MAX;
     best_index  = -1;
     best_width = INT_MAX;
-    for (size_t i = 0; i < nodes_->size; i++) {
+    for (size_t i = 0; i < nodes_.size(); i++) {
         y = fit(i, regionWidth, regionHeight);
         if (y >= 0) {
-            auto node = (TextureAtlasNode *)vector_get(nodes_, i);
+            const auto& node = nodes_[i];
             if ((y + regionHeight < best_height) ||
-                ((y + regionHeight == best_height) && (node->width < best_width))) {
+                ((y + regionHeight == best_height) && (node.width < best_width))) {
                 best_height = y + regionHeight;
                 best_index = i;
-                best_width = node->width;
-                region.x = node->x;
+                best_width = node.width;
+                region.x = node.x;
                 region.y = y;
             }
         }
@@ -154,24 +152,24 @@ TextureAtlas::Region TextureAtlas::getRegion(uint32_t regionWidth, uint32_t regi
         return region;
     }
 
-    TextureAtlasNode newNode;
+    Node newNode;
     newNode.x = region.x;
     newNode.y = region.y + regionHeight;
     newNode.width = regionWidth;
-    vector_insert(nodes_, best_index, &newNode);
+    nodes_.insert(nodes_.begin() + best_index, newNode);
 
-    for (size_t i = best_index + 1; i < nodes_->size; ++i) {
-        auto node = (TextureAtlasNode *)vector_get(nodes_, i);
-        auto prev = (TextureAtlasNode *)vector_get(nodes_, i - 1);
+    for (size_t i = best_index + 1; i < nodes_.size(); ++i) {
+        auto& node = nodes_[i];
+        auto& prev = nodes_[i - 1];
 
-        if (node->x < prev->x + prev->width) {
-            int shrink = prev->x + prev->width - node->x;
-            if (shrink >= node->width) {
-                vector_erase(nodes_, i);
+        if (node.x < prev.x + prev.width) {
+            int shrink = prev.x + prev.width - node.x;
+            if (shrink >= node.width) {
+                nodes_.erase(nodes_.begin() + i);
                 --i;
             } else {
-                node->x += shrink;
-                node->width -= shrink;
+                node.x += shrink;
+                node.width -= shrink;
                 break;
             }
         } else {
