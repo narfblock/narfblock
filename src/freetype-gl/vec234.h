@@ -34,11 +34,6 @@
 #ifndef __VEC234_H__
 #define __VEC234_H__
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-
 /**
  * Tuple of 4 ints.
  *
@@ -228,10 +223,5 @@ typedef union
 		float t;   /**< Alias for second component */
 	};
 } vec2;
-
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* __VEC234_H__ */

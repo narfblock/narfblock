@@ -35,11 +35,6 @@
 #define __VECTOR_H__
 
 #include <stdlib.h>
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include <stddef.h>
 
 /**
@@ -345,9 +340,5 @@ typedef struct vector_t
 
 
 /** @} */
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* __VECTOR_H__ */

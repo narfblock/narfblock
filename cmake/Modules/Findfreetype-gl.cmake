@@ -1,8 +1,8 @@
 set (FREETYPE_GL_SRC
   freetype-gl.h      vec234.h
-  texture-atlas.c    texture-atlas.h
-  texture-font.c     texture-font.h
-  vector.c           vector.h
+  texture-atlas.cpp  texture-atlas.h
+  texture-font.cpp   texture-font.h
+  vector.cpp         vector.h
   opengl.h)
 
 

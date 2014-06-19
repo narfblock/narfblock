@@ -46,10 +46,6 @@
 
 #include <stdlib.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "vector.h"
 #include "vec234.h"
 
@@ -217,9 +213,5 @@ typedef struct texture_atlas_t
 
 
 /** @} */
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* __TEXTURE_ATLAS_H__ */

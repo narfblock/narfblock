@@ -88,7 +88,7 @@ texture_font_load_face(texture_font_t *self, float size,
 
     case TEXTURE_FONT_MEMORY:
         error = FT_New_Memory_Face(*library,
-            self->memory.base, self->memory.size, 0, face);
+            static_cast<const FT_Byte*>(self->memory.base), self->memory.size, 0, face);
         break;
     }
 
@@ -324,7 +324,7 @@ texture_font_new_from_file(texture_atlas_t *atlas, const float pt_size,
 
     assert(filename);
 
-    self = calloc(1, sizeof(*self));
+    self = static_cast<texture_font_t*>(calloc(1, sizeof(*self)));
     if (!self) {
         fprintf(stderr,
                 "line %d: No more memory for allocating data\n", __LINE__);
@@ -355,7 +355,7 @@ texture_font_new_from_memory(texture_atlas_t *atlas, float pt_size,
     assert(memory_base);
     assert(memory_size);
 
-    self = calloc(1, sizeof(*self));
+    self = static_cast<texture_font_t*>(calloc(1, sizeof(*self)));
     if (!self) {
         fprintf(stderr,
                 "line %d: No more memory for allocating data\n", __LINE__);

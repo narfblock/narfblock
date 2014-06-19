@@ -36,10 +36,6 @@
 
 #include <stdlib.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "vector.h"
 #include "texture-atlas.h"
 
@@ -211,6 +207,10 @@ typedef struct texture_glyph_t
 
 } texture_glyph_t;
 
+enum texture_font_location {
+    TEXTURE_FONT_FILE = 0,
+    TEXTURE_FONT_MEMORY,
+};
 
 
 /**
@@ -231,10 +231,7 @@ typedef struct texture_font_t
     /**
      * font location
      */
-    enum {
-        TEXTURE_FONT_FILE = 0,
-        TEXTURE_FONT_MEMORY,
-    } location;
+    texture_font_location location;
 
     union {
         /**
@@ -429,10 +426,4 @@ texture_glyph_new( void );
 
 /** @} */
 
-
-#ifdef __cplusplus
-}
-#endif
-
 #endif /* __TEXTURE_FONT_H__ */
-
