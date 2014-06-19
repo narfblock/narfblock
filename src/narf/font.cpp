@@ -9,7 +9,7 @@
 
 
 narf::font::Font::Font() : font_(nullptr) {
-	atlas_ = texture_atlas_new(512, 512, 1);
+	atlas_ = new TextureAtlas(512, 512, 1);
 }
 
 narf::font::Font::~Font() {
@@ -110,7 +110,7 @@ void narf::font::TextBuffer::render() {
 
 	buffer_.bind();
 
-	glBindTexture(GL_TEXTURE_2D, font_->atlas_->id);
+	glBindTexture(GL_TEXTURE_2D, font_->atlas_->id());
 
 	// TODO: move this stuff into Buffer class
 	glEnableClientState(GL_VERTEX_ARRAY);

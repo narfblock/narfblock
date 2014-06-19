@@ -36,7 +36,7 @@ namespace narf {
 			float height() const { return font_->height; }
 
 		private:
-			texture_atlas_t *atlas_;
+			TextureAtlas *atlas_;
 			texture_font_t *font_;
 		};
 

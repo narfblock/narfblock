@@ -317,7 +317,7 @@ texture_font_init(texture_font_t *self)
 
 // --------------------------------------------- texture_font_new_from_file ---
 texture_font_t *
-texture_font_new_from_file(texture_atlas_t *atlas, const float pt_size,
+texture_font_new_from_file(TextureAtlas* atlas, const float pt_size,
         const char *filename)
 {
     texture_font_t *self;
@@ -347,7 +347,7 @@ texture_font_new_from_file(texture_atlas_t *atlas, const float pt_size,
 
 // ------------------------------------------- texture_font_new_from_memory ---
 texture_font_t *
-texture_font_new_from_memory(texture_atlas_t *atlas, float pt_size,
+texture_font_new_from_memory(TextureAtlas* atlas, float pt_size,
         const void *memory_base, size_t memory_size)
 {
     texture_font_t *self;
@@ -425,9 +425,9 @@ texture_font_load_glyph( texture_font_t * self,
 
     assert( self );
 
-    width  = self->atlas->width;
-    height = self->atlas->height;
-    depth  = self->atlas->depth;
+    width  = self->atlas->width();
+    height = self->atlas->height();
+    depth  = self->atlas->depth();
 
     if (!texture_font_get_face(self, &library, &face))
         return 1;
@@ -593,7 +593,7 @@ texture_font_load_glyph( texture_font_t * self,
     // (for example for shader used in demo-subpixel.c)
     w = ft_bitmap.width/depth + 1;
     h = ft_bitmap.rows + 1;
-    region = texture_atlas_get_region( self->atlas, w, h );
+    region = self->atlas->getRegion(w, h);
     if ( region.x < 0 )
     {
         missed++;
@@ -604,8 +604,7 @@ texture_font_load_glyph( texture_font_t * self,
     h = h - 1;
     x = region.x;
     y = region.y;
-    texture_atlas_set_region( self->atlas, x, y, w, h,
-                              ft_bitmap.buffer, ft_bitmap.pitch );
+    self->atlas->setRegion(x, y, w, h, ft_bitmap.buffer, ft_bitmap.pitch);
 
     glyph = texture_glyph_new( );
     glyph->charcode = charcode;
@@ -636,7 +635,7 @@ texture_font_load_glyph( texture_font_t * self,
 skip:
     FT_Done_Face( face );
     FT_Done_FreeType( library );
-    texture_atlas_upload( self->atlas );
+    self->atlas->upload();
     texture_font_generate_kerning( self );
     return missed;
 }
@@ -675,9 +674,9 @@ texture_font_get_glyph( texture_font_t * self,
      */
     if( charcode == (uint32_t)(-1) )
     {
-        size_t width  = self->atlas->width;
-        size_t height = self->atlas->height;
-        ivec4 region = texture_atlas_get_region( self->atlas, 5, 5 );
+        size_t width  = self->atlas->width();
+        size_t height = self->atlas->height();
+        ivec4 region = self->atlas->getRegion(5, 5);
         texture_glyph_t * glyph = texture_glyph_new( );
         static unsigned char data[4*4*3] = {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
                                             -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
@@ -688,7 +687,7 @@ texture_font_get_glyph( texture_font_t * self,
             fprintf( stderr, "Texture atlas is full (line %d)\n",  __LINE__ );
             return NULL;
         }
-        texture_atlas_set_region( self->atlas, region.x, region.y, 4, 4, data, 0 );
+        self->atlas->setRegion(region.x, region.y, 4, 4, data, 0);
         glyph->charcode = (uint32_t)(-1);
         glyph->s0 = (region.x+2)/(float)width;
         glyph->t0 = (region.y+2)/(float)height;

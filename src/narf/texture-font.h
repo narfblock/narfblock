@@ -227,7 +227,7 @@ typedef struct texture_font_t
     /**
      * Atlas structure to store glyphs data.
      */
-    texture_atlas_t * atlas;
+    TextureAtlas* atlas;
 
     /**
      * font location
@@ -352,7 +352,7 @@ typedef struct texture_font_t
  *
  */
   texture_font_t *
-  texture_font_new_from_file( texture_atlas_t * atlas,
+  texture_font_new_from_file( TextureAtlas* atlas,
                               const float pt_size,
                               const char * filename );
 
@@ -373,7 +373,7 @@ typedef struct texture_font_t
  *
  */
   texture_font_t *
-  texture_font_new_from_memory( texture_atlas_t *atlas,
+  texture_font_new_from_memory( TextureAtlas *atlas,
                                 float pt_size,
                                 const void *memory_base,
                                 size_t memory_size );

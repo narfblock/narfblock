@@ -39,131 +39,71 @@
 #include "narf/gl/gl.h"
 #include "texture-atlas.h"
 
-
-// ------------------------------------------------------ texture_atlas_new ---
-texture_atlas_t *
-texture_atlas_new( const size_t width,
-                   const size_t height,
-                   const size_t depth )
-{
-    texture_atlas_t *self = (texture_atlas_t *) malloc( sizeof(texture_atlas_t) );
-
+TextureAtlas::TextureAtlas(uint32_t width, uint32_t height, uint32_t depth) :
+    width_(width), height_(height), depth_(depth),
+    used_(0), id_(0) {
     // We want a one pixel border around the whole atlas to avoid any artefact when
     // sampling texture
-    TextureAtlasNode node = {1,1,width-2};
+    TextureAtlasNode node = {1, 1, width - 2};
 
-    assert( (depth == 1) || (depth == 3) || (depth == 4) );
-    if( self == NULL)
-    {
-        fprintf( stderr,
-                 "line %d: No more memory for allocating data\n", __LINE__ );
-        exit( EXIT_FAILURE );
+    assert((depth == 1) || (depth == 3) || (depth == 4));
+    nodes_ = vector_new(sizeof(TextureAtlasNode));
+
+    vector_push_back(nodes_, &node);
+    data_ = (unsigned char *)calloc(width * height * depth, sizeof(unsigned char));
+    if (data_ == nullptr) {
+        fprintf(stderr,
+                "line %d: No more memory for allocating data\n", __LINE__ );
+        exit(EXIT_FAILURE);
     }
-    self->nodes = vector_new( sizeof(TextureAtlasNode) );
-    self->used = 0;
-    self->width = width;
-    self->height = height;
-    self->depth = depth;
-    self->id = 0;
-
-    vector_push_back( self->nodes, &node );
-    self->data = (unsigned char *)
-        calloc( width*height*depth, sizeof(unsigned char) );
-
-    if( self->data == NULL)
-    {
-        fprintf( stderr,
-                 "line %d: No more memory for allocating data\n", __LINE__ );
-        exit( EXIT_FAILURE );
-    }
-
-    return self;
 }
 
-
-// --------------------------------------------------- texture_atlas_delete ---
-void
-texture_atlas_delete( texture_atlas_t *self )
-{
-    assert( self );
-    vector_delete( self->nodes );
-    if( self->data )
-    {
-        free( self->data );
+TextureAtlas::~TextureAtlas() {
+    vector_delete(nodes_);
+    if (data_) {
+        free(data_);
     }
-    if( self->id )
-    {
-        glDeleteTextures( 1, &self->id );
-    }
-    free( self );
-}
-
-
-// ----------------------------------------------- texture_atlas_set_region ---
-void
-texture_atlas_set_region( texture_atlas_t * self,
-                          const size_t x,
-                          const size_t y,
-                          const size_t width,
-                          const size_t height,
-                          const unsigned char * data,
-                          const size_t stride )
-{
-    size_t i;
-    size_t depth;
-    size_t charsize;
-
-    assert( self );
-    assert( x > 0);
-    assert( y > 0);
-    assert( x < (self->width-1));
-    assert( (x + width) <= (self->width-1));
-    assert( y < (self->height-1));
-    assert( (y + height) <= (self->height-1));
-
-    depth = self->depth;
-    charsize = sizeof(char);
-    for( i=0; i<height; ++i )
-    {
-        memcpy( self->data+((y+i)*self->width + x ) * charsize * depth,
-                data + (i*stride) * charsize, width * charsize * depth  );
+    if (id_) {
+        glDeleteTextures(1, &id_);
     }
 }
 
 
-// ------------------------------------------------------ texture_atlas_fit ---
-int
-texture_atlas_fit( texture_atlas_t * self,
-                   const size_t index,
-                   const size_t width,
-                   const size_t height )
-{
-    TextureAtlasNode *node;
+void TextureAtlas::setRegion(uint32_t x, uint32_t y, uint32_t regionWidth, uint32_t regionHeight, const void* newData, size_t stride) {
+    auto srcData = static_cast<const uint8_t*>(newData);
+
+    assert(x < width_ - 1);
+    assert(x + regionWidth <= width_ - 1);
+    assert(y < height_ - 1);
+    assert(y + regionHeight <= height_ - 1);
+
+    for (uint32_t i = 0; i < regionHeight; i++) {
+        memcpy(data_ + ((y + i) * width_ + x) * depth_,
+               srcData + (i * stride), regionWidth * depth_);
+    }
+}
+
+
+int TextureAtlas::fit(size_t index, uint32_t width, uint32_t height) {
     int x, y, width_left;
     size_t i;
 
-    assert( self );
-
-    node = (TextureAtlasNode *) (vector_get( self->nodes, index ));
+    auto node = (TextureAtlasNode*)vector_get(nodes_, index);
     x = node->x;
     y = node->y;
     width_left = width;
     i = index;
 
-    if ( (x + width) > (self->width-1) )
-    {
+    if (x + width > width_ - 1 ) {
         return -1;
     }
     y = node->y;
-    while( width_left > 0 )
-    {
-        node = (TextureAtlasNode *) (vector_get( self->nodes, i ));
-        if( node->y > y )
-        {
+    while (width_left > 0) {
+        node = (TextureAtlasNode*)vector_get(nodes_, i);
+        if (node->y > y) {
             y = node->y;
         }
-        if( (y + height) > (self->height-1) )
-        {
+        if (y + height > height_ - 1) {
             return -1;
         }
         width_left -= node->width;
@@ -173,56 +113,33 @@ texture_atlas_fit( texture_atlas_t * self,
 }
 
 
-// ---------------------------------------------------- texture_atlas_merge ---
-void
-texture_atlas_merge( texture_atlas_t * self )
-{
-    TextureAtlasNode *node, *next;
-    size_t i;
-
-    assert( self );
-
-    for( i=0; i< self->nodes->size-1; ++i )
-    {
-        node = (TextureAtlasNode *) (vector_get( self->nodes, i ));
-        next = (TextureAtlasNode *) (vector_get( self->nodes, i+1 ));
-        if( node->y == next->y )
-        {
+void TextureAtlas::merge() {
+    for (size_t i = 0; i < nodes_->size - 1; ++i) {
+        auto node = (TextureAtlasNode*)vector_get(nodes_, i);
+        auto next = (TextureAtlasNode*)vector_get(nodes_, i + 1);
+        if (node->y == next->y) {
             node->width += next->width;
-            vector_erase( self->nodes, i+1 );
+            vector_erase(nodes_, i + 1);
             --i;
         }
     }
 }
 
 
-// ----------------------------------------------- texture_atlas_get_region ---
-ivec4
-texture_atlas_get_region( texture_atlas_t * self,
-                          const size_t width,
-                          const size_t height )
-{
-
+ivec4 TextureAtlas::getRegion(uint32_t regionWidth, uint32_t regionHeight) {
     int y, best_height, best_width, best_index;
-    TextureAtlasNode *node, *prev;
-    ivec4 region = {{0,0,width,height}};
-    size_t i;
-
-    assert( self );
+    ivec4 region = {{0, 0, regionWidth, regionHeight}};
 
     best_height = INT_MAX;
     best_index  = -1;
     best_width = INT_MAX;
-    for( i=0; i<self->nodes->size; ++i )
-    {
-        y = texture_atlas_fit( self, i, width, height );
-        if( y >= 0 )
-        {
-            node = (TextureAtlasNode *) vector_get( self->nodes, i );
-            if( ( (y + height) < best_height ) ||
-                ( ((y + height) == best_height) && (node->width < best_width)) )
-            {
-                best_height = y + height;
+    for (size_t i = 0; i < nodes_->size; i++) {
+        y = fit(i, regionWidth, regionHeight);
+        if (y >= 0) {
+            auto node = (TextureAtlasNode *)vector_get(nodes_, i);
+            if ((y + regionHeight < best_height) ||
+                ((y + regionHeight == best_height) && (node->width < best_width))) {
+                best_height = y + regionHeight;
                 best_index = i;
                 best_width = node->width;
                 region.x = node->x;
@@ -231,8 +148,7 @@ texture_atlas_get_region( texture_atlas_t * self,
         }
     }
 
-    if( best_index == -1 )
-    {
+    if (best_index == -1) {
         region.x = -1;
         region.y = -1;
         region.width = 0;
@@ -240,106 +156,61 @@ texture_atlas_get_region( texture_atlas_t * self,
         return region;
     }
 
-    node = (TextureAtlasNode *) malloc( sizeof(TextureAtlasNode) );
-    if( node == NULL)
-    {
-        fprintf( stderr,
-                 "line %d: No more memory for allocating data\n", __LINE__ );
-        exit( EXIT_FAILURE );
-    }
-    node->x = region.x;
-    node->y = region.y + height;
-    node->width = width;
-    vector_insert( self->nodes, best_index, node );
-    free( node );
+    TextureAtlasNode newNode;
+    newNode.x = region.x;
+    newNode.y = region.y + regionHeight;
+    newNode.width = regionWidth;
+    vector_insert(nodes_, best_index, &newNode);
 
-    for(i = best_index+1; i < self->nodes->size; ++i)
-    {
-        node = (TextureAtlasNode *) vector_get( self->nodes, i );
-        prev = (TextureAtlasNode *) vector_get( self->nodes, i-1 );
+    for (size_t i = best_index + 1; i < nodes_->size; ++i) {
+        auto node = (TextureAtlasNode *)vector_get(nodes_, i);
+        auto prev = (TextureAtlasNode *)vector_get(nodes_, i - 1);
 
-        if (node->x < (prev->x + prev->width) )
-        {
+        if (node->x < prev->x + prev->width) {
             int shrink = prev->x + prev->width - node->x;
-            node->x += shrink;
-            node->width -= shrink;
-            if (node->width <= 0)
-            {
-                vector_erase( self->nodes, i );
+            if (shrink >= node->width) {
+                vector_erase(nodes_, i);
                 --i;
-            }
-            else
-            {
+            } else {
+                node->x += shrink;
+                node->width -= shrink;
                 break;
             }
-        }
-        else
-        {
+        } else {
             break;
         }
     }
-    texture_atlas_merge( self );
-    self->used += width * height;
+    merge();
+    used_ += regionWidth * regionHeight;
     return region;
 }
 
 
-// ---------------------------------------------------- texture_atlas_clear ---
-void
-texture_atlas_clear( texture_atlas_t * self )
-{
-    TextureAtlasNode node = {1,1,1};
+void TextureAtlas::upload() {
+    assert(data_);
 
-    assert( self );
-    assert( self->data );
-
-    vector_clear( self->nodes );
-    self->used = 0;
-    // We want a one pixel border around the whole atlas to avoid any artefact when
-    // sampling texture
-    node.width = self->width-2;
-
-    vector_push_back( self->nodes, &node );
-    memset( self->data, 0, self->width*self->height*self->depth );
-}
-
-
-// --------------------------------------------------- texture_atlas_upload ---
-void
-texture_atlas_upload( texture_atlas_t * self )
-{
-    assert( self );
-    assert( self->data );
-
-    if( !self->id )
-    {
-        glGenTextures( 1, &self->id );
+    if (!id_) {
+        glGenTextures(1, &id_);
     }
 
-    glBindTexture( GL_TEXTURE_2D, self->id );
-    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
-    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
-    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-    if( self->depth == 4 )
-    {
+    glBindTexture(GL_TEXTURE_2D, id_);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    if (depth_ == 4) {
 #ifdef GL_UNSIGNED_INT_8_8_8_8_REV
-        glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, self->width, self->height,
-                      0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, self->data );
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width_, height_,
+                     0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, data_);
 #else
-        glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, self->width, self->height,
-                      0, GL_RGBA, GL_UNSIGNED_BYTE, self->data );
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width_, height_,
+                     0, GL_RGBA, GL_UNSIGNED_BYTE, data_);
 #endif
-    }
-    else if( self->depth == 3 )
-    {
-        glTexImage2D( GL_TEXTURE_2D, 0, GL_RGB, self->width, self->height,
-                      0, GL_RGB, GL_UNSIGNED_BYTE, self->data );
-    }
-    else
-    {
-        glTexImage2D( GL_TEXTURE_2D, 0, GL_ALPHA, self->width, self->height,
-                      0, GL_ALPHA, GL_UNSIGNED_BYTE, self->data );
+    } else if (depth_ == 3) {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width_, height_,
+                     0, GL_RGB, GL_UNSIGNED_BYTE, data_);
+    } else {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, width_, height_,
+                     0, GL_ALPHA, GL_UNSIGNED_BYTE, data_ );
     }
 }
-
