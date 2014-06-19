@@ -79,34 +79,4 @@ typedef union
 	};
 } ivec4;
 
-
-/**
- * Tuple of 3 ints.
- *
- * Each field can be addressed using several aliases:
- *  - First component:  <b>x</b>, <b>r</b> or <b>red</b>
- *  - Second component: <b>y</b>, <b>g</b> or <b>green</b>
- *  - Third component:  <b>z</b>, <b>b</b> or <b>blue</b>
- *
- */
-typedef union
-{
-	int data[3];    /**< All compoments at once     */
-	struct {
-		int x;      /**< Alias for first component  */
-		int y;      /**< Alias for second component */
-		int z;      /**< Alias for third component  */
-	};
-	struct {
-		int r;      /**< Alias for first component  */
-		int g;      /**< Alias for second component */
-		int b;      /**< Alias for third component  */
-	};
-	struct {
-		int red;    /**< Alias for first component  */
-		int green;  /**< Alias for second component */
-		int blue;   /**< Alias for third component  */
-	};
-} ivec3;
-
 #endif /* __VEC234_H__ */

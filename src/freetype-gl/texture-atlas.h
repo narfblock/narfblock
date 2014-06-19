@@ -87,6 +87,13 @@
  * @{
  */
 
+class TextureAtlasNode {
+public:
+    uint32_t x;
+    uint32_t y;
+    uint32_t width;
+};
+
 
 /**
  * A texture atlas is used to pack several small regions into a single texture.
