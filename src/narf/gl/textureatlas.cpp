@@ -83,29 +83,28 @@ void TextureAtlas::setRegion(uint32_t x, uint32_t y, uint32_t regionWidth, uint3
 
 
 int TextureAtlas::fit(size_t index, uint32_t width, uint32_t height) {
-    int x, y, width_left;
-    size_t i;
-
     const auto& node = nodes_[index];
-    x = node.x;
-    y = node.y;
-    width_left = width;
-    i = index;
+    auto x = node.x;
+    auto y = node.y;
+    auto widthLeft = width;
 
-    if (x + width > width_ - 1 ) {
+    if (x + width >= width_) {
         return -1;
     }
-    y = node.y;
-    while (width_left > 0) {
-        const auto& node = nodes_[i];
+
+    while (index < nodes_.size()) {
+        const auto& node = nodes_[index];
         if (node.y > y) {
             y = node.y;
         }
         if (y + height > height_ - 1) {
             return -1;
         }
-        width_left -= node.width;
-        ++i;
+        if (node.width >= widthLeft) {
+            break;
+        }
+        widthLeft -= node.width;
+        ++index;
     }
     return y;
 }
@@ -125,21 +124,21 @@ void TextureAtlas::merge() {
 
 
 TextureAtlas::Region TextureAtlas::getRegion(uint32_t regionWidth, uint32_t regionHeight) {
-    int y, best_height, best_width, best_index;
+    int y, best_index;
     Region region = {0, 0, regionWidth, regionHeight};
+    uint32_t bestWidth = UINT32_MAX;
+    uint32_t bestHeight = UINT32_MAX;
 
-    best_height = INT_MAX;
     best_index  = -1;
-    best_width = INT_MAX;
     for (size_t i = 0; i < nodes_.size(); i++) {
         y = fit(i, regionWidth, regionHeight);
         if (y >= 0) {
             const auto& node = nodes_[i];
-            if ((y + regionHeight < best_height) ||
-                ((y + regionHeight == best_height) && (node.width < best_width))) {
-                best_height = y + regionHeight;
+            if ((y + regionHeight < bestHeight) ||
+                ((y + regionHeight == bestHeight) && (node.width < bestWidth))) {
                 best_index = i;
-                best_width = node.width;
+                bestHeight = y + regionHeight;
+                bestWidth = node.width;
                 region.x = node.x;
                 region.y = y;
             }
@@ -163,7 +162,7 @@ TextureAtlas::Region TextureAtlas::getRegion(uint32_t regionWidth, uint32_t regi
         auto& prev = nodes_[i - 1];
 
         if (node.x < prev.x + prev.width) {
-            int shrink = prev.x + prev.width - node.x;
+            uint32_t shrink = prev.x + prev.width - node.x;
             if (shrink >= node.width) {
                 nodes_.erase(nodes_.begin() + i);
                 --i;
