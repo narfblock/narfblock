@@ -47,7 +47,6 @@
 #include <stdlib.h>
 
 #include "vector.h"
-#include "vec234.h"
 
 /**
  * @file   texture-atlas.h
@@ -75,7 +74,7 @@
  * texture_atlas_t * atlas = texture_atlas_new( 512, 512, 1 );
  *
  * // Allocates a region of 20x20
- * ivec4 region = texture_atlas_get_region( atlas, 20, 20 );
+ * Region region = texture_atlas_get_region( atlas, 20, 20 );
  *
  * // Fill region with some data
  * texture_atlas_set_region( atlas, region.x, region.y, region.width, region.height, data, stride )
@@ -107,7 +106,14 @@ public:
 
     void upload();
 
-    ivec4 getRegion(uint32_t width, uint32_t height);
+    struct Region {
+        uint32_t x;
+        uint32_t y;
+        uint32_t width;
+        uint32_t height;
+    };
+
+    Region getRegion(uint32_t width, uint32_t height);
     void setRegion(uint32_t x, uint32_t y, uint32_t width, uint32_t height, const void* data, size_t stride);
 
     unsigned int id() const { return id_; }

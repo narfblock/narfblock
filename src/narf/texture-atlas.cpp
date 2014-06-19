@@ -126,9 +126,9 @@ void TextureAtlas::merge() {
 }
 
 
-ivec4 TextureAtlas::getRegion(uint32_t regionWidth, uint32_t regionHeight) {
+TextureAtlas::Region TextureAtlas::getRegion(uint32_t regionWidth, uint32_t regionHeight) {
     int y, best_height, best_width, best_index;
-    ivec4 region = {{0, 0, regionWidth, regionHeight}};
+    Region region = {0, 0, regionWidth, regionHeight};
 
     best_height = INT_MAX;
     best_index  = -1;
@@ -149,8 +149,6 @@ ivec4 TextureAtlas::getRegion(uint32_t regionWidth, uint32_t regionHeight) {
     }
 
     if (best_index == -1) {
-        region.x = -1;
-        region.y = -1;
         region.width = 0;
         region.height = 0;
         return region;
