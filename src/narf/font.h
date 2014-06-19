@@ -1,7 +1,7 @@
 #ifndef NARF_FONT_H
 #define NARF_FONT_H
 
-#include "freetype-gl.h"
+#include "narf/texture-font.h"
 
 #include "narf/color.h"
 

@@ -10,7 +10,15 @@
 #include <SDL_opengl.h>
 #include <SDL_image.h>
 
-#include <GL/gl.h>
+#ifdef __APPLE__
+#   ifdef GL_ES_VERSION_2_0
+#       include <OpenGLES/ES2/gl.h>
+#   else
+#       include <OpenGL/gl.h>
+#   endif
+#else
+#   include <GL/gl.h>
+#endif
 
 #include "narf/gl/texture.h"
 #include "narf/gl/context.h"
