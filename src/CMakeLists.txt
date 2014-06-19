@@ -22,7 +22,6 @@ find_package (OpenGL REQUIRED)
 find_package (GLEW REQUIRED)
 find_package (SDL2 REQUIRED)
 find_package (SDL2_image REQUIRED)
-find_package (freetype-gl REQUIRED)
 find_package (Freetype REQUIRED)
 find_package (Threads REQUIRED)
 find_package (Curses REQUIRED)
@@ -88,7 +87,6 @@ endif()
 include_directories (
 	"${SDL2_INCLUDE_DIR}"
 	"${SDL2IMAGE_INCLUDE_DIR}"
-	"${FREETYPE_GL_INCLUDE_DIR}"
 	"${FREETYPE_INCLUDE_DIRS}"
 	"${GLEW_INCLUDE_DIR}"
 	"${CURSES_INCLUDE_DIR}"
@@ -124,6 +122,9 @@ SET(NARFBLOCK_CLIENT_SOURCE_FILES
 	narf/gl/context.cpp
 	narf/gl/texture.cpp
 	narf/font.cpp
+	narf/texture-atlas.cpp
+	narf/texture-font.cpp
+	narf/vector.cpp
 
 	narf/client/main.cpp
 	narf/client/chunk.cpp
@@ -149,7 +150,6 @@ add_executable (narfblock
 	)
 
 target_link_libraries (narfblock
-	freetype-gl
 	${PocoUtil_LIBRARY}
 	${PocoFoundation_LIBRARY}
 	${FREETYPE_LIBRARY}
