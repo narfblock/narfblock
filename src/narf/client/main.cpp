@@ -1104,6 +1104,8 @@ extern "C" int main(int argc, char **argv)
 	config.initDouble("client.misc.physicsRate", 60);
 	config.initDouble("client.misc.maxFrameTime", 0.25);
 
+	narf::console->println("Unicode test\xE2\x80\xBC pi: \xCF\x80 (2-byte sequence), square root: \xE2\x88\x9A (3-byte sequence), U+2070E: \xF0\xA0\x9C\x8E (4-byte sequence)");
+
 	game_loop();
 
 	if (connectState == ConnectState::Connected) {
