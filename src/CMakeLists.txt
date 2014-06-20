@@ -124,7 +124,6 @@ SET(NARFBLOCK_CLIENT_SOURCE_FILES
 	narf/gl/textureatlas.cpp
 	narf/font.cpp
 	narf/texture-font.cpp
-	narf/vector.cpp
 
 	narf/client/main.cpp
 	narf/client/chunk.cpp

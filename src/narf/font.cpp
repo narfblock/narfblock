@@ -14,14 +14,14 @@ narf::font::Font::Font() : font_(nullptr) {
 
 narf::font::Font::~Font() {
 	if (font_) {
-		texture_font_delete(font_);
+		delete font_;
 	}
 }
 
 
 bool narf::font::Font::load(const std::string &filename, int size) {
-	font_ = texture_font_new_from_file(atlas_, (float)size, filename.c_str());
-	return font_ != nullptr && font_->height != 0.0f;
+	font_ = new TextureFont(atlas_, (float)size, filename.c_str());
+	return font_ != nullptr && font_->height() != 0.0f;
 }
 
 
@@ -35,10 +35,10 @@ float narf::font::Font::width(const std::string &text, int nchars) const {
 	uint32_t prev = 0;
 	for (int n = 0; i != end && n < nchars; ++i, ++n) {
 		auto c = *i;
-		texture_glyph_t *glyph = texture_font_get_glyph(font_, c);
+		auto glyph = font_->getGlyph(c);
 		if (glyph) {
 			if (prev) {
-				width += texture_glyph_get_kerning(glyph, prev);
+				width += glyph->getKerning(prev);
 			}
 			prev = c;
 			width += glyph->advance_x;
@@ -70,10 +70,10 @@ void narf::font::TextBuffer::print(const std::string &text, float x, float y, co
 	uint32_t prev = 0;
 	for (; i != end; ++i) {
 		auto c = *i;
-		texture_glyph_t *glyph = texture_font_get_glyph(font_->font_, c);
+		auto glyph = font_->font_->getGlyph(c);
 		if (glyph != NULL) {
 			if (prev) {
-				pos_x += texture_glyph_get_kerning(glyph, prev);
+				pos_x += glyph->getKerning(prev);
 			}
 			prev = c;
 
