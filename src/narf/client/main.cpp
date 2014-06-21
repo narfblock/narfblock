@@ -61,8 +61,8 @@ const float movespeed = 25.0f;
 
 narf::client::World *world;
 
-#define WORLD_X_MAX 512
-#define WORLD_Y_MAX 512
+#define WORLD_X_MAX 64
+#define WORLD_Y_MAX 64
 #define WORLD_Z_MAX 64
 
 SDL_Surface *tiles_surf;
@@ -695,6 +695,29 @@ double get_time()
 	return (double)SDL_GetTicks() * 0.001; // SDL tick is a millisecond; convert to seconds
 }
 
+
+void processChat(ENetEvent& evt) {
+	//narf::console->println("Got packet from " + narf::net::to_string(evt.peer->address) + " channel " + std::to_string(evt.channelID) + " size " + std::to_string(evt.packet->dataLength));
+	std::string text((char*)evt.packet->data, evt.packet->dataLength);
+	narf::console->println(text);
+}
+
+void processChunk(ENetEvent& evt) {
+	narf::ByteStreamReader bs(evt.packet->data, evt.packet->dataLength);
+	world->deserializeChunk(bs);
+}
+
+void processReceive(ENetEvent& evt) {
+	switch (evt.channelID) {
+	case narf::net::CHAN_CHAT:
+		processChat(evt);
+		break;
+	case narf::net::CHAN_CHUNK:
+		processChunk(evt);
+		break;
+	}
+}
+
 void pollNet()
 {
 	if (connectState != ConnectState::Connecting &&
@@ -717,12 +740,9 @@ void pollNet()
 			connectState = ConnectState::Unconnected;
 			break;
 
-		case ENET_EVENT_TYPE_RECEIVE: {
-			//narf::console->println("Got packet from " + narf::net::to_string(evt.peer->address) + " channel " + std::to_string(evt.channelID) + " size " + std::to_string(evt.packet->dataLength));
-			std::string text((char*)evt.packet->data, evt.packet->dataLength);
-			narf::console->println(text);
+		case ENET_EVENT_TYPE_RECEIVE:
+			processReceive(evt);
 			break;
-		}
 
 		case ENET_EVENT_TYPE_NONE:
 			// make the compiler shut up about unhandled enum value

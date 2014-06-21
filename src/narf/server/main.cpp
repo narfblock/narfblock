@@ -15,8 +15,8 @@
 narf::World *world;
 
 // TODO: move these
-#define WORLD_X_MAX 512
-#define WORLD_Y_MAX 512
+#define WORLD_X_MAX 64
+#define WORLD_Y_MAX 64
 #define WORLD_Z_MAX 64
 
 // TODO: this is copied from client
@@ -82,7 +82,7 @@ void tell(const Client* to, const Client* from, const std::string& text) {
 	std::string fromName = from ? narf::net::to_string(from->peer->address) : "server";
 	std::string packetData("<" + fromName + "> " + text);
 	auto packet = enet_packet_create(packetData.c_str(), packetData.length(), ENET_PACKET_FLAG_RELIABLE);
-	enet_peer_send(to->peer, 0, packet);
+	enet_peer_send(to->peer, narf::net::CHAN_CHAT, packet);
 }
 
 
@@ -93,6 +93,18 @@ void tellAll(const Client* from, const std::string& text) {
 			tell(client, from, text);
 		}
 	}
+}
+
+
+void sendChunkUpdate(const Client* to, const narf::World::ChunkCoord& wcc, bool dirtyOnly) {
+	auto chunk = world->get_chunk(wcc);
+	if (!dirtyOnly || chunk->dirty()) {
+		narf::ByteStreamWriter bs;
+		world->serializeChunk(bs, wcc);
+		auto packet = enet_packet_create(bs.data(), bs.size(), ENET_PACKET_FLAG_RELIABLE);
+		enet_peer_send(to->peer, narf::net::CHAN_CHUNK, packet);
+	}
+	chunk->markClean();
 }
 
 
@@ -142,6 +154,12 @@ void processConnect(ENetEvent& evt) {
 
 	// send a server message greeting
 	tellAll(nullptr, "Client connected from " + narf::net::to_string(evt.peer->address));
+
+	// send all chunks (!!)
+	narf::math::coord::ZYXCoordIter<narf::World::ChunkCoord> iter({ 0, 0, 0 }, { world->chunks_x(), world->chunks_y(), world->chunks_z() });
+	for (const auto& wcc : iter) {
+		sendChunkUpdate(client, wcc, false);
+	}
 }
 
 
@@ -230,6 +248,18 @@ void serverLoop(ENetHost* server) {
 		ENetEvent evt;
 		if (enet_host_service(server, &evt, 0) > 0) {
 			processNetEvent(evt);
+		}
+
+		// send chunk updates to all clients
+		// TODO: only do this on ticks
+		for (size_t i = 0; i < maxClients; i++) {
+			auto client = &clients[i];
+			if (client->peer) {
+				narf::math::coord::ZYXCoordIter<narf::World::ChunkCoord> iter({ 0, 0, 0 }, { world->chunks_x(), world->chunks_y(), world->chunks_z() });
+				for (const auto& wcc : iter) {
+					sendChunkUpdate(client, wcc, true);
+				}
+			}
 		}
 	}
 }

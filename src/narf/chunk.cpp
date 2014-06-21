@@ -38,6 +38,7 @@ void narf::Chunk::put_block(const Block *b, const BlockCoord& c) {
 	Block *to_replace = &blocks_[c.z * size_x_ * size_y_ + c.y * size_x_ + c.x];
 	if (!world_->getBlockType(to_replace->id)->indestructible) {
 		*to_replace = *b;
+		markDirty();
 	}
 }
 
@@ -88,4 +89,5 @@ void narf::Chunk::deserialize(narf::ByteStreamReader& s) {
 		}
 		blocks_[i].id = id;
 	}
+	markDirty();
 }

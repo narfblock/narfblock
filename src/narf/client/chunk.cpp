@@ -217,15 +217,10 @@ void narf::client::Chunk::render()
 {
 	// precondition: tile texture atlas has already been selected by world::render()
 
-	if (rebuild_vertex_buffers_) {
+	if (dirty()) {
 		build_vertex_buffers();
-		rebuild_vertex_buffers_ = false;
+		markClean();
 	}
 
 	draw_vbo(vbo_);
-}
-
-void narf::client::Chunk::deserialize(ByteStreamReader& s) {
-	narf::Chunk::deserialize(s);
-	rebuild_vertex_buffers();
 }

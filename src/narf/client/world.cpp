@@ -45,16 +45,16 @@ void narf::client::World::put_block(const narf::Block *b, const narf::World::Blo
 	calcChunkCoords(wbc, cc, cbc);
 	Chunk *chunk = get_chunk(cc);
 	chunk->put_block(b, cbc);
-	chunk->rebuild_vertex_buffers();
+	chunk->markDirty();;
 
 	// update neighboring chunk meshes since they may have holes exposed by removing this block
 	// or extra faces that are obstructed by adding this block
-	if (cbc.x == 0) get_chunk({(cc.x - 1) & mask_x_, cc.y, cc.z})->rebuild_vertex_buffers();
-	if (cbc.y == 0) get_chunk({cc.x, (cc.y - 1) & mask_y_, cc.z})->rebuild_vertex_buffers();
-	if (cbc.z == 0 && cc.z > 0) get_chunk({cc.x, cc.y, cc.z - 1})->rebuild_vertex_buffers();
-	if (cbc.x == chunk_size_x_ - 1) get_chunk({(cc.x + 1) & mask_x_, cc.y, cc.z})->rebuild_vertex_buffers();
-	if (cbc.y == chunk_size_y_ - 1) get_chunk({cc.x, (cc.y + 1) & mask_y_, cc.z})->rebuild_vertex_buffers();
-	if (cbc.z == chunk_size_z_ - 1 && cc.z < chunks_z_ - 1) get_chunk({cc.x, cc.y, cc.z + 1})->rebuild_vertex_buffers();
+	if (cbc.x == 0) get_chunk({(cc.x - 1) & mask_x_, cc.y, cc.z})->markDirty();
+	if (cbc.y == 0) get_chunk({cc.x, (cc.y - 1) & mask_y_, cc.z})->markDirty();
+	if (cbc.z == 0 && cc.z > 0) get_chunk({cc.x, cc.y, cc.z - 1})->markDirty();
+	if (cbc.x == chunk_size_x_ - 1) get_chunk({(cc.x + 1) & mask_x_, cc.y, cc.z})->markDirty();
+	if (cbc.y == chunk_size_y_ - 1) get_chunk({cc.x, (cc.y + 1) & mask_y_, cc.z})->markDirty();
+	if (cbc.z == chunk_size_z_ - 1 && cc.z < chunks_z_ - 1) get_chunk({cc.x, cc.y, cc.z + 1})->markDirty();
 }
 
 

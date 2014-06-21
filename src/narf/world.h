@@ -63,6 +63,10 @@ public:
 	void serialize(ByteStreamWriter& s);
 	void deserialize(ByteStreamReader& s);
 
+	// TODO: make these private
+	void serializeChunk(ByteStreamWriter& s, const ChunkCoord& wcc);
+	void deserializeChunk(ByteStreamReader& s);
+
 	const Block *get_block(const BlockCoord& c);
 	virtual void put_block(const Block *b, const BlockCoord& c);
 
@@ -90,6 +94,9 @@ public:
 
 	BlockTypeId addBlockType(const BlockType &bt);
 	const BlockType *getBlockType(BlockTypeId id) const;
+
+	// TODO: make this private again
+	Chunk *get_chunk(const ChunkCoord& cc);
 
 protected:
 
@@ -128,8 +135,6 @@ protected:
 		Chunk::BlockCoord& cbc) const;
 
 	virtual Chunk *new_chunk(uint32_t chunk_x, uint32_t chunk_y, uint32_t chunk_z);
-
-	Chunk *get_chunk(const ChunkCoord& cc);
 
 };
 

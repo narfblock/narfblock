@@ -62,7 +62,6 @@ public:
 		narf::World *world,
 		uint32_t size_x, uint32_t size_y, uint32_t size_z,
 		uint32_t pos_x, uint32_t pos_y, uint32_t pos_z) : narf::Chunk(world, size_x, size_y, size_z, pos_x, pos_y, pos_z),
-		rebuild_vertex_buffers_(true),
 		vbo_(GL_ARRAY_BUFFER, GL_STATIC_DRAW)
 	{
 	}
@@ -71,15 +70,9 @@ public:
 	{
 	}
 
-	void deserialize(ByteStreamReader& s) override;
-
 	void render();
 
-	void rebuild_vertex_buffers() { rebuild_vertex_buffers_ = true; }
-
 private:
-	bool rebuild_vertex_buffers_;
-
 	narf::gl::Buffer<BlockVertex> vbo_;
 
 	// internal rendering functions

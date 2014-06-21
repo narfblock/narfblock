@@ -301,6 +301,14 @@ void narf::World::rayTrace(narf::math::coord::Point3f basePoint, narf::math::Vec
 }
 
 
+void narf::World::serializeChunk(ByteStreamWriter& s, const ChunkCoord& wcc) {
+	s.writeLE32(wcc.x);
+	s.writeLE32(wcc.y);
+	s.writeLE32(wcc.z);
+	get_chunk(wcc)->serialize(s);
+}
+
+
 void narf::World::serialize(narf::ByteStreamWriter& s) {
 	s.writeLE32(size_x_);
 	s.writeLE32(size_y_);
@@ -314,12 +322,27 @@ void narf::World::serialize(narf::ByteStreamWriter& s) {
 
 	math::coord::ZYXCoordIter<ChunkCoord> iter({0, 0, 0}, {chunks_x_, chunks_y_, chunks_z_});
 	for (const auto& wcc : iter) {
-		s.writeLE32(wcc.x);
-		s.writeLE32(wcc.y);
-		s.writeLE32(wcc.z);
-		get_chunk(wcc)->serialize(s);
+		serializeChunk(s, wcc);
 	}
 }
+
+void narf::World::deserializeChunk(ByteStreamReader& s) {
+	ChunkCoord wcc;
+	if (!s.readLE32(&wcc.x) ||
+		!s.readLE32(&wcc.y) ||
+		!s.readLE32(&wcc.z)) {
+		// TODO: chunk invalid
+		narf::console->println("Chunk::deserialize: invalid");
+		assert(0);
+		return;
+	}
+
+	// TODO: sanity check pos
+
+	narf::console->println("Loading chunk " + std::to_string(wcc.x) + "," + std::to_string(wcc.y) + "," + std::to_string(wcc.z));
+	get_chunk(wcc)->deserialize(s);
+	get_chunk(wcc)->markDirty();
+ }
 
 
 void narf::World::deserialize(narf::ByteStreamReader& s) {
@@ -345,19 +368,6 @@ void narf::World::deserialize(narf::ByteStreamReader& s) {
 	}
 
 	while (numChunks--) {
-		ChunkCoord wcc;
-		if (!s.readLE32(&wcc.x) ||
-		    !s.readLE32(&wcc.y) ||
-		    !s.readLE32(&wcc.z)) {
-			// TODO: chunk invalid
-			narf::console->println("Chunk::deserialize: invalid");
-			assert(0);
-			return;
-		}
-
-		// TODO: sanity check pos
-
-		narf::console->println("Loading chunk " + std::to_string(wcc.x) + "," + std::to_string(wcc.y) + "," + std::to_string(wcc.z));
-		get_chunk(wcc)->deserialize(s);
+		deserializeChunk(s);
 	}
 }
