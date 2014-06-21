@@ -463,7 +463,7 @@ void chat(const std::string& text) {
 	}
 
 	auto packet = enet_packet_create(text.c_str(), text.length(), ENET_PACKET_FLAG_RELIABLE);
-	enet_peer_send(server, 0, packet);
+	enet_peer_send(server, narf::net::CHAN_CHAT, packet);
 	enet_host_flush(client); // TODO: probably not necessary?
 }
 
@@ -480,14 +480,34 @@ void poll_input(narf::Input *input)
 }
 
 
+void sendPlayerCommand(const narf::PlayerCommand& cmd) {
+	narf::ByteStreamWriter bs;
+	cmd.serialize(bs);
+	auto packet = enet_packet_create(bs.data(), bs.size(), ENET_PACKET_FLAG_RELIABLE);
+	enet_peer_send(server, narf::net::CHAN_PLAYERCMD, packet);
+}
+
+
 void processPlayerCommandQueue(std::queue<narf::PlayerCommand>& q) {
-	if (connectState == ConnectState::Unconnected) {
+	switch (connectState) {
+	case ConnectState::Unconnected:
 		while (!q.empty()) {
 			q.front().exec(world);
 			q.pop();
 		}
-	} else {
-		// TODO: send to server
+		break;
+
+	case ConnectState::Connected:
+		while (!q.empty()) {
+			sendPlayerCommand(q.front());
+			q.pop();
+		}
+		enet_host_flush(client); // TODO: probably not necessary?
+		break;
+
+	case ConnectState::Connecting:
+		// discard command
+		break;
 	}
 }
 

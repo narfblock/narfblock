@@ -65,7 +65,7 @@ narf::PlayerCommand::PlayerCommand(narf::ByteStreamReader& s) {
 	}
 }
 
-void narf::PlayerCommand::serialize(narf::ByteStreamWriter& s) {
+void narf::PlayerCommand::serialize(narf::ByteStreamWriter& s) const {
 	s.writeLE16((uint16_t)type_);
 	switch (type_) {
 	case Type::PrimaryAction:

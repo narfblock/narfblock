@@ -11,6 +11,10 @@ namespace narf {
 	namespace net {
 
 		const size_t MAX_CHANNELS = 2; // TODO
+
+		const uint8_t CHAN_CHAT = 0;
+		const uint8_t CHAN_PLAYERCMD = 1;
+
 		const uint16_t DEFAULT_PORT = 8686;
 
 		enum class DisconnectType {

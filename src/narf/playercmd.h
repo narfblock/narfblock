@@ -49,7 +49,7 @@ public:
 	PlayerCommand(Type type);
 	PlayerCommand(ByteStreamReader& s);
 
-	void serialize(ByteStreamWriter& s);
+	void serialize(ByteStreamWriter& s) const;
 
 	void exec(World* world);
 

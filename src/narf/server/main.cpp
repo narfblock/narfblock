@@ -1,5 +1,7 @@
 #include "narf/version.h"
+#include "narf/bytestream.h"
 #include "narf/cursesconsole.h"
+#include "narf/playercmd.h"
 #include "narf/cmd/cmd.h"
 #include "narf/util/path.h"
 #include "narf/net/net.h"
@@ -141,12 +143,21 @@ void serverLoop(ENetHost* server) {
 			case ENET_EVENT_TYPE_RECEIVE: {
 				auto client = static_cast<Client*>(evt.peer->data);
 				narf::console->println("Got packet from " + narf::net::to_string(evt.peer->address) + " channel " + std::to_string(evt.channelID) + " size " + std::to_string(evt.packet->dataLength));
+				switch (evt.channelID) {
+				case narf::net::CHAN_CHAT: {
+					std::string text((char*)evt.packet->data, evt.packet->dataLength);
+					narf::console->println("Chat: " + text);
+					// send the chat out to all clients
+					tellAll(client, text);
+					break;
+				}
 
-				std::string text((char*)evt.packet->data, evt.packet->dataLength);
-				narf::console->println("Chat: " + text);
-				tellAll(client, text);
-
-				// send the chat out to all clients
+				case narf::net::CHAN_PLAYERCMD:
+					narf::ByteStreamReader bs(evt.packet->data, evt.packet->dataLength);
+					narf::PlayerCommand cmd(bs);
+					narf::console->println("PlayerCommand type=" + std::to_string((int)cmd.type()));
+					break;
+				}
 
 				break;
 			}
