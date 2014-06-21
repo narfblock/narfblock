@@ -34,6 +34,7 @@
 #define NARF_BYTESTREAM_H
 
 #include <stdint.h>
+#include <stddef.h>
 #include <vector>
 
 namespace narf {
