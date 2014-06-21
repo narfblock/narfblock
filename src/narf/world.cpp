@@ -299,3 +299,65 @@ void narf::World::rayTrace(narf::math::coord::Point3f basePoint, narf::math::Vec
 		prevBlockCoord = blockCoord;
 	}
 }
+
+
+void narf::World::serialize(narf::ByteStreamWriter& s) {
+	s.writeLE32(size_x_);
+	s.writeLE32(size_y_);
+	s.writeLE32(size_z_);
+	s.writeLE32(chunk_size_x_);
+	s.writeLE32(chunk_size_y_);
+	s.writeLE32(chunk_size_z_);
+
+	// number of serialized chunks
+	s.writeLE32(chunks_x_ * chunks_y_ * chunks_z_);
+
+	math::coord::ZYXCoordIter<ChunkCoord> iter({0, 0, 0}, {chunks_x_, chunks_y_, chunks_z_});
+	for (const auto& wcc : iter) {
+		s.writeLE32(wcc.x);
+		s.writeLE32(wcc.y);
+		s.writeLE32(wcc.z);
+		get_chunk(wcc)->serialize(s);
+	}
+}
+
+
+void narf::World::deserialize(narf::ByteStreamReader& s) {
+	if (!s.readLE32(&size_x_) ||
+	    !s.readLE32(&size_y_) ||
+	    !s.readLE32(&size_z_) ||
+	    !s.readLE32(&chunk_size_x_) ||
+	    !s.readLE32(&chunk_size_y_) ||
+	    !s.readLE32(&chunk_size_z_)) {
+		// TODO: world invalid
+		assert(0);
+		return;
+	}
+
+	narf::console->println("World::deserialize: size=" + std::to_string(size_x_) + "x" + std::to_string(size_y_) + "x" + std::to_string(size_z_));
+
+	// TODO: do other setup from ctor here
+
+	uint32_t numChunks;
+	if (!s.readLE32(&numChunks)) {
+		assert(0);
+		return;
+	}
+
+	while (numChunks--) {
+		ChunkCoord wcc;
+		if (!s.readLE32(&wcc.x) ||
+		    !s.readLE32(&wcc.y) ||
+		    !s.readLE32(&wcc.z)) {
+			// TODO: chunk invalid
+			narf::console->println("Chunk::deserialize: invalid");
+			assert(0);
+			return;
+		}
+
+		// TODO: sanity check pos
+
+		narf::console->println("Loading chunk " + std::to_string(wcc.x) + "," + std::to_string(wcc.y) + "," + std::to_string(wcc.z));
+		get_chunk(wcc)->deserialize(s);
+	}
+}

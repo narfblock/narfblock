@@ -1,7 +1,7 @@
 /*
- * NarfBlock client chunk class
+ * NarfBlock bytestream writer and reader
  *
- * Copyright (c) 2013 Daniel Verkamp
+ * Copyright (c) 2014 Daniel Verkamp
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,64 +30,54 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef NARF_CLIENT_CHUNK_H
-#define NARF_CLIENT_CHUNK_H
+#ifndef NARF_BYTESTREAM_H
+#define NARF_BYTESTREAM_H
 
 #include <stdint.h>
-#include <stdlib.h>
-#include <assert.h>
-
-#include "narf/world.h"
-
-#include "narf/block.h"
-#include "narf/chunk.h"
-#include "narf/math/vector.h"
-#include "narf/gl/gl.h"
+#include <vector>
 
 namespace narf {
-namespace client {
 
-class World;
-
-struct BlockVertex {
-	GLfloat vertex[3];
-	GLfloat color[3];
-	GLfloat texcoord[2];
-};
-
-class Chunk : public narf::Chunk {
+// TODO: wrap this in a class
+class ByteStreamWriter {
 public:
+	ByteStreamWriter();
+	~ByteStreamWriter();
 
-	Chunk(
-		narf::World *world,
-		uint32_t size_x, uint32_t size_y, uint32_t size_z,
-		uint32_t pos_x, uint32_t pos_y, uint32_t pos_z) : narf::Chunk(world, size_x, size_y, size_z, pos_x, pos_y, pos_z),
-		rebuild_vertex_buffers_(true),
-		vbo_(GL_ARRAY_BUFFER, GL_STATIC_DRAW)
-	{
-	}
+	void writeLE16(uint16_t v);
+	void writeLE32(uint32_t v);
 
-	~Chunk()
-	{
-	}
-
-	void deserialize(ByteStreamReader& s) override;
-
-	void render();
-
-	void rebuild_vertex_buffers() { rebuild_vertex_buffers_ = true; }
+	void* data() { return data_.data(); }
+	size_t size() { return data_.size(); }
 
 private:
-	bool rebuild_vertex_buffers_;
-
-	narf::gl::Buffer<BlockVertex> vbo_;
-
-	// internal rendering functions
-	void build_vertex_buffers();
-	void draw_quad(narf::gl::Buffer<BlockVertex> &vbo, const BlockTexCoord &texCoord, const float *quad);
+	std::vector<uint8_t> data_;
 };
 
-} // namespace client
+
+class ByteStreamReader {
+public:
+	ByteStreamReader(const void* data, size_t size); // copy from data
+	ByteStreamReader(size_t size); // reserve space and fill via data()
+	~ByteStreamReader();
+
+	void reset() { iter_ = data_; bytesLeft_ = size_; }
+
+	void* data() { return data_; }
+
+	size_t size() const { return size_; }
+	size_t bytesLeft() const { return bytesLeft_; }
+
+	bool readLE16(uint16_t* v);
+	bool readLE32(uint32_t* v);
+
+private:
+	uint8_t* data_;
+	const uint8_t* iter_;
+	size_t size_;
+	size_t bytesLeft_;
+};
+
 } // namespace narf
 
-#endif // NARF_CLIENT_CHUNK_H
+#endif // NARF_BYTESTREAM_H

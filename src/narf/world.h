@@ -60,6 +60,9 @@ public:
 
 	virtual ~World();
 
+	void serialize(ByteStreamWriter& s);
+	void deserialize(ByteStreamReader& s);
+
 	const Block *get_block(const BlockCoord& c);
 	virtual void put_block(const Block *b, const BlockCoord& c);
 

@@ -956,6 +956,50 @@ void cmdDisconnect(const std::string& args) {
 }
 
 
+void cmdSave(const std::string& args) {
+	narf::console->println("Serializing world...");
+	narf::ByteStreamWriter s;
+	world->serialize(s);
+	narf::console->println("Saving world to " + args + "...");
+	FILE* f = fopen(args.c_str(), "wb");
+	auto written = fwrite(s.data(), 1, s.size(), f);
+	if (written != s.size()) {
+		narf::console->println("Error saving (incomplete write)");
+	}
+	fclose(f);
+	narf::console->println("Save complete");
+}
+
+
+void cmdLoad(const std::string& args) {
+	narf::console->println("Loading world from " + args + "...");
+	FILE* f = fopen(args.c_str(), "rb");
+	if (f == nullptr) {
+		narf::console->println("Could not open file");
+		return;
+	}
+
+	fseek(f, 0, SEEK_END);
+	// TODO: use ftello?
+	auto size = ftell(f);
+	fseek(f, 0, SEEK_SET);
+	narf::ByteStreamReader s(size);
+	if (s.size() != size) {
+		narf::console->println("Error reserving space for data");
+		fclose(f);
+		return;
+	}
+	auto numRead = fread(s.data(), 1, s.size(), f);
+	if (numRead != s.size()) {
+		narf::console->println("Error loading (incomplete read)");
+	}
+	fclose(f);
+	narf::console->println("Deserializing...");
+	world->deserialize(s);
+	narf::console->println("Load complete");
+}
+
+
 void fatalError(const std::string& msg) {
 	if (narf::console) {
 		narf::console->println(msg);
@@ -986,6 +1030,8 @@ extern "C" int main(int argc, char **argv)
 	narf::cmd::cmds["quit"] = cmdQuit;
 	narf::cmd::cmds["connect"] = cmdConnect;
 	narf::cmd::cmds["disconnect"] = cmdDisconnect;
+	narf::cmd::cmds["save"] = cmdSave;
+	narf::cmd::cmds["load"] = cmdLoad;
 
 	auto config_file = Poco::Path(narf::util::dataDir(), "client.ini").toString();
 	narf::console->println("Client config file: " + config_file);

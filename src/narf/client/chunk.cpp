@@ -224,3 +224,8 @@ void narf::client::Chunk::render()
 
 	draw_vbo(vbo_);
 }
+
+void narf::client::Chunk::deserialize(ByteStreamReader& s) {
+	narf::Chunk::deserialize(s);
+	rebuild_vertex_buffers();
+}

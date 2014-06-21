@@ -32,6 +32,7 @@
 
 #include "narf/chunk.h"
 #include "narf/world.h"
+#include "narf/console.h"
 
 void narf::Chunk::put_block(const Block *b, const BlockCoord& c) {
 	Block *to_replace = &blocks_[c.z * size_x_ * size_y_ + c.y * size_x_ + c.x];
@@ -61,5 +62,30 @@ void narf::Chunk::generate() {
 		fillXYPlane(0, 1); // adminium
 		fillRectPrism({0, 0, 1}, {size_x_, size_y_, size_z_ - 1}, 2); // dirt
 		fillXYPlane(size_z_ - 1, 3); // dirt with grass
+	}
+}
+
+
+void narf::Chunk::serialize(narf::ByteStreamWriter& s) {
+	// TODO: use a CoordIter
+	size_t numBlocks = size_x_ * size_y_ * size_z_;
+	for (size_t i = 0; i < numBlocks; i++) {
+		s.writeLE16(blocks_[i].id);
+	}
+}
+
+
+void narf::Chunk::deserialize(narf::ByteStreamReader& s) {
+	// TODO: add optimized array read
+	size_t numBlocks = size_x_ * size_y_ * size_z_;
+	for (size_t i = 0; i < numBlocks; i++) {
+		uint16_t id;
+		if (!s.readLE16(&id)) {
+			// TODO: chunk invalid
+			narf::console->println("Chunk::deserialize: ran out of blocks");
+			assert(0);
+			return;
+		}
+		blocks_[i].id = id;
 	}
 }

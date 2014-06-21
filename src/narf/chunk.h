@@ -36,8 +36,10 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <vector>
 
 #include "narf/block.h"
+#include "narf/bytestream.h"
 #include "narf/math/coord3D.h"
 
 namespace narf {
@@ -65,6 +67,9 @@ public:
 	{
 		free(blocks_);
 	}
+
+	void serialize(ByteStreamWriter& s);
+	virtual void deserialize(ByteStreamReader& s);
 
 	void generate(); // generate terrain for a fresh chunk
 
