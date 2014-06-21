@@ -19,6 +19,8 @@
 #include <stdint.h>
 #include <assert.h>
 
+#include <queue>
+
 #include "narf/version.h"
 
 #include "narf/camera.h"
@@ -27,6 +29,7 @@
 #include "narf/font.h"
 #include "narf/input.h"
 #include "narf/block.h"
+#include "narf/playercmd.h"
 #include "narf/cmd/cmd.h"
 #include "narf/config/config.h"
 #include "narf/math/math.h"
@@ -88,6 +91,8 @@ ConnectState connectState = ConnectState::Unconnected;
 double connectTimeoutEnd = 0.0;
 
 const double connectTimeout = 5.0;
+
+std::queue<narf::PlayerCommand> playerCommandQueue;
 
 // debug options
 bool wireframe = false;
@@ -475,6 +480,18 @@ void poll_input(narf::Input *input)
 }
 
 
+void processPlayerCommandQueue(std::queue<narf::PlayerCommand>& q) {
+	if (connectState == ConnectState::Unconnected) {
+		while (!q.empty()) {
+			q.front().exec(world);
+			q.pop();
+		}
+	} else {
+		// TODO: send to server
+	}
+}
+
+
 void sim_frame(const narf::Input &input, double t, double dt)
 {
 	if (input.text() != "") {
@@ -589,18 +606,15 @@ void sim_frame(const narf::Input &input, double t, double dt)
 
 	if (traceHitBlock) {
 		if (input.action_primary_begin() || input.action_secondary_begin()) {
-			narf::console->println("got " + std::string(input.action_primary_begin() ? "left" : "right") + " click " +
-				std::to_string(selected_block_face.x) + " " +
-				std::to_string(selected_block_face.y) + " " +
-				std::to_string(selected_block_face.z));
-
-			narf::Block b;
 			narf::World::BlockCoord wbc(selected_block_face.x, selected_block_face.y, selected_block_face.z);
-			if (input.action_secondary_begin()) {
+			if (input.action_primary_begin()) {
 				// remove block at cursor
-				b.id = 0;
+				narf::PlayerCommand cmd(narf::PlayerCommand::Type::PrimaryAction);
+				cmd.setWBC(wbc);
+				playerCommandQueue.push(cmd);
 			} else {
 				// add new block next to selected face
+				// TODO: move this adjustment to PlayerCommand::exec()
 				switch (selected_block_face.face) {
 				case narf::BlockFace::XPos: wbc.x++; break;
 				case narf::BlockFace::XNeg: wbc.x--; break;
@@ -610,9 +624,10 @@ void sim_frame(const narf::Input &input, double t, double dt)
 				case narf::BlockFace::ZNeg: wbc.z--; break;
 				case narf::BlockFace::Invalid: assert(0); break;
 				}
-				b.id = 5;
+				narf::PlayerCommand cmd(narf::PlayerCommand::Type::SecondaryAction);
+				cmd.setWBC(wbc);
+				playerCommandQueue.push(cmd);
 			}
-			world->put_block(&b, wbc);
 		}
 	}
 
@@ -650,6 +665,8 @@ void sim_frame(const narf::Input &input, double t, double dt)
 	} else {
 		screenshot = 0;
 	}
+
+	processPlayerCommandQueue(playerCommandQueue);
 }
 
 

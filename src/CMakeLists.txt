@@ -107,6 +107,7 @@ set (NARFBLOCK_COMMON_SOURCE_FILES
 	narf/bytestream.cpp
 	narf/chunk.cpp
 	narf/entity.cpp
+	narf/playercmd.cpp
 	narf/texteditor.cpp
 	narf/world.cpp
 	narf/cmd/cmd.cpp

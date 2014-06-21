@@ -48,7 +48,7 @@ namespace narf {
 
 		template <class T>
 		class Angle {
-			static_assert(std::is_same<T, double>::value || std::is_same<T, float>::value, "Angle requires float or double type");
+			//static_assert(std::is_same<T, double>::value || std::is_same<T, float>::value, "Angle requires float or double type");
 
 			public:
 				T angle;
