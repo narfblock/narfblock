@@ -104,7 +104,14 @@ void sendChunkUpdate(const Client* to, const narf::World::ChunkCoord& wcc, bool 
 		auto packet = enet_packet_create(bs.data(), bs.size(), ENET_PACKET_FLAG_RELIABLE);
 		enet_peer_send(to->peer, narf::net::CHAN_CHUNK, packet);
 	}
-	chunk->markClean();
+}
+
+
+void markChunksClean() {
+	narf::math::coord::ZYXCoordIter<narf::World::ChunkCoord> iter({ 0, 0, 0 }, { world->chunks_x(), world->chunks_y(), world->chunks_z() });
+	for (const auto& wcc : iter) {
+		world->get_chunk(wcc)->markClean();
+	}
 }
 
 
@@ -261,6 +268,7 @@ void serverLoop(ENetHost* server) {
 				}
 			}
 		}
+		markChunksClean();
 	}
 }
 
