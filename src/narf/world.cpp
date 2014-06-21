@@ -338,7 +338,6 @@ void narf::World::deserializeChunk(ByteStreamReader& s, narf::World::ChunkCoord&
 
 	// TODO: sanity check pos
 
-	narf::console->println("Loading chunk " + std::to_string(wcc.x) + "," + std::to_string(wcc.y) + "," + std::to_string(wcc.z));
 	get_chunk(wcc)->deserialize(s);
 	get_chunk(wcc)->markDirty();
  }

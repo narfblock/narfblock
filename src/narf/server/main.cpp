@@ -206,20 +206,21 @@ void processChat(ENetEvent& evt, Client* client) {
 void processPlayerCommand(ENetEvent& evt, Client* client) {
 	narf::ByteStreamReader bs(evt.packet->data, evt.packet->dataLength);
 	narf::PlayerCommand cmd(bs);
-	narf::console->println("PlayerCommand type=" + std::to_string((int)cmd.type()));
 	cmd.exec(world);
 }
 
 
 void processReceive(ENetEvent& evt) {
 	auto client = static_cast<Client*>(evt.peer->data);
-	narf::console->println("Got packet from " + narf::net::to_string(evt.peer->address) + " channel " + std::to_string(evt.channelID) + " size " + std::to_string(evt.packet->dataLength));
 	switch (evt.channelID) {
 	case narf::net::CHAN_CHAT:
 		processChat(evt, client);
 		break;
 	case narf::net::CHAN_PLAYERCMD:
 		processPlayerCommand(evt, client);
+		break;
+	default:
+		narf::console->println("Got unexpected packet from " + narf::net::to_string(evt.peer->address) + " channel " + std::to_string(evt.channelID) + " size " + std::to_string(evt.packet->dataLength));
 		break;
 	}
 }

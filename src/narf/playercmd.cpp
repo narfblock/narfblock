@@ -81,10 +81,6 @@ void narf::PlayerCommand::exec(narf::World* world) {
 	switch (type_) {
 	case Type::PrimaryAction:
 	case Type::SecondaryAction:
-		narf::console->println("action at " +
-			std::to_string(wbc_.x) + " " +
-			std::to_string(wbc_.y) + " " +
-			std::to_string(wbc_.z));
 		if (type_ == Type::PrimaryAction) {
 			Block b;
 			b.id = 0;
