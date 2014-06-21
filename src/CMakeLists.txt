@@ -1,6 +1,10 @@
 cmake_minimum_required (VERSION 2.6)
 project (NarfBlock)
 
+option(SERVER "Build NarfBlock server" ON)
+option(CLIENT "Build NarfBlock client" ON)
+option(TEST "Build NarfBlock unit tests" ON)
+
 set (VERSION_MAJOR 0)
 set (VERSION_MINOR 1)
 set (VERSION_RELEASE "")
@@ -18,17 +22,23 @@ execute_process(COMMAND ${GIT_COMMAND} describe --tags --always --dirty OUTPUT_V
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/../cmake/Modules/")
 set(NARFBLOCK_DATA_PATH "${CMAKE_SOURCE_DIR}/../data/")
 
-find_package (OpenGL REQUIRED)
-find_package (GLEW REQUIRED)
-find_package (SDL2 REQUIRED)
-find_package (SDL2_image REQUIRED)
-find_package (Freetype REQUIRED)
+if (CLIENT)
+	find_package (OpenGL REQUIRED)
+	find_package (GLEW REQUIRED)
+	find_package (SDL2 REQUIRED)
+	find_package (SDL2_image REQUIRED)
+	find_package (Freetype REQUIRED)
+	find_package (PNG REQUIRED)
+endif ()
+
 find_package (Threads REQUIRED)
-find_package (Curses REQUIRED)
 find_package (Poco REQUIRED)
-find_package (PNG REQUIRED)
 find_package (ZLIB REQUIRED)
 find_package (ENet REQUIRED)
+
+if (SERVER)
+	find_package (Curses REQUIRED)
+endif ()
 
 include (DownloadFont)
 
@@ -60,36 +70,49 @@ if (CURSES_HAVE_NCURSES_CURSES_H)
 	add_definitions( -DHAVE_NCURSES_CURSES_H )
 endif()
 
-# add dependencies to SDL libs for static linking
-if (WIN32)
-	SET(SDL2_LIBRARY
-		${SDL2_LIBRARY}
-		imm32
-		winmm
-		version
-		)
-endif()
+if (CLIENT)
+	# add dependencies to SDL libs for static linking
+	if (WIN32)
+		SET(SDL2_LIBRARY
+			${SDL2_LIBRARY}
+			imm32
+			winmm
+			version
+			)
+	endif()
 
-# add dependencies to SDL2_image libs for static linking
-SET(SDL2IMAGE_LIBRARY
-	${SDL2IMAGE_LIBRARY}
-	${PNG_LIBRARY}
-	${ZLIB_LIBRARY}
-	)
+	# add dependencies to SDL2_image libs for static linking
+	SET(SDL2IMAGE_LIBRARY
+		${SDL2IMAGE_LIBRARY}
+		${PNG_LIBRARY}
+		${ZLIB_LIBRARY}
+		)
+endif ()
 
 if (WIN32)
 	# assume libs are static linked on win32
 	# TODO: make this configurable with cmake
 	add_definitions(-DPOCO_STATIC)
 	add_definitions(-DGLEW_STATIC)
-endif()
+endif ()
+
+if (CLIENT)
+	include_directories (
+		"${SDL2_INCLUDE_DIR}"
+		"${SDL2IMAGE_INCLUDE_DIR}"
+		"${FREETYPE_INCLUDE_DIRS}"
+		"${GLEW_INCLUDE_DIR}"
+		)
+endif ()
+
+if (SERVER)
+	include_directories (
+		"${CURSES_INCLUDE_DIR}"
+		)
+endif ()
+
 
 include_directories (
-	"${SDL2_INCLUDE_DIR}"
-	"${SDL2IMAGE_INCLUDE_DIR}"
-	"${FREETYPE_INCLUDE_DIRS}"
-	"${GLEW_INCLUDE_DIR}"
-	"${CURSES_INCLUDE_DIR}"
 	"${PocoFoundation_INCLUDE_DIR}"
 	"${PocoUtil_INCLUDE_DIR}"
 	"${ENet_INCLUDE_DIRS}"
@@ -119,80 +142,86 @@ set (NARFBLOCK_COMMON_SOURCE_FILES
 	narf/net/addr.cpp
 	)
 
-SET(NARFBLOCK_CLIENT_SOURCE_FILES
-	narf/input.cpp
-	narf/gl/context.cpp
-	narf/gl/texture.cpp
-	narf/gl/textureatlas.cpp
-	narf/font.cpp
-	narf/texture-font.cpp
-
-	narf/client/main.cpp
-	narf/client/chunk.cpp
-	narf/client/console.cpp
-	narf/client/world.cpp
-	)
-
-if (WIN32)
+if (CLIENT)
 	SET(NARFBLOCK_CLIENT_SOURCE_FILES
-		${NARFBLOCK_CLIENT_SOURCE_FILES}
-		narf/client/winresources.rc
+		narf/input.cpp
+		narf/gl/context.cpp
+		narf/gl/texture.cpp
+		narf/gl/textureatlas.cpp
+		narf/font.cpp
+		narf/texture-font.cpp
+
+		narf/client/main.cpp
+		narf/client/chunk.cpp
+		narf/client/console.cpp
+		narf/client/world.cpp
 		)
-endif()
 
-# client executable
-add_executable (narfblock
-	# Mark as a "windowed" program (rather than console) on Windows
-	# (no effect on other platforms)
-	WIN32
+	if (WIN32)
+		SET(NARFBLOCK_CLIENT_SOURCE_FILES
+			${NARFBLOCK_CLIENT_SOURCE_FILES}
+			narf/client/winresources.rc
+			)
+	endif()
 
-	${NARFBLOCK_COMMON_SOURCE_FILES}
-	${NARFBLOCK_CLIENT_SOURCE_FILES}
-	)
+	# client executable
+	add_executable (narfblock
+		# Mark as a "windowed" program (rather than console) on Windows
+		# (no effect on other platforms)
+		WIN32
 
-target_link_libraries (narfblock
-	${PocoUtil_LIBRARY}
-	${PocoFoundation_LIBRARY}
-	${FREETYPE_LIBRARY}
-	${FREETYPE_GL_LIBRARY}
-	${GLEW_LIBRARY}
-	${OPENGL_LIBRARY}
-	${SDL2IMAGE_LIBRARY}
-	${SDL2_LIBRARY}
-	${ENet_LIBRARIES}
-	${CMAKE_THREAD_LIBS_INIT}
-	)
+		${NARFBLOCK_COMMON_SOURCE_FILES}
+		${NARFBLOCK_CLIENT_SOURCE_FILES}
+		)
 
-# server executable
-add_executable (narfblock-server
-	${NARFBLOCK_COMMON_SOURCE_FILES}
+	target_link_libraries (narfblock
+		${PocoUtil_LIBRARY}
+		${PocoFoundation_LIBRARY}
+		${FREETYPE_LIBRARY}
+		${FREETYPE_GL_LIBRARY}
+		${GLEW_LIBRARY}
+		${OPENGL_LIBRARY}
+		${SDL2IMAGE_LIBRARY}
+		${SDL2_LIBRARY}
+		${ENet_LIBRARIES}
+		${CMAKE_THREAD_LIBS_INIT}
+		)
+endif ()
 
-	narf/cursesconsole.cpp
-	narf/server/main.cpp
-	)
+if (SERVER)
+	# server executable
+	add_executable (narfblock-server
+		${NARFBLOCK_COMMON_SOURCE_FILES}
 
-target_link_libraries (narfblock-server
-	${PocoUtil_LIBRARY}
-	${PocoFoundation_LIBRARY}
-	${CMAKE_THREAD_LIBS_INIT}
-	${CURSES_LIBRARY}
-	${ENet_LIBRARIES}
-	)
+		narf/cursesconsole.cpp
+		narf/server/main.cpp
+		)
 
-# unit test executable
-add_executable (narfblock-test
-	${NARFBLOCK_COMMON_SOURCE_FILES}
+	target_link_libraries (narfblock-server
+		${PocoUtil_LIBRARY}
+		${PocoFoundation_LIBRARY}
+		${CMAKE_THREAD_LIBS_INIT}
+		${CURSES_LIBRARY}
+		${ENet_LIBRARIES}
+		)
+endif ()
 
-	narf/stdioconsole.cpp
-	narf/test/main.cpp
-	)
+if (TEST)
+	# unit test executable
+	add_executable (narfblock-test
+		${NARFBLOCK_COMMON_SOURCE_FILES}
 
-target_link_libraries (narfblock-test
-	${PocoUtil_LIBRARY}
-	${PocoFoundation_LIBRARY}
-	${ENet_LIBRARIES}
-	${CMAKE_THREAD_LIBS_INIT}
-	)
+		narf/stdioconsole.cpp
+		narf/test/main.cpp
+		)
+
+	target_link_libraries (narfblock-test
+		${PocoUtil_LIBRARY}
+		${PocoFoundation_LIBRARY}
+		${ENet_LIBRARIES}
+		${CMAKE_THREAD_LIBS_INIT}
+		)
+endif ()
 
 if (NOT CMAKE_BUILD_TYPE)
 	SET(CMAKE_BUILD_TYPE Release CACHE STRING

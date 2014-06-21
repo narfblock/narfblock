@@ -51,6 +51,13 @@ By default, CMake selects a release build; to build for debug:
 
 	(cd build && cmake -DCMAKE_BUILD_TYPE=Debug ../src && make)
 
+## Disabling Server or Client Build
+
+To disable components, specify additional options on the cmake command line:
+
+	(cd build && cmake -DSERVER:BOOL=OFF ../src) # disable server; build client
+	(cd build && cmake -DCLIENT:BOOL=OFF ../src) # disable client; build server 
+
 ## Credits
 
 Textures from the Isabella II texture pack by Bonemouse are used: http://www.minecraftforum.net/topic/242175-Isabella/
