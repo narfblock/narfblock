@@ -74,6 +74,107 @@ ENetHost* serverInit(size_t maxClients) {
 }
 
 
+void processConnect(ENetEvent& evt) {
+	narf::console->println("Client connected from " + narf::net::to_string(evt.peer->address));
+	// add the client to list of connected clients
+	// find an unused client
+	Client* client = nullptr;
+	for (unsigned i = 0; i < maxClients; i++) {
+		if (!clients[i].peer) {
+			client = &clients[i];
+			break;
+		}
+	}
+
+	if (client == nullptr) {
+		// TODO!!!!
+		narf::console->println("ERROR: No client slots available");
+		enet_peer_reset(evt.peer);
+		return;
+	}
+
+	client->peer = evt.peer;
+
+	// store Client pointer in peer data
+	evt.peer->data = client;
+
+	// send a server message greeting
+	tellAll(nullptr, "Client connected from " + narf::net::to_string(evt.peer->address));
+}
+
+
+void processDisconnect(ENetEvent& evt) {
+	auto client = static_cast<Client*>(evt.peer->data);
+	auto disconnectType = static_cast<narf::net::DisconnectType>(evt.data);
+	std::string reason;
+	switch (disconnectType) {
+	case narf::net::DisconnectType::Timeout:
+		reason = "timed out";
+		break;
+	case narf::net::DisconnectType::UserQuit:
+		reason = "user quit";
+		break;
+	default:
+		reason = "unknown";
+		break;
+	}
+
+	std::string disconnectMsg = "Client disconnected from " + narf::net::to_string(evt.peer->address) + " (" + reason + ")";
+	client->peer = nullptr;
+	evt.peer->data = nullptr;
+
+	narf::console->println(disconnectMsg);
+	tellAll(nullptr, disconnectMsg);
+}
+
+
+void processChat(ENetEvent& evt, Client* client) {
+	std::string text((char*)evt.packet->data, evt.packet->dataLength);
+	narf::console->println("Chat: " + text);
+	// send the chat out to all clients
+	tellAll(client, text);
+}
+
+
+void processPlayerCommand(ENetEvent& evt, Client* client) {
+	narf::ByteStreamReader bs(evt.packet->data, evt.packet->dataLength);
+	narf::PlayerCommand cmd(bs);
+	narf::console->println("PlayerCommand type=" + std::to_string((int)cmd.type()));
+}
+
+
+void processReceive(ENetEvent& evt) {
+	auto client = static_cast<Client*>(evt.peer->data);
+	narf::console->println("Got packet from " + narf::net::to_string(evt.peer->address) + " channel " + std::to_string(evt.channelID) + " size " + std::to_string(evt.packet->dataLength));
+	switch (evt.channelID) {
+	case narf::net::CHAN_CHAT:
+		processChat(evt, client);
+		break;
+	case narf::net::CHAN_PLAYERCMD:
+		processPlayerCommand(evt, client);
+		break;
+	}
+}
+
+
+void processNetEvent(ENetEvent& evt) {
+	switch (evt.type) {
+	case ENET_EVENT_TYPE_CONNECT:
+		processConnect(evt);
+		break;
+	case ENET_EVENT_TYPE_DISCONNECT:
+		processDisconnect(evt);
+		break;
+	case ENET_EVENT_TYPE_RECEIVE:
+		processReceive(evt);
+		break;
+	case ENET_EVENT_TYPE_NONE:
+		// make the compiler shut up about unhandled enum value
+		break;
+	}
+}
+
+
 void serverLoop(ENetHost* server) {
 	while (!quitServerLoop) {
 		// check for console input
@@ -85,87 +186,7 @@ void serverLoop(ENetHost* server) {
 		}
 		ENetEvent evt;
 		if (enet_host_service(server, &evt, 0) > 0) {
-			switch (evt.type) {
-			case ENET_EVENT_TYPE_CONNECT: {
-				narf::console->println("Client connected from " + narf::net::to_string(evt.peer->address));
-				// add the client to list of connected clients
-				// find an unused client
-				Client* client = nullptr;
-				for (unsigned i = 0; i < maxClients; i++) {
-					if (!clients[i].peer) {
-						client = &clients[i];
-						break;
-					}
-				}
-
-				if (client == nullptr) {
-					// TODO!!!!
-					narf::console->println("ERROR: No client slots available");
-					enet_peer_reset(evt.peer);
-					break;
-				}
-
-				client->peer = evt.peer;
-
-				// store Client pointer in peer data
-				evt.peer->data = client;
-
-				// send a server message greeting
-				tellAll(nullptr, "Client connected from " + narf::net::to_string(evt.peer->address));
-				break;
-			}
-
-			case ENET_EVENT_TYPE_DISCONNECT: {
-				auto client = static_cast<Client*>(evt.peer->data);
-				auto disconnectType = static_cast<narf::net::DisconnectType>(evt.data);
-				std::string reason;
-				switch (disconnectType) {
-				case narf::net::DisconnectType::Timeout:
-					reason = "timed out";
-					break;
-				case narf::net::DisconnectType::UserQuit:
-					reason = "user quit";
-					break;
-				default:
-					reason = "unknown";
-					break;
-				}
-
-				std::string disconnectMsg = "Client disconnected from " + narf::net::to_string(evt.peer->address) + " (" + reason + ")";
-				client->peer = nullptr;
-				evt.peer->data = nullptr;
-
-				narf::console->println(disconnectMsg);
-				tellAll(nullptr, disconnectMsg);
-				break;
-			}
-
-			case ENET_EVENT_TYPE_RECEIVE: {
-				auto client = static_cast<Client*>(evt.peer->data);
-				narf::console->println("Got packet from " + narf::net::to_string(evt.peer->address) + " channel " + std::to_string(evt.channelID) + " size " + std::to_string(evt.packet->dataLength));
-				switch (evt.channelID) {
-				case narf::net::CHAN_CHAT: {
-					std::string text((char*)evt.packet->data, evt.packet->dataLength);
-					narf::console->println("Chat: " + text);
-					// send the chat out to all clients
-					tellAll(client, text);
-					break;
-				}
-
-				case narf::net::CHAN_PLAYERCMD:
-					narf::ByteStreamReader bs(evt.packet->data, evt.packet->dataLength);
-					narf::PlayerCommand cmd(bs);
-					narf::console->println("PlayerCommand type=" + std::to_string((int)cmd.type()));
-					break;
-				}
-
-				break;
-			}
-
-			case ENET_EVENT_TYPE_NONE:
-				// make the compiler shut up about unhandled enum value
-				break;
-			}
+			processNetEvent(evt);
 		}
 	}
 }
