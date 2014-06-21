@@ -65,7 +65,7 @@ public:
 
 	// TODO: make these private
 	void serializeChunk(ByteStreamWriter& s, const ChunkCoord& wcc);
-	void deserializeChunk(ByteStreamReader& s);
+	virtual void deserializeChunk(ByteStreamReader& s, ChunkCoord& wcc);
 
 	const Block *get_block(const BlockCoord& c);
 	virtual void put_block(const Block *b, const BlockCoord& c);

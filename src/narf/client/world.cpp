@@ -58,6 +58,19 @@ void narf::client::World::put_block(const narf::Block *b, const narf::World::Blo
 }
 
 
+void narf::client::World::deserializeChunk(narf::ByteStreamReader& s, narf::World::ChunkCoord& cc) {
+	narf::World::deserializeChunk(s, cc);
+	// update neighboring chunk meshes since they may have holes exposed by updating this chunk
+	// or extra faces that are obstructed by updating this chunk
+	get_chunk({ (cc.x - 1) & mask_x_, cc.y, cc.z })->markDirty();
+	get_chunk({ cc.x, (cc.y - 1) & mask_y_, cc.z })->markDirty();
+	if (cc.z > 0) get_chunk({ cc.x, cc.y, cc.z - 1 })->markDirty();
+	get_chunk({ (cc.x + 1) & mask_x_, cc.y, cc.z })->markDirty();
+	get_chunk({ cc.x, (cc.y + 1) & mask_y_, cc.z })->markDirty();
+	if (cc.z < chunks_z_ - 1) get_chunk({ cc.x, cc.y, cc.z + 1 })->markDirty();
+}
+
+
 void narf::client::World::renderSlice(narf::gl::Texture *tiles_tex, uint32_t cx_min, uint32_t cx_max, uint32_t cy_min, uint32_t cy_max) {
 	assert(cx_min <= cx_max);
 	assert(cy_min <= cy_max);

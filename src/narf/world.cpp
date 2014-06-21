@@ -326,8 +326,7 @@ void narf::World::serialize(narf::ByteStreamWriter& s) {
 	}
 }
 
-void narf::World::deserializeChunk(ByteStreamReader& s) {
-	ChunkCoord wcc;
+void narf::World::deserializeChunk(ByteStreamReader& s, narf::World::ChunkCoord& wcc) {
 	if (!s.readLE32(&wcc.x) ||
 		!s.readLE32(&wcc.y) ||
 		!s.readLE32(&wcc.z)) {
@@ -368,6 +367,7 @@ void narf::World::deserialize(narf::ByteStreamReader& s) {
 	}
 
 	while (numChunks--) {
-		deserializeChunk(s);
+		narf::World::ChunkCoord wcc;
+		deserializeChunk(s, wcc);
 	}
 }

@@ -704,7 +704,8 @@ void processChat(ENetEvent& evt) {
 
 void processChunk(ENetEvent& evt) {
 	narf::ByteStreamReader bs(evt.packet->data, evt.packet->dataLength);
-	world->deserializeChunk(bs);
+	narf::World::ChunkCoord wcc;
+	world->deserializeChunk(bs, wcc);
 }
 
 void processReceive(ENetEvent& evt) {

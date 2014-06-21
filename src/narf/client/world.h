@@ -57,6 +57,8 @@ public:
 	{
 	}
 
+	void deserializeChunk(ByteStreamReader& s, ChunkCoord& wcc) override;
+
 	void render(narf::gl::Texture *tiles_tex, const narf::Camera *cam);
 
 	void put_block(const Block *b, const narf::World::BlockCoord& wbc) override;
