@@ -2,6 +2,7 @@
 #include "narf/bytestream.h"
 #include "narf/cursesconsole.h"
 #include "narf/playercmd.h"
+#include "narf/world.h"
 #include "narf/cmd/cmd.h"
 #include "narf/util/path.h"
 #include "narf/net/net.h"
@@ -9,6 +10,47 @@
 #include <enet/enet.h>
 
 #include <string.h>
+
+
+narf::World *world;
+
+// TODO: move these
+#define WORLD_X_MAX 512
+#define WORLD_Y_MAX 512
+#define WORLD_Z_MAX 64
+
+// TODO: this is copied from client
+narf::BlockType genNormalBlockType() {
+	narf::BlockType bt;
+	bt.solid = true;
+	bt.indestructible = false;
+	return bt;
+}
+
+// TODO: this is copied from client
+void genWorld() {
+	world = new narf::World(WORLD_X_MAX, WORLD_Y_MAX, WORLD_Z_MAX, 16, 16, 16);
+
+	// set up block types
+	// TODO: put this in a config file
+	auto airType = genNormalBlockType(); // TODO
+	airType.solid = false;
+	world->addBlockType(airType); // air
+
+	auto adminiumType = genNormalBlockType();
+	adminiumType.indestructible = true;
+	world->addBlockType(adminiumType); // adminium
+
+	world->addBlockType(genNormalBlockType()); // dirt
+	world->addBlockType(genNormalBlockType()); // dirt with grass top
+	world->addBlockType(genNormalBlockType()); // TODO
+	world->addBlockType(genNormalBlockType()); // brick
+	world->addBlockType(genNormalBlockType()); // stone1
+	auto stone2 = world->addBlockType(genNormalBlockType()); // stone2
+	world->addBlockType(genNormalBlockType()); // stone3
+
+	world->set_gravity(-24.0f);
+}
 
 
 // TODO: put this somewhere else
@@ -140,6 +182,7 @@ void processPlayerCommand(ENetEvent& evt, Client* client) {
 	narf::ByteStreamReader bs(evt.packet->data, evt.packet->dataLength);
 	narf::PlayerCommand cmd(bs);
 	narf::console->println("PlayerCommand type=" + std::to_string((int)cmd.type()));
+	cmd.exec(world);
 }
 
 
@@ -210,6 +253,8 @@ int main(int argc, char **argv)
 	narf::console->println("Type /quit to quit.");
 
 	narf::cmd::cmds["quit"] = cmdQuit;
+
+	genWorld();
 
 	auto server = serverInit(32);
 	if (server) {
