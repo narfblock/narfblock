@@ -90,9 +90,9 @@ bool narf::ByteStreamReader::readLE16(uint16_t* v) {
 	if (bytesLeft_ < 2) {
 		return false;
 	}
-	*v =
+	*v = static_cast<uint16_t>(
 		static_cast<uint16_t>(iter_[0]) |
-		static_cast<uint16_t>(iter_[1]) << 8;
+		static_cast<uint16_t>(iter_[1]) << 8);
 	iter_ += 2;
 	bytesLeft_ -= 2;
 	return true;
@@ -103,11 +103,11 @@ bool narf::ByteStreamReader::readLE32(uint32_t* v) {
 	if (bytesLeft_ < 4) {
 		return false;
 	}
-	*v =
+	*v = static_cast<uint32_t>(
 		static_cast<uint32_t>(iter_[0]) |
 		static_cast<uint32_t>(iter_[1]) << 8 |
 		static_cast<uint32_t>(iter_[2]) << 16 |
-		static_cast<uint32_t>(iter_[3]) << 24;
+		static_cast<uint32_t>(iter_[3]) << 24);
 	iter_ += 4;
 	bytesLeft_ -= 4;
 	return true;
