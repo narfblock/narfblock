@@ -71,7 +71,8 @@ void narf::Chunk::serialize(narf::ByteStreamWriter& s) {
 	// TODO: use a CoordIter
 	size_t numBlocks = size_x_ * size_y_ * size_z_;
 	for (size_t i = 0; i < numBlocks; i++) {
-		s.writeLE16(blocks_[i].id);
+		uint16_t tmp16 = blocks_[i].id;
+		s.writeLE(tmp16);
 	}
 }
 
@@ -81,7 +82,7 @@ void narf::Chunk::deserialize(narf::ByteStreamReader& s) {
 	size_t numBlocks = size_x_ * size_y_ * size_z_;
 	for (size_t i = 0; i < numBlocks; i++) {
 		uint16_t id;
-		if (!s.readLE16(&id)) {
+		if (!s.readLE(&id)) {
 			// TODO: chunk invalid
 			narf::console->println("Chunk::deserialize: ran out of blocks");
 			assert(0);

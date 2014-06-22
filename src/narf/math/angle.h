@@ -2,6 +2,7 @@
 #define NARFBLOCK_MATH_ANGLE_H
 
 #include <math.h>
+#include "narf/bytestream.h"
 #include "narf/math/floats.h"
 #include <type_traits>
 #include <stdio.h>
@@ -54,8 +55,17 @@ namespace narf {
 				T angle;
 				T minimum;
 				T maximum;
-				Angle(T angle) : angle(angle), minimum(0.0), maximum(static_cast<T>(2*M_PI)) {};
+				Angle(T angle) : angle(angle), minimum(0.0), maximum(static_cast<T>(2 * M_PI)) {};
 				Angle(T angle, T minimum, T maximum) : angle(angle), minimum(minimum), maximum(maximum) {};
+
+				Angle(ByteStreamReader& s) {
+					s.readLE(&angle);
+				}
+
+				void serialize(ByteStreamWriter& s) const {
+					s.writeLE(angle);
+				}
+
 				Angle<T> operator+(const T add) const {
 					return Angle<T>(reduceAngle<T>(angle + add, minimum, maximum), minimum, maximum);
 				};

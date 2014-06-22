@@ -630,7 +630,7 @@ void sim_frame(const narf::Input &input, double t, double dt)
 			if (input.action_primary_begin()) {
 				// remove block at cursor
 				narf::PlayerCommand cmd(narf::PlayerCommand::Type::PrimaryAction);
-				cmd.setWBC(wbc);
+				cmd.wbc = wbc;
 				playerCommandQueue.push(cmd);
 			} else {
 				// add new block next to selected face
@@ -645,25 +645,19 @@ void sim_frame(const narf::Input &input, double t, double dt)
 				case narf::BlockFace::Invalid: assert(0); break;
 				}
 				narf::PlayerCommand cmd(narf::PlayerCommand::Type::SecondaryAction);
-				cmd.setWBC(wbc);
+				cmd.wbc = wbc;
 				playerCommandQueue.push(cmd);
 			}
 		}
 	}
 
 	if (input.action_ternary()) {
-		narf::console->println("got middle click");
-		// fire a new entity
-		auto eid = world->newEntity();
-
-		narf::EntityRef ent(world, eid);
+		narf::PlayerCommand cmd(narf::PlayerCommand::Type::TernaryAction);
 		narf::EntityRef player(world, playerEID);
-
-		ent->position = cam.position;
-		ent->velocity = player->velocity + narf::math::Vector3f(cam.orientation).normalize() * 20.0f;
-		ent->model = true;
-		ent->bouncy = false;
-		ent->explodey = true;
+		cmd.position = cam.position;
+		cmd.velocity = player->velocity;
+		cmd.orientation = cam.orientation;
+		playerCommandQueue.push(cmd);
 	}
 
 	if (input.toggle_wireframe()) {

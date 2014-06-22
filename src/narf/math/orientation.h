@@ -1,6 +1,7 @@
 #ifndef NARFBLOCK_MATH_ORIENTATION_H
 #define NARFBLOCK_MATH_ORIENTATION_H
 
+#include "narf/bytestream.h"
 #include "narf/math/angle.h"
 #include "narf/math/vector.h"
 
@@ -22,6 +23,19 @@ namespace narf {
 				Orientation(T pitch, T yaw) : pitch(pitch), yaw(yaw), roll(0) {};
 				Orientation(Point3<T> a, Point3<T> b) : roll(0) { };
 				Orientation() : pitch(0), yaw(0), roll(0) {};
+
+				Orientation(ByteStreamReader& s) :
+					pitch(s),
+					yaw(s),
+					roll(s) {
+				}
+
+				void serialize(ByteStreamWriter& s) const {
+					pitch.serialize(s);
+					yaw.serialize(s);
+					roll.serialize(s);
+				}
+
 				//Angle<T> inclination() { return M_PI - pitch; } // Zenith down
 				//Angle<T>& altitude() { return pitch; } // Horizon up (same as pitch)
 				//Angle<T>& azimuth() { return yaw; } // North clockwise (same as yaw)

@@ -45,17 +45,23 @@ narf::ByteStreamWriter::~ByteStreamWriter() {
 
 
 // TODO: use vector's resize() and write directly to data if this turns out to be slow
-void narf::ByteStreamWriter::writeLE16(uint16_t v) {
+void narf::ByteStreamWriter::writeLE(uint16_t v) {
 	data_.push_back(static_cast<uint8_t>(v));
 	data_.push_back(static_cast<uint8_t>(v >> 8));
 }
 
 
-void narf::ByteStreamWriter::writeLE32(uint32_t v) {
+void narf::ByteStreamWriter::writeLE(uint32_t v) {
 	data_.push_back(static_cast<uint8_t>(v));
 	data_.push_back(static_cast<uint8_t>(v >> 8));
 	data_.push_back(static_cast<uint8_t>(v >> 16));
 	data_.push_back(static_cast<uint8_t>(v >> 24));
+}
+
+
+void narf::ByteStreamWriter::writeLE(float v) {
+	// TODO: total hax
+	writeLE(*reinterpret_cast<uint32_t*>(&v));
 }
 
 
@@ -85,7 +91,7 @@ narf::ByteStreamReader::~ByteStreamReader() {
 }
 
 
-bool narf::ByteStreamReader::readLE16(uint16_t* v) {
+bool narf::ByteStreamReader::readLE(uint16_t* v) {
 	assert(v != nullptr);
 	if (bytesLeft_ < 2) {
 		return false;
@@ -99,7 +105,7 @@ bool narf::ByteStreamReader::readLE16(uint16_t* v) {
 }
 
 
-bool narf::ByteStreamReader::readLE32(uint32_t* v) {
+bool narf::ByteStreamReader::readLE(uint32_t* v) {
 	if (bytesLeft_ < 4) {
 		return false;
 	}
@@ -111,4 +117,10 @@ bool narf::ByteStreamReader::readLE32(uint32_t* v) {
 	iter_ += 4;
 	bytesLeft_ -= 4;
 	return true;
+}
+
+
+bool narf::ByteStreamReader::readLE(float* v) {
+	// TODO: total hax
+	return readLE(reinterpret_cast<uint32_t*>(v));
 }

@@ -43,7 +43,7 @@ narf::PlayerCommand::PlayerCommand(Type type) : type_(type) {
 
 narf::PlayerCommand::PlayerCommand(narf::ByteStreamReader& s) {
 	uint16_t tmp16;
-	if (!s.readLE16(&tmp16)) {
+	if (!s.readLE(&tmp16)) {
 		// TODO
 		assert(0);
 	}
@@ -55,25 +55,34 @@ narf::PlayerCommand::PlayerCommand(narf::ByteStreamReader& s) {
 	case Type::PrimaryAction:
 	case Type::SecondaryAction:
 		if (
-			!s.readLE32(&wbc_.x) ||
-			!s.readLE32(&wbc_.y) ||
-			!s.readLE32(&wbc_.z)) {
+			!s.readLE(&wbc.x) ||
+			!s.readLE(&wbc.y) ||
+			!s.readLE(&wbc.z)) {
 			// TODO
 			assert(0);
 		}
+		break;
+	case Type::TernaryAction:
+		position = math::Vector3f(s);
+		velocity = math::Vector3f(s);
+		orientation = math::Orientationf(s);
 		break;
 	}
 }
 
 void narf::PlayerCommand::serialize(narf::ByteStreamWriter& s) const {
-	s.writeLE16((uint16_t)type_);
+	s.writeLE((uint16_t)type_);
 	switch (type_) {
 	case Type::PrimaryAction:
 	case Type::SecondaryAction:
-		s.writeLE32(wbc_.x);
-		s.writeLE32(wbc_.y);
-		s.writeLE32(wbc_.z);
+		s.writeLE(wbc.x);
+		s.writeLE(wbc.y);
+		s.writeLE(wbc.z);
 		break;
+	case Type::TernaryAction:
+		position.serialize(s);
+		velocity.serialize(s);
+		orientation.serialize(s);
 	}
 }
 
@@ -84,12 +93,22 @@ void narf::PlayerCommand::exec(narf::World* world) {
 		if (type_ == Type::PrimaryAction) {
 			Block b;
 			b.id = 0;
-			world->put_block(&b, wbc_);
+			world->put_block(&b, wbc);
 		} else {
 			Block b;
 			b.id = 5;
-			world->put_block(&b, wbc_);
+			world->put_block(&b, wbc);
 		}
+		break;
+	case Type::TernaryAction:
+		// fire a new entity
+		auto eid = world->newEntity();
+		narf::EntityRef ent(world, eid);
+		ent->position = position;
+		ent->velocity = velocity + narf::math::Vector3f(orientation).normalize() * 20.0f;
+		ent->model = true;
+		ent->bouncy = false;
+		ent->explodey = true;
 		break;
 	}
 }

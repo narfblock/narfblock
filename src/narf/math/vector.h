@@ -3,6 +3,7 @@
 
 #include <math.h>
 
+#include "narf/bytestream.h"
 #include "narf/math/coord3D.h"
 
 namespace narf {
@@ -81,6 +82,18 @@ namespace math {
 				Vector3() : x(0), y(0), z(0) { }
 				Vector3(T x, T y, T z) : x(x), y(y), z(z) { }
 				Vector3(coord::Point3<T> p) : x(p.x), y(p.y), z(p.z) { }
+
+				Vector3(ByteStreamReader& s) {
+					s.readLE(&x);
+					s.readLE(&y);
+					s.readLE(&z);
+				}
+
+				void serialize(ByteStreamWriter& s) const {
+					s.writeLE(x);
+					s.writeLE(y);
+					s.writeLE(z);
+				};
 
 				operator coord::Point3<T>() const {
 					return coord::Point3<T>(x, y, z);

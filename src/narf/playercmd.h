@@ -34,6 +34,7 @@
 #define NARF_PLAYERCMD_H
 
 #include "narf/bytestream.h"
+#include "narf/math/math.h"
 #include "narf/world.h"
 
 namespace narf {
@@ -44,6 +45,7 @@ public:
 		Invalid = 0,
 		PrimaryAction = 1,
 		SecondaryAction = 2,
+		TernaryAction = 3,
 	};
 
 	PlayerCommand(Type type);
@@ -55,13 +57,14 @@ public:
 
 	Type type() const { return type_; }
 
-	const World::BlockCoord& wbc() const { return wbc_; }
-	void setWBC(const World::BlockCoord& wbc) { wbc_ = wbc; }
+	// TODO: these should be inferred from player location and orientation
+	World::BlockCoord wbc;
+	math::Vector3f position;
+	math::Vector3f velocity;
+	math::Orientationf orientation;
 
 protected:
 	Type type_;
-
-	World::BlockCoord wbc_;
 };
 
 } // namespace narf
