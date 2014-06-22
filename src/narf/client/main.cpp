@@ -27,6 +27,7 @@
 #include "narf/color.h"
 #include "narf/entity.h"
 #include "narf/font.h"
+#include "narf/gameloop.h"
 #include "narf/input.h"
 #include "narf/block.h"
 #include "narf/playercmd.h"
@@ -102,12 +103,20 @@ int screenshot = 0;
 
 GLfloat fogColor[4] = {0.5f, 0.5f, 0.5f, 1.0f};
 
-double physicsRate;
-double physicsTickStep;
-double maxFrameTime;
+class ClientGameLoop : public narf::GameLoop {
+public:
+	ClientGameLoop(double maxFrameTime, double tickRate);
 
-bool quitGameLoop = false;
-bool forceHudUpdate = false;
+	double getTime() override;
+	void tick(double t, double dt) override;
+	void updateStatus(const std::string& status) override;
+	void draw() override;
+
+	float inputDivider;
+	narf::Input input;
+};
+
+ClientGameLoop* gameLoop;
 
 
 narf::font::Font* setFont(
@@ -149,12 +158,17 @@ public:
 			world->set_gravity((float)config.getDouble(key));
 			narf::console->println("Setting gravity to " + std::to_string(world->get_gravity()));
 		} else if (key == "client.misc.physicsRate") {
-			physicsRate = config.getDouble(key);
-			physicsTickStep = 1.0 / physicsRate; // fixed time step
+			auto physicsRate = config.getDouble(key);
 			narf::console->println("Setting physicsRate to " + std::to_string(physicsRate));
+			if (gameLoop) {
+				gameLoop->setTickRate(physicsRate);
+			}
 		} else if (key == "client.misc.maxFrameTime") {
-			maxFrameTime = config.getDouble(key, 0.25);
+			auto maxFrameTime = config.getDouble(key, 0.25);
 			narf::console->println("Setting maxFrameTime to " + std::to_string(maxFrameTime));
+			if (gameLoop) {
+				gameLoop->setMaxFrameTime(maxFrameTime);
+			}
 		} else if (key == "client.video.hudFont" ||
 		           key == "client.video.hudFontSize") {
 			auto font = setFont(
@@ -162,7 +176,9 @@ public:
 				"client.video.hudFont", "DroidSansMono",
 				"client.video.hudFontSize", 30);
 			if (font) {
-				forceHudUpdate = true;
+				if (gameLoop) {
+					gameLoop->forceStatusUpdate = true;
+				}
 				fps_text_buffer->setFont(font);
 				block_info_buffer->setFont(font);
 				entityInfoBuffer->setFont(font);
@@ -684,7 +700,7 @@ void sim_frame(const narf::Input &input, double t, double dt)
 }
 
 
-double get_time()
+double ClientGameLoop::getTime()
 {
 	return (double)SDL_GetTicks() * 0.001; // SDL tick is a millisecond; convert to seconds
 }
@@ -746,7 +762,7 @@ void pollNet()
 	}
 
 	if (connectState == ConnectState::Connecting &&
-		get_time() >= connectTimeoutEnd) {
+		gameLoop->getTime() >= connectTimeoutEnd) {
 		narf::console->println("Connection attempt timed out"); // TODO: use to_string
 
 		enet_peer_reset(server);
@@ -756,74 +772,38 @@ void pollNet()
 	}
 }
 
-void game_loop()
-{
-	const float input_divider = static_cast<float>(config.getDouble("client.misc.inputDivider", 1000));
-	narf::Input input(clientConsole->getTextEditor(), 1.0f / input_divider, 1.0f / input_divider);
-	double t = 0.0;
-	double t1 = get_time();
-	double t_accum = 0.0;
 
-	double fps_t1 = get_time();
-	unsigned physics_steps = 0;
-	unsigned draws = 0;
+ClientGameLoop::ClientGameLoop(double maxFrameTime, double tickRate) :
+	narf::GameLoop(maxFrameTime, tickRate),
+	inputDivider(static_cast<float>(config.getDouble("client.misc.inputDivider", 1000))),
+	input(clientConsole->getTextEditor(), 1.0f / inputDivider, 1.0f / inputDivider) {
+}
 
-	double physicsTime = 0.0, drawTime = 0.0;
 
-	while (1) {
-		double t2 = get_time();
-		double frame_time = t2 - t1;
-
-		if (frame_time > maxFrameTime) {
-			frame_time = maxFrameTime;
-		}
-
-		t1 = t2;
-
-		t_accum += frame_time;
-
-		auto physicsStart = get_time();
-		while (t_accum >= physicsTickStep)
-		{
-			poll_input(&input);
-			if (input.exit() || quitGameLoop) {
-				return;
-			}
-
-			pollNet();
-
-			sim_frame(input, t, physicsTickStep);
-			physics_steps++;
-
-			t_accum -= physicsTickStep;
-			t += physicsTickStep;
-		}
-		physicsTime += get_time() - physicsStart;
-
-		double fps_dt = get_time() - fps_t1;
-		if (fps_dt >= 1.0 || forceHudUpdate) {
-			forceHudUpdate = false;
-			// update fps counter
-			char fpsStr[1000];
-			auto hudFontHeight = fps_text_buffer->getFont()->height();
-			auto physMS = draws ? (physicsTime / draws) * 1000.0 : 0.0;
-			auto drawMS = draws ? (drawTime / draws) * 1000.0 : 0.0;
-			sprintf(fpsStr, "%.0f physics steps/s (%.2f ms/draw) %.0f draws/s (%.2f ms/draw)",
-				(double)physics_steps / fps_dt, physMS,
-				(double)draws / fps_dt, drawMS);
-			auto blue = narf::Color(0.0f, 0.0f, 1.0f);
-			fps_text_buffer->clear();
-			fps_text_buffer->print(fpsStr, 0.0f, (float)display->height() - hudFontHeight, blue);
-			fps_t1 = get_time();
-			draws = physics_steps = 0;
-			physicsTime = drawTime = 0.0;
-		}
-
-		auto drawStart = get_time();
-		draw();
-		draws++;
-		drawTime += get_time() - drawStart;
+void ClientGameLoop::tick(double t, double dt) {
+	poll_input(&input);
+	if (input.exit()) {
+		quit = true;
+		return;
 	}
+
+	pollNet();
+
+	// TODO: merge the common sim_frame stuff into GameLoop
+	sim_frame(input, t, dt);
+}
+
+
+void ClientGameLoop::updateStatus(const std::string& status) {
+	auto hudFontHeight = fps_text_buffer->getFont()->height();
+	auto blue = narf::Color(0.0f, 0.0f, 1.0f);
+	fps_text_buffer->clear();
+	fps_text_buffer->print(status, 0.0f, (float)display->height() - hudFontHeight, blue);
+}
+
+
+void ClientGameLoop::draw() {
+	::draw();
 }
 
 
@@ -951,7 +931,7 @@ void cmdSet(const std::string &args) {
 
 void cmdQuit(const std::string &args) {
 	narf::console->println("Quitting in response to user command");
-	quitGameLoop = true;
+	gameLoop->quit = true;
 }
 
 void cmdConnect(const std::string& args) {
@@ -993,7 +973,7 @@ void cmdConnect(const std::string& args) {
 
 	narf::console->println("Connecting to " + narf::net::to_string(addr) + "...");
 	connectState = ConnectState::Connecting;
-	connectTimeoutEnd = get_time() + connectTimeout;
+	connectTimeoutEnd = gameLoop->getTime() + connectTimeout;
 }
 
 
@@ -1204,7 +1184,8 @@ extern "C" int main(int argc, char **argv)
 
 	narf::console->println("Unicode test\xE2\x80\xBC pi: \xCF\x80 (2-byte sequence), square root: \xE2\x88\x9A (3-byte sequence), U+2070E: \xF0\xA0\x9C\x8E (4-byte sequence)");
 
-	game_loop();
+	gameLoop = new ClientGameLoop(config.getDouble("client.misc.maxFrameTime"), config.getDouble("client.misc.physicsRate"));
+	gameLoop->run();
 
 	if (connectState == ConnectState::Connected) {
 		enet_peer_disconnect(server, (uint32_t)narf::net::DisconnectType::UserQuit);
