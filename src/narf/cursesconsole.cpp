@@ -177,3 +177,9 @@ std::string narf::CursesConsole::pollInput() {
 	refreshInput();
 	return "";
 }
+
+
+void narf::CursesConsole::setStatus(const std::string& status) {
+	mvwprintw(impl->statusWin, 0, 0, status.c_str());
+	wrefresh(impl->statusWin);
+}

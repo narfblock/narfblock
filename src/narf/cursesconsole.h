@@ -17,6 +17,8 @@ namespace narf {
 
 		TextEditor &getTextEditor();
 
+		void setStatus(const std::string& status);
+
 	private:
 		CursesConsoleImpl *impl;
 

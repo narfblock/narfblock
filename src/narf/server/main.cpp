@@ -1,16 +1,57 @@
 #include "narf/version.h"
 #include "narf/bytestream.h"
 #include "narf/cursesconsole.h"
+#include "narf/gameloop.h"
 #include "narf/playercmd.h"
 #include "narf/world.h"
 #include "narf/cmd/cmd.h"
 #include "narf/util/path.h"
 #include "narf/net/net.h"
 
+#include <chrono>
+
 #include <enet/enet.h>
 
 #include <string.h>
 
+narf::CursesConsole *cursesConsole;
+
+// TODO: put this somewhere else
+class Client {
+public:
+
+	Client() : peer(nullptr) {
+	}
+
+	ENetPeer* peer;
+};
+
+
+class ServerGameLoop : public narf::GameLoop {
+public:
+	ServerGameLoop(double maxFrameTime, double tickRate, size_t maxClients);
+	~ServerGameLoop();
+
+	double getTime() override;
+	void tick(double t, double dt) override;
+	void updateStatus(const std::string& status) override;
+	void draw() override;
+
+	void processConnect(ENetEvent& evt);
+	void processDisconnect(ENetEvent& evt);
+	void processChat(ENetEvent& evt, Client* client);
+	void processPlayerCommand(ENetEvent& evt, Client* client);
+	void processReceive(ENetEvent& evt);
+	void processNetEvent(ENetEvent& evt);
+
+	ENetHost* server;
+	size_t maxClients;
+	Client* clients;
+
+	std::chrono::time_point<std::chrono::steady_clock> startupTime;
+};
+
+ServerGameLoop* game;
 
 narf::World *world;
 
@@ -53,27 +94,10 @@ void genWorld() {
 }
 
 
-// TODO: put this somewhere else
-class Client {
-public:
-
-	Client() : peer(nullptr) {
-	}
-
-	ENetPeer* peer;
-
-};
-
-size_t maxClients;
-Client* clients = nullptr;
-
-
-bool quitServerLoop = false;
-
 
 void cmdQuit(const std::string &args) {
 	narf::console->println("Quitting in response to user command");
-	quitServerLoop = true;
+	game->quit = true;
 }
 
 
@@ -87,8 +111,8 @@ void tell(const Client* to, const Client* from, const std::string& text) {
 
 
 void tellAll(const Client* from, const std::string& text) {
-	for (size_t i = 0; i < maxClients; i++) {
-		auto client = &clients[i];
+	for (size_t i = 0; i < game->maxClients; i++) {
+		auto client = &game->clients[i];
 		if (client->peer) {
 			tell(client, from, text);
 		}
@@ -115,11 +139,15 @@ void markChunksClean() {
 }
 
 
-ENetHost* serverInit(size_t maxClients) {
-	::maxClients = maxClients;
+ServerGameLoop::ServerGameLoop(double maxFrameTime, double tickRate, size_t maxClients) :
+	narf::GameLoop(maxFrameTime, tickRate),
+	maxClients(maxClients) {
+
+	startupTime = std::chrono::steady_clock::now();
+
 	clients = new Client[maxClients];
 	if (!clients) {
-		return nullptr;
+		return;
 	}
 
 	ENetAddress bindAddress;
@@ -127,15 +155,25 @@ ENetHost* serverInit(size_t maxClients) {
 	bindAddress.port = narf::net::DEFAULT_PORT;
 
 	narf::console->println("Binding to " + narf::net::to_string(bindAddress));
-	ENetHost* server = enet_host_create(&bindAddress, maxClients, narf::net::MAX_CHANNELS, 0, 0);
+	server = enet_host_create(&bindAddress, maxClients, narf::net::MAX_CHANNELS, 0, 0);
 	if (server == nullptr) {
 		narf::console->println("Could not bind to " + narf::net::to_string(bindAddress));
 	}
-	return server;
 }
 
 
-void processConnect(ENetEvent& evt) {
+ServerGameLoop::~ServerGameLoop() {
+	if (server) {
+		enet_host_destroy(server);
+	}
+	enet_deinitialize();
+	if (clients) {
+		delete[] clients;
+	}
+}
+
+
+void ServerGameLoop::processConnect(ENetEvent& evt) {
 	narf::console->println("Client connected from " + narf::net::to_string(evt.peer->address));
 	// add the client to list of connected clients
 	// find an unused client
@@ -170,7 +208,7 @@ void processConnect(ENetEvent& evt) {
 }
 
 
-void processDisconnect(ENetEvent& evt) {
+void ServerGameLoop::processDisconnect(ENetEvent& evt) {
 	auto client = static_cast<Client*>(evt.peer->data);
 	auto disconnectType = static_cast<narf::net::DisconnectType>(evt.data);
 	std::string reason;
@@ -195,7 +233,7 @@ void processDisconnect(ENetEvent& evt) {
 }
 
 
-void processChat(ENetEvent& evt, Client* client) {
+void ServerGameLoop::processChat(ENetEvent& evt, Client* client) {
 	std::string text((char*)evt.packet->data, evt.packet->dataLength);
 	narf::console->println("Chat: " + text);
 	// send the chat out to all clients
@@ -203,14 +241,14 @@ void processChat(ENetEvent& evt, Client* client) {
 }
 
 
-void processPlayerCommand(ENetEvent& evt, Client* client) {
+void ServerGameLoop::processPlayerCommand(ENetEvent& evt, Client* client) {
 	narf::ByteStreamReader bs(evt.packet->data, evt.packet->dataLength);
 	narf::PlayerCommand cmd(bs);
 	cmd.exec(world);
 }
 
 
-void processReceive(ENetEvent& evt) {
+void ServerGameLoop::processReceive(ENetEvent& evt) {
 	auto client = static_cast<Client*>(evt.peer->data);
 	switch (evt.channelID) {
 	case narf::net::CHAN_CHAT:
@@ -226,7 +264,7 @@ void processReceive(ENetEvent& evt) {
 }
 
 
-void processNetEvent(ENetEvent& evt) {
+void ServerGameLoop::processNetEvent(ENetEvent& evt) {
 	switch (evt.type) {
 	case ENET_EVENT_TYPE_CONNECT:
 		processConnect(evt);
@@ -244,50 +282,55 @@ void processNetEvent(ENetEvent& evt) {
 }
 
 
-void tick(double t, double dt) {
-	world->update(t, dt);
+double ServerGameLoop::getTime() {
+	auto now = std::chrono::steady_clock::now();
+	auto t = std::chrono::duration_cast<std::chrono::milliseconds>(now - startupTime).count();
+	return (double)t / 1000.0;
 }
 
 
-void serverLoop(ENetHost* server) {
-	// TODO: make these global config vars like client
-	double physicsRate = 60.0;
-	double physicsTickStep = 1.0 / physicsRate; // fixed time step
-
-	while (!quitServerLoop) {
-		// check for console input
-		auto input = narf::console->pollInput();
-		if (input != "") {
-			if (input[0] == '/') { // commands begin with slash
-				narf::cmd::exec(input.substr(1));
-			}
+void ServerGameLoop::tick(double t, double dt) {
+	// check for console input
+	auto input = narf::console->pollInput();
+	if (input != "") {
+		if (input[0] == '/') { // commands begin with slash
+			narf::cmd::exec(input.substr(1));
 		}
-		ENetEvent evt;
-		if (enet_host_service(server, &evt, 0) > 0) {
-			processNetEvent(evt);
-		}
-
-		tick(0.0, physicsTickStep); // TODO!!!!
-
-		// send chunk updates to all clients
-		// TODO: only do this on ticks
-		for (size_t i = 0; i < maxClients; i++) {
-			auto client = &clients[i];
-			if (client->peer) {
-				narf::math::coord::ZYXCoordIter<narf::World::ChunkCoord> iter({ 0, 0, 0 }, { world->chunks_x(), world->chunks_y(), world->chunks_z() });
-				for (const auto& wcc : iter) {
-					sendChunkUpdate(client, wcc, true);
-				}
-			}
-		}
-		markChunksClean();
 	}
+	ENetEvent evt;
+	if (enet_host_service(server, &evt, 0) > 0) {
+		processNetEvent(evt);
+	}
+
+	world->update(t, dt);
+
+	// send chunk updates to all clients
+	for (size_t i = 0; i < maxClients; i++) {
+		auto client = &clients[i];
+		if (client->peer) {
+			narf::math::coord::ZYXCoordIter<narf::World::ChunkCoord> iter({ 0, 0, 0 }, { world->chunks_x(), world->chunks_y(), world->chunks_z() });
+			for (const auto& wcc : iter) {
+				sendChunkUpdate(client, wcc, true);
+			}
+		}
+	}
+	markChunksClean();
+}
+
+
+void ServerGameLoop::updateStatus(const std::string& status) {
+	cursesConsole->setStatus(status);
+}
+
+
+void ServerGameLoop::draw() {
 }
 
 
 int main(int argc, char **argv)
 {
-	narf::console = new narf::CursesConsole();
+	cursesConsole = new narf::CursesConsole();
+	narf::console = cursesConsole;
 
 	narf::console->println("Hello, world - I'm a server.");
 	narf::console->println("Version: " + std::to_string(VERSION_MAJOR) + "." + std::to_string(VERSION_MINOR) + std::string(VERSION_RELEASE) + "+" VERSION_REV);
@@ -306,18 +349,11 @@ int main(int argc, char **argv)
 
 	genWorld();
 
-	auto server = serverInit(32);
-	if (server) {
-		serverLoop(server);
-	}
-
+	// TODO: make tick rate and max clients configurable
+	game = new ServerGameLoop(0.25, 60.0, 32);
+	game->callDraw = false;
+	game->run();
+	delete game;
 	delete narf::console;
-	if (server) {
-		enet_host_destroy(server);
-	}
-	enet_deinitialize();
-	if (clients) {
-		delete[] clients;
-	}
 	return 0;
 }

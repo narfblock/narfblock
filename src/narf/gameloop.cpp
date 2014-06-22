@@ -35,11 +35,21 @@
 #include <assert.h>
 
 #include "narf/gameloop.h"
+#include <thread>
+
+#ifdef _WIN32
+#include <windows.h> // for Sleep()
+#endif
 
 
-narf::GameLoop::GameLoop(double maxFrameTime, double tickRate) : maxFrameTime_(maxFrameTime), forceStatusUpdate(false), quit(false) {
+narf::GameLoop::GameLoop(double maxFrameTime, double tickRate) : maxFrameTime_(maxFrameTime), forceStatusUpdate(false), quit(false), callDraw(true) {
 	setTickRate(tickRate);
 }
+
+
+narf::GameLoop::~GameLoop() {
+}
+
 
 void narf::GameLoop::setTickRate(double tickRateHz) {
 	tickRate_ = tickRateHz;
@@ -84,16 +94,32 @@ void narf::GameLoop::run() {
 		}
 		tickTime += getTime() - physicsStart;
 
-		double fps_dt = getTime() - fpsT1;
-		if (fps_dt >= 1.0 || forceStatusUpdate) {
+		double fpsDt = getTime() - fpsT1;
+		if (fpsDt >= 1.0 || forceStatusUpdate) {
 			forceStatusUpdate = false;
 			// update fps counter
 			char fpsStr[1000];
-			auto physMS = draws ? (tickTime / draws) * 1000.0 : 0.0;
-			auto drawMS = draws ? (drawTime / draws) * 1000.0 : 0.0;
-			sprintf(fpsStr, "%.0f ticks/s (%.2f ms/draw) %.0f draws/s (%.2f ms/draw)",
-				(double)ticks / fps_dt, physMS,
-				(double)draws / fps_dt, drawMS);
+			const char* unit;
+			double tickMS;
+			if (draws) {
+				tickMS = (tickTime / draws) * 1000.0;
+				unit = "draw";
+			} else if (ticks) {
+				tickMS = (tickTime / ticks) * 1000.0;
+				unit = "tick";
+			} else {
+				tickMS = 0;
+				unit = "??";
+			}
+			sprintf(fpsStr, "%.0f ticks/s (%.2f ms/%s)",
+				(double)ticks / fpsDt, tickMS, unit);
+			if (callDraw) {
+				auto drawMS = draws ? (drawTime / draws) * 1000.0 : 0.0;
+				auto len = strlen(fpsStr);
+				sprintf(fpsStr + len,
+					" %.0f draws/s (%.2f ms/draw)",
+					(double)draws / fpsDt, drawMS);
+			}
 			updateStatus(fpsStr);
 
 			fpsT1 = getTime();
@@ -101,9 +127,25 @@ void narf::GameLoop::run() {
 			tickTime = drawTime = 0.0;
 		}
 
-		auto drawStart = getTime();
-		draw();
-		draws++;
-		drawTime += getTime() - drawStart;
+		if (callDraw) {
+			auto drawStart = getTime();
+			draw();
+			draws++;
+			drawTime += getTime() - drawStart;
+		} else {
+			// sleep until next tick
+			auto sleepTime = tickStep_ - tAccum;
+			double minSleep = 0.001;
+			// TODO: do short sleeps in a loop to avoid oversleeping the next tick?
+			if (sleepTime > minSleep) {
+				auto sleepDuration = std::chrono::milliseconds((unsigned)(sleepTime * 1000.0));
+#ifdef _WIN32
+				// MinGW-w64 doesn't have std::this_thread?
+				Sleep((DWORD)sleepDuration.count());
+#else
+				std::this_thread::sleep_for(sleepDuration);
+#endif
+			}
+		}
 	}
 }

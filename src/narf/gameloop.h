@@ -40,6 +40,7 @@ namespace narf {
 class GameLoop {
 public:
 	GameLoop(double maxFrameTime, double tickRate);
+	virtual ~GameLoop();
 
 	void run();
 
@@ -50,6 +51,7 @@ public:
 
 	bool forceStatusUpdate;
 	bool quit;
+	bool callDraw;
 
 	double tickRate() const { return tickRate_; }
 	void setTickRate(double tickRateHz);
