@@ -244,7 +244,16 @@ void processNetEvent(ENetEvent& evt) {
 }
 
 
+void tick(double t, double dt) {
+	world->update(t, dt);
+}
+
+
 void serverLoop(ENetHost* server) {
+	// TODO: make these global config vars like client
+	double physicsRate = 60.0;
+	double physicsTickStep = 1.0 / physicsRate; // fixed time step
+
 	while (!quitServerLoop) {
 		// check for console input
 		auto input = narf::console->pollInput();
@@ -257,6 +266,8 @@ void serverLoop(ENetHost* server) {
 		if (enet_host_service(server, &evt, 0) > 0) {
 			processNetEvent(evt);
 		}
+
+		tick(0.0, physicsTickStep); // TODO!!!!
 
 		// send chunk updates to all clients
 		// TODO: only do this on ticks
