@@ -5,6 +5,8 @@ option(SERVER "Build NarfBlock server" ON)
 option(CLIENT "Build NarfBlock client" ON)
 option(TEST "Build NarfBlock unit tests" ON)
 
+option(STATIC "Use static linking when building executables" OFF)
+
 set (VERSION_MAJOR 0)
 set (VERSION_MINOR 1)
 set (VERSION_RELEASE "")
@@ -18,6 +20,7 @@ if (NOT DEFINED GIT_COMMAND)
 endif()
 
 execute_process(COMMAND ${GIT_COMMAND} describe --tags --always --dirty OUTPUT_VARIABLE VERSION_REV OUTPUT_STRIP_TRAILING_WHITESPACE)
+
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/../cmake/Modules/")
 set(NARFBLOCK_DATA_PATH "${CMAKE_SOURCE_DIR}/../data/")
@@ -46,9 +49,9 @@ if (CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
 	SET(CMAKE_C_FLAGS
 		"-Wpointer-arith -Wtype-limits -Wwrite-strings -Wuninitialized -Wno-pmf-conversions -Werror=redundant-decls -Wsign-compare -Wconversion -g -Wl,--as-needed -fno-ident")
 	SET(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -std=gnu++0x")
-	if (WIN32)
+	if (STATIC)
 		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static -static-libgcc -static-libstdc++")
-	endif ()
+	endif()
 endif ()
 
 if (MSVC)
@@ -89,9 +92,7 @@ if (CLIENT)
 		)
 endif ()
 
-if (WIN32)
-	# assume libs are static linked on win32
-	# TODO: make this configurable with cmake
+if (STATIC)
 	add_definitions(-DPOCO_STATIC)
 	add_definitions(-DGLEW_STATIC)
 endif ()

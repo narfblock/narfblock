@@ -41,6 +41,7 @@ Then point CMake at the generated toolchain file and configuration (example to c
 
 	(cd build && \
 		cmake \
+			-DSTATIC:BOOL=ON \
 			-DCMAKE_TOOLCHAIN_FILE=../deps/i686-w64-mingw32/CMake-i686-w64-mingw32.toolchain \
 			-C ../deps/i686-w64-mingw32/deps.cmake ../src && \
 			make)
