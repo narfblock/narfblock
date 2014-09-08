@@ -1,0 +1,4 @@
+export CFLAGS='-Wall -O2 -m64 -mtune=generic -fno-ident -static'
+export CXXFLAGS="${CFLAGS}"
+export LDFLAGS='-static'
+export arch=x86_64

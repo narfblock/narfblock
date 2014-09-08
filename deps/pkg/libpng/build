@@ -16,10 +16,13 @@ cd libpng-*
 ./configure \
 	--prefix=${prefix} \
 	--host=${host_triplet} \
+	--disable-shared \
 	LDFLAGS="-L${prefix}/lib ${LDFLAGS}" \
 	CPPFLAGS="-I${prefix}/include"
 
-make ${MAKEFLAGS} install
+# -all-static: tell libtool we weren't kidding and really do want -static
+# (but we can't pass it to configure because then libtool doesn't filter it)
+make ${MAKEFLAGS} LDFLAGS="-all-static ${LDFLAGS}" install
 
 # fix permissions
 chmod 0644 ${prefix}/lib/libpng*.a

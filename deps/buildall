@@ -15,8 +15,18 @@ export MAKEFLAGS=${MAKEFLAGS:--j2}
 
 hosts=""
 
-i686-w64-mingw32-gcc -v &> /dev/null && hosts="${hosts} i686-w64-mingw32"
-x86_64-w64-mingw32-gcc -v &> /dev/null && hosts="${hosts} x86_64-w64-mingw32"
+function check_host() {
+	p="$1"
+	${p}-gcc -v &> /dev/null && hosts="${hosts} ${p}"
+	true
+}
+
+check_host i686-w64-mingw32
+check_host x86_64-w64-mingw32
+check_host i486-musl-linux
+check_host x86_64-musl-linux
+
+echo "Detected hosts: $hosts"
 
 function build() {
 	echo "Building ${host_triplet}:$1"
@@ -32,14 +42,38 @@ for host_triplet in ${hosts}; do
 	# blow away any existing builds
 	rm -rf "${deps}/${host_triplet}"
 
+	# TODO: add config flags instead of basing this on OS
+	# for now, hard-coded defaults
+	# can't static link to GL on Linux, so can't build client
+	case $host_triplet in
+		mingw*)
+			client=y
+			server=y
+			;;
+		*)
+			client=n
+			server=y
+			;;
+	esac
+
 	build enet
 	build zlib
-	build libpng
-	build sdl2
-	build sdl2_image
-	build pdcurses
-	build freetype
-	build glew
+
+	[ $client = y ] && build libpng
+	[ $client = y ] && build sdl2
+	[ $client = y ] && build sdl2_image
+
+	# use pdcurses on Windows and ncurses elsewhere
+	if [ $server = y ]; then
+		case $host_triplet in
+			mingw*) build pdcurses;;
+			*)      build ncurses;;
+		esac
+	fi
+
+	[ $client = y ] && build freetype
+	[ $client = y ] && build glew
+
 	build poco
 	build cmake-toolchain
 done

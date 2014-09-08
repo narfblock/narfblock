@@ -42,7 +42,7 @@ Then point CMake at the generated toolchain file and configuration (example to c
 	(cd build && \
 		cmake \
 			-DSTATIC:BOOL=ON \
-			-DCMAKE_TOOLCHAIN_FILE=../deps/i686-w64-mingw32/CMake-i686-w64-mingw32.toolchain \
+			-DCMAKE_TOOLCHAIN_FILE=../deps/i686-w64-mingw32/cmake-toolchain \
 			-C ../deps/i686-w64-mingw32/deps.cmake ../src && \
 			make)
 
@@ -57,7 +57,7 @@ By default, CMake selects a release build; to build for debug:
 To disable components, specify additional options on the cmake command line:
 
 	(cd build && cmake -DSERVER:BOOL=OFF ../src) # disable server; build client
-	(cd build && cmake -DCLIENT:BOOL=OFF ../src) # disable client; build server 
+	(cd build && cmake -DCLIENT:BOOL=OFF ../src) # disable client; build server
 
 ## Credits
 

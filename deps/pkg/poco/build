@@ -13,18 +13,35 @@ cd ${work}
 tar xf "${files}/${src}"
 cd poco-*
 
-sed \
-    -e 's/-mno-cygwin//g' \
-    -e "s/i686-pc-mingw32/${host_triplet}/g" \
-    -e "s|-O2|${CFLAGS}|g" \
-    -e "s|\$(CROSSENV)-ar|${AR}|" \
-    -e "s|\$(CROSSENV)-ranlib|${RANLIB}|" \
-    < build/config/MinGW-CrossEnv > build/config/MinGW-custom
+case "${host_triplet}" in
+*mingw*)
+    config=MinGW-custom
+    makefile=build/config/${config}
+    sed \
+        -e 's/-mno-cygwin//g' \
+        -e "s/i686-pc-mingw32/${host_triplet}/g" \
+        -e "s|-O2|${CFLAGS}|g" \
+        -e "s|\$(CROSSENV)-ar|${AR}|" \
+        -e "s|\$(CROSSENV)-ranlib|${RANLIB}|" \
+        < build/config/MinGW-CrossEnv > ${makefile}
 
-sed -i \
-    -e 's/_MSC_VER/_WIN32/' \
-    -e 's/__int64/long long/' \
-    Foundation/include/Poco/Types.h
+    sed -i \
+        -e 's/_MSC_VER/_WIN32/' \
+        -e 's/__int64/long long/' \
+        Foundation/include/Poco/Types.h
+    ;;
+*)
+    config=Linux-custom
+    makefile=build/config/${config}
+    sed \
+        -e "s/gcc\$/${CC}/g" \
+        -e "s/g++\$/${CXX}/g" \
+        -e "s/strip\$/${STRIP}/g" \
+        -e "s/ranlib\$/${RANLIB}/g" \
+        -e "s/-ldl//g" \
+        < build/config/Linux > ${makefile}
+    ;;
+esac
 
 cat >>Foundation/include/Poco/Config.h <<EOF
     #define POCO_NO_FILECHANNEL
@@ -33,9 +50,9 @@ cat >>Foundation/include/Poco/Config.h <<EOF
     #define POCO_UTIL_NO_XMLCONFIGURATION
 EOF
 
-./configure --host=${host_triplet} --prefix=${prefix} --config=MinGW-custom
+./configure --host=${host_triplet} --prefix=${prefix} --config=${config}
 
-make ${MAKEFLAGS} install
+make ${MAKEFLAGS} LINKMODE=STATIC install
 
 cat >> ${prefix}/deps.cmake << EOF
 set(PocoFoundation_INCLUDE_DIR "${prefix}/include" CACHE PATH "")

@@ -8,6 +8,17 @@ files="${deps}/files"
 set -o nounset
 set -o errexit
 
+function win32() {
+	case ${host_triplet} in
+	*mingw*)
+		return 0
+		;;
+	*)
+		return 255
+		;;
+	esac
+}
+
 function die() {
 	echo 2>&1 "$@"
 	exit 1
@@ -47,14 +58,14 @@ export AR=${host_prefix}ar
 export RANLIB=${host_prefix}ranlib
 export STRIP=${host_prefix}strip
 export LD=${host_prefix}ld
-export WINDRES=${host_prefix}windres
+win32 && export WINDRES=${host_prefix}windres
 
 # some native MinGW toolchains don't have some host-prefixed tools
 which "${AR}" &> /dev/null || export AR=ar
 which "${STRIP}" &> /dev/null || export STRIP=strip
 which "${RANLIB}" &> /dev/null || export RANLIB=ranlib
 which "${LD}" &> /dev/null || export LD=ld
-which "${WINDRES}" &> /dev/null || export WINDRES=windres
+win32 && (which "${WINDRES}" &> /dev/null || export WINDRES=windres)
 
 export PKG_CONFIG_PATH=${prefix}/lib/pkgconfig
 
@@ -76,5 +87,5 @@ echo "AR:               ${AR}"
 echo "RANLIB:           ${RANLIB}"
 echo "STRIP:            ${STRIP}"
 echo "LD:               ${LD}"
-echo "WINDRES:          ${WINDRES}"
+win32 && echo "WINDRES:          ${WINDRES}"
 echo

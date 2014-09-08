@@ -1,0 +1,4 @@
+export CFLAGS='-Wall -O2 -m32 -march=pentium3 -mtune=generic -mno-sse -mmmx -fno-ident -static'
+export CXXFLAGS="${CFLAGS}"
+export LDFLAGS='-static'
+export arch=x86

@@ -13,13 +13,22 @@ cd ${work}
 tar xf "${files}/${src}"
 cd zlib-*
 
-sed \
-	-e "s|\$(PREFIX)windres|${WINDRES}|" \
-	-e "s|\$(PREFIX)strip|${STRIP}|" \
-	-e "s|\$(PREFIX)ar|${AR}|" \
-	< win32/Makefile.gcc > win32/Makefile.gcc.custom
+case "${host_triplet}" in
+*mingw*)
+	makefile=win32/Makefile.gcc.custom
+	sed \
+		-e "s|\$(PREFIX)windres|${WINDRES}|" \
+		-e "s|\$(PREFIX)strip|${STRIP}|" \
+		-e "s|\$(PREFIX)ar|${AR}|" \
+		< win32/Makefile.gcc > ${makefile}
+	;;
+*)
+	./configure --static --prefix=/
+	makefile=Makefile
+	;;
+esac
 
-make ${MAKEFLAGS} -f win32/Makefile.gcc.custom \
+make ${MAKEFLAGS} -f ${makefile} \
 	PREFIX=${host_prefix} \
 	DESTDIR=${prefix} \
 	INCLUDE_PATH=/include \
