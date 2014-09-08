@@ -188,6 +188,12 @@ if (CLIENT)
 		${ENet_LIBRARIES}
 		${CMAKE_THREAD_LIBS_INIT}
 		)
+
+	if (CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
+		set_target_properties (narfblock
+			PROPERTIES LINK_FLAGS "-Wl,-Map=narfblock.map"
+			)
+	endif ()
 endif ()
 
 if (SERVER)
