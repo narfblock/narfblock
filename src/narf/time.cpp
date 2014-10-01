@@ -1,7 +1,7 @@
 /*
- * NarfBlock entity class
+ * NarfBlock timestamp manipulation
  *
- * Copyright (c) 2013 Daniel Verkamp
+ * Copyright (c) 2014 Daniel Verkamp
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,60 +30,40 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef NARF_ENTITY_H
-#define NARF_ENTITY_H
-
 #include "narf/time.h"
-#include "narf/math/vector.h"
 
-namespace narf {
+#include <chrono>
+#include <thread>
 
-class World;
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
-class Entity {
-public:
+narf::time narf::time::now() {
 
-	typedef uint32_t ID;
+	static bool initialized = false;
+	static std::chrono::time_point<std::chrono::steady_clock> startupTime;
 
-	Entity(World *world, ID id) : id(id), bouncy(false), explodey(false), model(false), onGround(false), antigrav(false), world_(world) { }
+	auto now = std::chrono::steady_clock::now();
 
-	ID id;
+	// TODO: get rid of this
+	if (!initialized) {
+		startupTime = now;
+		initialized = true;
+	}
 
-	math::Vector3f position;
-	math::Vector3f velocity;
-
-	// temp hack stuff
-	bool bouncy;
-	bool explodey;
-	bool model; // TODO: replace with 3d model object; for now, indicates whether to draw a cube
-	bool onGround; // on solid ground, i.e. can jump
-	bool antigrav; // magic!
-
-	// return true if object is still alive or false if it should be deleted
-	bool update(narf::timediff dt);
-
-private:
-	World *world_;
-
-};
+	// TODO: implement this in a way that doesn't require std::chrono
+	auto t = std::chrono::duration_cast<std::chrono::microseconds>(now - startupTime).count();
+	return narf::time(narf::timediff((int64_t)t));
+}
 
 
-class EntityRef {
-public:
-	EntityRef(World* world, Entity::ID id);
-	~EntityRef();
-
-	Entity* ent;
-	Entity::ID id;
-	World* world;
-
-	Entity* operator ->() { return ent; }
-
-	// no copying
-	EntityRef(const EntityRef&) = delete;
-	EntityRef& operator=(const EntityRef&) = delete;
-};
-
-} // namespace narf
-
-#endif // NARF_ENTITY_H
+void narf::sleep(const narf::timediff& td) {
+#ifdef _WIN32
+	// MinGW-w64 doesn't have std::this_thread?
+	Sleep(td.us_ / 1000);
+#else
+	auto sleepDuration = std::chrono::microseconds(td.us_);
+	std::this_thread::sleep_for(sleepDuration);
+#endif
+}

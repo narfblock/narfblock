@@ -70,14 +70,15 @@ void explode(narf::World *world, const narf::World::BlockCoord& bc, int32_t radi
 }
 
 
-bool narf::Entity::update(double t, double dt)
+bool narf::Entity::update(narf::timediff dt)
 {
 	bool alive = true;
 	// cheesy Euler integration
 	auto acceleration = narf::math::Vector3f(0.0f, 0.0f, antigrav ? 0.0f : world_->get_gravity());
 
-	velocity += acceleration * (float)dt;
-	position += velocity * (float)dt;
+	// TODO: once coords are converted to integers, get rid of casts of dt to double
+	velocity += acceleration * (double)dt;
+	position += velocity * (double)dt;
 
 	// wrap around
 	// TODO: ensure position can't go beyond one extra world size with extreme velocity

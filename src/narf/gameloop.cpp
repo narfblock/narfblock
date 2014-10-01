@@ -34,15 +34,15 @@
 #include <string.h>
 #include <assert.h>
 
+#include "narf/console.h"
 #include "narf/gameloop.h"
-#include <thread>
-
-#ifdef _WIN32
-#include <windows.h> // for Sleep()
-#endif
 
 
-narf::GameLoop::GameLoop(double maxFrameTime, double tickRate) : maxFrameTime_(maxFrameTime), forceStatusUpdate(false), quit(false), callDraw(true) {
+narf::GameLoop::GameLoop(timediff maxFrameTime, double tickRate) :
+	maxFrameTime_(maxFrameTime),
+	forceStatusUpdate(false),
+	quit(false),
+	callDraw(true) {
 	setTickRate(tickRate);
 }
 
@@ -53,24 +53,24 @@ narf::GameLoop::~GameLoop() {
 
 void narf::GameLoop::setTickRate(double tickRateHz) {
 	tickRate_ = tickRateHz;
-	tickStep_ = (1.0 / tickRateHz);
+	tickStep_ = timediff(1.0 / tickRateHz);
+	narf::console->println("setTickRate(" + std::to_string(tickRateHz) + "): tickStep:" + std::to_string(tickStep_.us_));
 }
 
 
 void narf::GameLoop::run() {
-	double t = 0.0;
-	double t1 = getTime();
-	double tAccum = 0.0;
+	time t1 = narf::time::now();
+	timediff tAccum = 0;
 
-	double fpsT1 = getTime();
+	time fpsT1 = narf::time::now();
 	unsigned ticks = 0;
 	unsigned draws = 0;
 
-	double tickTime = 0.0, drawTime = 0.0;
+	timediff tickTime = 0, drawTime = 0;
 
 	while (1) {
-		double t2 = getTime();
-		double frameTime = t2 - t1;
+		time t2 = narf::time::now();
+		timediff frameTime = t2 - t1;
 
 		if (frameTime > maxFrameTime_) {
 			frameTime = maxFrameTime_;
@@ -80,9 +80,9 @@ void narf::GameLoop::run() {
 
 		tAccum += frameTime;
 
-		auto physicsStart = getTime();
+		auto physicsStart = narf::time::now();
 		while (tAccum >= tickStep_) {
-			tick(t, tickStep_);
+			tick(tickStep_);
 			if (quit) {
 				return;
 			}
@@ -90,11 +90,10 @@ void narf::GameLoop::run() {
 			ticks++;
 
 			tAccum -= tickStep_;
-			t += tickStep_;
 		}
-		tickTime += getTime() - physicsStart;
+		tickTime += narf::time::now() - physicsStart;
 
-		double fpsDt = getTime() - fpsT1;
+		timediff fpsDt = narf::time::now() - fpsT1;
 		if (fpsDt >= 1.0 || forceStatusUpdate) {
 			forceStatusUpdate = false;
 			// update fps counter
@@ -122,29 +121,23 @@ void narf::GameLoop::run() {
 			}
 			updateStatus(fpsStr);
 
-			fpsT1 = getTime();
+			fpsT1 = narf::time::now();
 			draws = ticks = 0;
-			tickTime = drawTime = 0.0;
+			tickTime = drawTime = 0;
 		}
 
 		if (callDraw) {
-			auto drawStart = getTime();
+			auto drawStart = narf::time::now();
 			draw();
 			draws++;
-			drawTime += getTime() - drawStart;
+			drawTime += narf::time::now() - drawStart;
 		} else {
 			// sleep until next tick
 			auto sleepTime = tickStep_ - tAccum;
 			double minSleep = 0.001;
 			// TODO: do short sleeps in a loop to avoid oversleeping the next tick?
 			if (sleepTime > minSleep) {
-				auto sleepDuration = std::chrono::milliseconds((unsigned)(sleepTime * 1000.0));
-#ifdef _WIN32
-				// MinGW-w64 doesn't have std::this_thread?
-				Sleep((DWORD)sleepDuration.count());
-#else
-				std::this_thread::sleep_for(sleepDuration);
-#endif
+				narf::sleep(sleepTime);
 			}
 		}
 	}

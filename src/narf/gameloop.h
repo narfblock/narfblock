@@ -35,17 +35,18 @@
 
 #include <string>
 
+#include "narf/time.h"
+
 namespace narf {
 
 class GameLoop {
 public:
-	GameLoop(double maxFrameTime, double tickRate);
+	GameLoop(timediff maxFrameTime, double tickRate);
 	virtual ~GameLoop();
 
 	void run();
 
-	virtual double getTime() = 0;
-	virtual void tick(double t, double dt) = 0;
+	virtual void tick(timediff dt) = 0;
 	virtual void updateStatus(const std::string& status) = 0;
 	virtual void draw() = 0;
 
@@ -56,13 +57,13 @@ public:
 	double tickRate() const { return tickRate_; }
 	void setTickRate(double tickRateHz);
 
-	void setMaxFrameTime(double maxFrameTime) { maxFrameTime_ = maxFrameTime; }
+	void setMaxFrameTime(timediff maxFrameTime) { maxFrameTime_ = maxFrameTime; }
 	double maxFrameTime() const { return maxFrameTime_; }
 
 private:
 	double tickRate_;
-	double tickStep_;
-	double maxFrameTime_;
+	timediff tickStep_;
+	timediff maxFrameTime_;
 };
 
 } // namespace narf

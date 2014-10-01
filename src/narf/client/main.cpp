@@ -31,6 +31,7 @@
 #include "narf/input.h"
 #include "narf/block.h"
 #include "narf/playercmd.h"
+#include "narf/time.h"
 #include "narf/cmd/cmd.h"
 #include "narf/config/config.h"
 #include "narf/math/math.h"
@@ -89,9 +90,9 @@ enum class ConnectState {
 };
 
 ConnectState connectState = ConnectState::Unconnected;
-double connectTimeoutEnd = 0.0;
+narf::time connectTimeoutEnd;
 
-const double connectTimeout = 5.0;
+const narf::timediff connectTimeout(5.0);
 
 std::queue<narf::PlayerCommand> playerCommandQueue;
 
@@ -107,8 +108,7 @@ class ClientGameLoop : public narf::GameLoop {
 public:
 	ClientGameLoop(double maxFrameTime, double tickRate);
 
-	double getTime() override;
-	void tick(double t, double dt) override;
+	void tick(narf::timediff dt) override;
 	void updateStatus(const std::string& status) override;
 	void draw() override;
 
@@ -528,7 +528,7 @@ void processPlayerCommandQueue(std::queue<narf::PlayerCommand>& q) {
 }
 
 
-void sim_frame(const narf::Input &input, double t, double dt)
+void sim_frame(const narf::Input &input, narf::timediff dt)
 {
 	if (input.text() != "") {
 		if (input.text()[0] == '/') { // commands begin with slash
@@ -604,7 +604,7 @@ void sim_frame(const narf::Input &input, double t, double dt)
 		}
 	}
 
-	world->update(t, dt);
+	world->update(dt);
 
 	{
 		narf::EntityRef player(world, playerEID);
@@ -699,13 +699,6 @@ void sim_frame(const narf::Input &input, double t, double dt)
 	processPlayerCommandQueue(playerCommandQueue);
 }
 
-
-double ClientGameLoop::getTime()
-{
-	return (double)SDL_GetTicks() * 0.001; // SDL tick is a millisecond; convert to seconds
-}
-
-
 void processChat(ENetEvent& evt) {
 	//narf::console->println("Got packet from " + narf::net::to_string(evt.peer->address) + " channel " + std::to_string(evt.channelID) + " size " + std::to_string(evt.packet->dataLength));
 	std::string text((char*)evt.packet->data, evt.packet->dataLength);
@@ -762,7 +755,7 @@ void pollNet()
 	}
 
 	if (connectState == ConnectState::Connecting &&
-		gameLoop->getTime() >= connectTimeoutEnd) {
+		narf::time::now() >= connectTimeoutEnd) {
 		narf::console->println("Connection attempt timed out"); // TODO: use to_string
 
 		enet_peer_reset(server);
@@ -780,7 +773,7 @@ ClientGameLoop::ClientGameLoop(double maxFrameTime, double tickRate) :
 }
 
 
-void ClientGameLoop::tick(double t, double dt) {
+void ClientGameLoop::tick(narf::timediff dt) {
 	poll_input(&input);
 	if (input.exit()) {
 		quit = true;
@@ -790,7 +783,7 @@ void ClientGameLoop::tick(double t, double dt) {
 	pollNet();
 
 	// TODO: merge the common sim_frame stuff into GameLoop
-	sim_frame(input, t, dt);
+	sim_frame(input, dt);
 }
 
 
@@ -973,7 +966,7 @@ void cmdConnect(const std::string& args) {
 
 	narf::console->println("Connecting to " + narf::net::to_string(addr) + "...");
 	connectState = ConnectState::Connecting;
-	connectTimeoutEnd = gameLoop->getTime() + connectTimeout;
+	connectTimeoutEnd = narf::time::now() + connectTimeout;
 }
 
 

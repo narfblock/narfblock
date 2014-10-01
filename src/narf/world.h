@@ -43,6 +43,7 @@
 #include "narf/block.h"
 #include "narf/chunk.h"
 #include "narf/entity.h"
+#include "narf/time.h"
 #include "narf/math/math.h"
 
 namespace narf {
@@ -90,7 +91,7 @@ public:
 
 	size_t getNumEntities() const { return entities_.size(); }
 
-	void update(double t, double dt);
+	void update(timediff dt);
 
 	BlockTypeId addBlockType(const BlockType &bt);
 	const BlockType *getBlockType(BlockTypeId id) const;

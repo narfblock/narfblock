@@ -201,10 +201,10 @@ void narf::World::releaseEntityRef(narf::Entity::ID id) {
 }
 
 
-void narf::World::update(double t, double dt) {
+void narf::World::update(narf::timediff dt) {
 	std::vector<Entity::ID> entsToDelete;
 	for (auto& ent : entities_) {
-		if (!ent.update(t, dt)) {
+		if (!ent.update(dt)) {
 			entsToDelete.push_back(ent.id);
 		}
 	}

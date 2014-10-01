@@ -32,8 +32,7 @@ public:
 	ServerGameLoop(double maxFrameTime, double tickRate, size_t maxClients);
 	~ServerGameLoop();
 
-	double getTime() override;
-	void tick(double t, double dt) override;
+	void tick(narf::timediff dt) override;
 	void updateStatus(const std::string& status) override;
 	void draw() override;
 
@@ -47,8 +46,6 @@ public:
 	ENetHost* server;
 	size_t maxClients;
 	Client* clients;
-
-	std::chrono::time_point<std::chrono::steady_clock> startupTime;
 };
 
 ServerGameLoop* game;
@@ -142,8 +139,6 @@ void markChunksClean() {
 ServerGameLoop::ServerGameLoop(double maxFrameTime, double tickRate, size_t maxClients) :
 	narf::GameLoop(maxFrameTime, tickRate),
 	maxClients(maxClients) {
-
-	startupTime = std::chrono::steady_clock::now();
 
 	clients = new Client[maxClients];
 	if (!clients) {
@@ -282,14 +277,7 @@ void ServerGameLoop::processNetEvent(ENetEvent& evt) {
 }
 
 
-double ServerGameLoop::getTime() {
-	auto now = std::chrono::steady_clock::now();
-	auto t = std::chrono::duration_cast<std::chrono::milliseconds>(now - startupTime).count();
-	return (double)t / 1000.0;
-}
-
-
-void ServerGameLoop::tick(double t, double dt) {
+void ServerGameLoop::tick(narf::timediff dt) {
 	// check for console input
 	auto input = narf::console->pollInput();
 	if (input != "") {
@@ -302,7 +290,7 @@ void ServerGameLoop::tick(double t, double dt) {
 		processNetEvent(evt);
 	}
 
-	world->update(t, dt);
+	world->update(dt);
 
 	// send chunk updates to all clients
 	for (size_t i = 0; i < maxClients; i++) {
