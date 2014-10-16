@@ -59,7 +59,7 @@ public:
 
 	void deserializeChunk(ByteStreamReader& s, ChunkCoord& wcc) override;
 
-	void render(narf::gl::Texture *tiles_tex, const narf::Camera *cam);
+	void render(narf::gl::Texture *tiles_tex, const narf::Camera *cam, float stateBlend);
 
 	void put_block(const Block *b, const narf::World::BlockCoord& wbc) override;
 
@@ -76,7 +76,7 @@ protected:
 		return static_cast<narf::client::Chunk*>(narf::World::get_chunk(wcc));
 	}
 
-	void renderSlice(narf::gl::Texture *tiles_tex, uint32_t cx_min, uint32_t cx_max, uint32_t cy_min, uint32_t cy_max);
+	void renderSlice(narf::gl::Texture *tiles_tex, uint32_t cx_min, uint32_t cx_max, uint32_t cy_min, uint32_t cy_max, float stateBlend);
 };
 
 } // namespace client

@@ -110,7 +110,7 @@ public:
 
 	void tick(narf::timediff dt) override;
 	void updateStatus(const std::string& status) override;
-	void draw() override;
+	void draw(float stateBlend) override;
 
 	float inputDivider;
 	narf::Input input;
@@ -157,11 +157,11 @@ public:
 		} else if (key == "client.foo.gravity") {
 			world->set_gravity((float)config.getDouble(key));
 			narf::console->println("Setting gravity to " + std::to_string(world->get_gravity()));
-		} else if (key == "client.misc.physicsRate") {
-			auto physicsRate = config.getDouble(key);
-			narf::console->println("Setting physicsRate to " + std::to_string(physicsRate));
+		} else if (key == "client.misc.tickRate") {
+			auto tickRate = config.getDouble(key);
+			narf::console->println("Setting tickRate to " + std::to_string(tickRate));
 			if (gameLoop) {
-				gameLoop->setTickRate(physicsRate);
+				gameLoop->setTickRate(tickRate);
 			}
 		} else if (key == "client.misc.maxFrameTime") {
 			auto maxFrameTime = config.getDouble(key, 0.25);
@@ -294,7 +294,7 @@ void drawCubeHighlight(const narf::BlockWrapper &blockFace)
 }
 
 
-void draw3d() {
+void draw3d(float stateBlend) {
 	// draw 3d world and objects
 
 	// viewer projection
@@ -336,7 +336,7 @@ void draw3d() {
 
 	glEnable(GL_TEXTURE_2D);
 
-	world->render(tiles_tex, &cam);
+	world->render(tiles_tex, &cam, stateBlend);
 
 	if (selected_block_face.block) {
 		// draw a selection rectangle
@@ -439,12 +439,12 @@ void draw2d() {
 }
 
 
-void draw() {
+void draw(float stateBlend) {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glViewport(0, 0, display->width(), display->height());
 
-	draw3d();
+	draw3d(stateBlend);
 	draw2d();
 
 	display->swap();
@@ -795,8 +795,8 @@ void ClientGameLoop::updateStatus(const std::string& status) {
 }
 
 
-void ClientGameLoop::draw() {
-	::draw();
+void ClientGameLoop::draw(float stateBlend) {
+	::draw(stateBlend);
 }
 
 
@@ -1130,6 +1130,7 @@ extern "C" int main(int argc, char **argv)
 
 		// initial player position
 		player->position = narf::math::Vector3f(15.0f, 10.0f, 16.0f);
+		player->prevPosition = player->position;
 	}
 
 	// initialize camera to look at origin
@@ -1140,6 +1141,7 @@ extern "C" int main(int argc, char **argv)
 	{
 		narf::EntityRef bouncyBlock(world, bouncyBlockEID);
 		bouncyBlock->position = narf::math::Vector3f(10.0f, 10.0f, 21.0f);
+		bouncyBlock->prevPosition = bouncyBlock->position;
 		bouncyBlock->bouncy = true;
 		bouncyBlock->model = true;
 	}
@@ -1172,12 +1174,12 @@ extern "C" int main(int argc, char **argv)
 
 	SDL_SetRelativeMouseMode(SDL_TRUE);
 
-	config.initDouble("client.misc.physicsRate", 60);
+	config.initDouble("client.misc.tickRate", 60);
 	config.initDouble("client.misc.maxFrameTime", 0.25);
 
 	narf::console->println("Unicode test\xE2\x80\xBC pi: \xCF\x80 (2-byte sequence), square root: \xE2\x88\x9A (3-byte sequence), U+2070E: \xF0\xA0\x9C\x8E (4-byte sequence)");
 
-	gameLoop = new ClientGameLoop(config.getDouble("client.misc.maxFrameTime"), config.getDouble("client.misc.physicsRate"));
+	gameLoop = new ClientGameLoop(config.getDouble("client.misc.maxFrameTime"), config.getDouble("client.misc.tickRate"));
 	gameLoop->run();
 
 	if (connectState == ConnectState::Connected) {

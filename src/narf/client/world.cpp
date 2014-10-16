@@ -71,7 +71,7 @@ void narf::client::World::deserializeChunk(narf::ByteStreamReader& s, narf::Worl
 }
 
 
-void narf::client::World::renderSlice(narf::gl::Texture *tiles_tex, uint32_t cx_min, uint32_t cx_max, uint32_t cy_min, uint32_t cy_max) {
+void narf::client::World::renderSlice(narf::gl::Texture *tiles_tex, uint32_t cx_min, uint32_t cx_max, uint32_t cy_min, uint32_t cy_max, float stateBlend) {
 	assert(cx_min <= cx_max);
 	assert(cy_min <= cy_max);
 	assert(cx_max <= chunks_x_);
@@ -95,13 +95,20 @@ void narf::client::World::renderSlice(narf::gl::Texture *tiles_tex, uint32_t cx_
 		// TODO: move this code to an Entity method
 		if (ent.model) {
 			// temp hack: draw an entity as a cube for physics demo
-			::draw_cube(ent.position.x, ent.position.y, ent.position.z, 1, 0xFF);
+			// stateBlend represents how far (time-wise) we are between the previous state and the current state.
+			// If stateBlend is in [0,1], we are interpolating between previous and current state.
+			// If stateBlend is greater than 1, we are extrapolating future state. TODO: does this actually work?
+			// Due to the way this interpolation works, we may be rendering up to a full tick behind the current state.
+			float x = ent.position.x * stateBlend + ent.prevPosition.x * (1.0f - stateBlend);
+			float y = ent.position.y * stateBlend + ent.prevPosition.y * (1.0f - stateBlend);
+			float z = ent.position.z * stateBlend + ent.prevPosition.z * (1.0f - stateBlend);
+			::draw_cube(x, y, z, 1, 0xFF);
 		}
 	}
 }
 
 
-void narf::client::World::render(narf::gl::Texture *tiles_tex, const narf::Camera *cam) {
+void narf::client::World::render(narf::gl::Texture *tiles_tex, const narf::Camera *cam, float stateBlend) {
 	// camera
 	glLoadIdentity();
 	glRotatef(-(cam->orientation.pitch.toDeg() + 90.0f), 1.0f, 0.0f, 0.0f);
@@ -136,14 +143,14 @@ void narf::client::World::render(narf::gl::Texture *tiles_tex, const narf::Camer
 	uint32_t mid_cx_max = std::min((int32_t)chunks_x_, cx_max);
 	uint32_t mid_cy_max = std::min((int32_t)chunks_y_, cy_max);
 
-	renderSlice(tiles_tex, mid_cx_min, mid_cx_max, mid_cy_min, mid_cy_max);
+	renderSlice(tiles_tex, mid_cx_min, mid_cx_max, mid_cy_min, mid_cy_max, stateBlend);
 
 	if ((uint32_t)cx_max > chunks_x_) {
 		uint32_t a_cx_min = 0;
 		uint32_t a_cx_max = cx_max - chunks_x_;
 		glPushMatrix();
 		glTranslatef((float)size_x_, 0.0f, 0.0f);
-		renderSlice(tiles_tex, a_cx_min, a_cx_max, mid_cy_min, mid_cy_max);
+		renderSlice(tiles_tex, a_cx_min, a_cx_max, mid_cy_min, mid_cy_max, stateBlend);
 		glPopMatrix();
 
 		if ((uint32_t)cy_max > chunks_y_) {
@@ -151,7 +158,7 @@ void narf::client::World::render(narf::gl::Texture *tiles_tex, const narf::Camer
 			uint32_t b_cy_max = cy_max - chunks_y_;
 			glPushMatrix();
 			glTranslatef((float)size_x_, (float)size_y_, 0.0f);
-			renderSlice(tiles_tex, a_cx_min, a_cx_max, b_cy_min, b_cy_max);
+			renderSlice(tiles_tex, a_cx_min, a_cx_max, b_cy_min, b_cy_max, stateBlend);
 			glPopMatrix();
 		}
 
@@ -160,7 +167,7 @@ void narf::client::World::render(narf::gl::Texture *tiles_tex, const narf::Camer
 			uint32_t h_cy_max = chunks_y_;
 			glPushMatrix();
 			glTranslatef((float)size_x_, -(float)size_y_, 0.0f);
-			renderSlice(tiles_tex, a_cx_min, a_cx_max, h_cy_min, h_cy_max);
+			renderSlice(tiles_tex, a_cx_min, a_cx_max, h_cy_min, h_cy_max, stateBlend);
 			glPopMatrix();
 		}
 	}
@@ -170,7 +177,7 @@ void narf::client::World::render(narf::gl::Texture *tiles_tex, const narf::Camer
 		uint32_t e_cx_max = chunks_x_;
 		glPushMatrix();
 		glTranslatef(-(float)size_x_, 0.0f, 0.0f);
-		renderSlice(tiles_tex, e_cx_min, e_cx_max, mid_cy_min, mid_cy_max);
+		renderSlice(tiles_tex, e_cx_min, e_cx_max, mid_cy_min, mid_cy_max, stateBlend);
 		glPopMatrix();
 
 		if ((uint32_t)cy_max > chunks_y_) {
@@ -178,7 +185,7 @@ void narf::client::World::render(narf::gl::Texture *tiles_tex, const narf::Camer
 			uint32_t d_cy_max = cy_max - chunks_y_;
 			glPushMatrix();
 			glTranslatef(-(float)size_x_, (float)size_y_, 0.0f);
-			renderSlice(tiles_tex, e_cx_min, e_cx_max, d_cy_min, d_cy_max);
+			renderSlice(tiles_tex, e_cx_min, e_cx_max, d_cy_min, d_cy_max, stateBlend);
 			glPopMatrix();
 		}
 
@@ -187,7 +194,7 @@ void narf::client::World::render(narf::gl::Texture *tiles_tex, const narf::Camer
 			uint32_t f_cy_max = chunks_y_;
 			glPushMatrix();
 			glTranslatef(-(float)size_x_, -(float)size_y_, 0.0f);
-			renderSlice(tiles_tex, e_cx_min, e_cx_max, f_cy_min, f_cy_max);
+			renderSlice(tiles_tex, e_cx_min, e_cx_max, f_cy_min, f_cy_max, stateBlend);
 			glPopMatrix();
 		}
 	}
@@ -197,7 +204,7 @@ void narf::client::World::render(narf::gl::Texture *tiles_tex, const narf::Camer
 		uint32_t c_cy_max = cy_max - chunks_y_;
 		glPushMatrix();
 		glTranslatef(0.0f, (float)size_y_, 0.0f);
-		renderSlice(tiles_tex, mid_cx_min, mid_cx_max, c_cy_min, c_cy_max);
+		renderSlice(tiles_tex, mid_cx_min, mid_cx_max, c_cy_min, c_cy_max, stateBlend);
 		glPopMatrix();
 	}
 
@@ -206,7 +213,7 @@ void narf::client::World::render(narf::gl::Texture *tiles_tex, const narf::Camer
 		uint32_t g_cy_max = chunks_y_;
 		glPushMatrix();
 		glTranslatef(0.0f, -(float)size_y_, 0.0f);
-		renderSlice(tiles_tex, mid_cx_min, mid_cx_max, g_cy_min, g_cy_max);
+		renderSlice(tiles_tex, mid_cx_min, mid_cx_max, g_cy_min, g_cy_max, stateBlend);
 		glPopMatrix();
 	}
 }

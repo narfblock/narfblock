@@ -34,7 +34,7 @@ public:
 
 	void tick(narf::timediff dt) override;
 	void updateStatus(const std::string& status) override;
-	void draw() override;
+	void draw(float stateBlend) override;
 
 	void processConnect(ENetEvent& evt);
 	void processDisconnect(ENetEvent& evt);
@@ -311,7 +311,7 @@ void ServerGameLoop::updateStatus(const std::string& status) {
 }
 
 
-void ServerGameLoop::draw() {
+void ServerGameLoop::draw(float stateBlend) {
 }
 
 

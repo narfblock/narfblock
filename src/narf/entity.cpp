@@ -72,6 +72,9 @@ void explode(narf::World *world, const narf::World::BlockCoord& bc, int32_t radi
 
 bool narf::Entity::update(narf::timediff dt)
 {
+	// copy previous state so we can interpolate during render
+	prevPosition = position;
+
 	bool alive = true;
 	// cheesy Euler integration
 	auto acceleration = narf::math::Vector3f(0.0f, 0.0f, antigrav ? 0.0f : world_->get_gravity());

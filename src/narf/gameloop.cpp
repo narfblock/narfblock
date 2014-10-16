@@ -93,6 +93,9 @@ void narf::GameLoop::run() {
 		}
 		tickTime += narf::time::now() - physicsStart;
 
+		// how far are we between the previous tick's state and the current state?
+		float stateBlend = (float)tAccum / (float)tickStep_;
+
 		timediff fpsDt = narf::time::now() - fpsT1;
 		if (fpsDt >= 1.0 || forceStatusUpdate) {
 			forceStatusUpdate = false;
@@ -128,7 +131,7 @@ void narf::GameLoop::run() {
 
 		if (callDraw) {
 			auto drawStart = narf::time::now();
-			draw();
+			draw(stateBlend);
 			draws++;
 			drawTime += narf::time::now() - drawStart;
 		} else {

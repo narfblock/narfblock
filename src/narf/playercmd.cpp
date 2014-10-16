@@ -105,6 +105,7 @@ void narf::PlayerCommand::exec(narf::World* world) {
 		auto eid = world->newEntity();
 		narf::EntityRef ent(world, eid);
 		ent->position = position;
+		ent->prevPosition = position;
 		ent->velocity = velocity + narf::math::Vector3f(orientation).normalize() * 20.0f;
 		ent->model = true;
 		ent->bouncy = false;

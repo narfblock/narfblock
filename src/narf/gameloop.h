@@ -48,7 +48,7 @@ public:
 
 	virtual void tick(timediff dt) = 0;
 	virtual void updateStatus(const std::string& status) = 0;
-	virtual void draw() = 0;
+	virtual void draw(float stateBlend) = 0;
 
 	bool forceStatusUpdate;
 	bool quit;

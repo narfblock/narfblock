@@ -52,6 +52,8 @@ public:
 	math::Vector3f position;
 	math::Vector3f velocity;
 
+	math::Vector3f prevPosition; // TODO: put all state into prev and cur structs
+
 	// temp hack stuff
 	bool bouncy;
 	bool explodey;
