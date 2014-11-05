@@ -7,7 +7,8 @@ Narfblock
 
 - CMake 2.6 or newer
 - libSDL 2.0 development libraries
-- libSDL2_image development libraries
+- libpng development libraries
+- zlib development libraries
 - GLEW development libraries
 - FreeType development libraries
 - ncurses (Linux) or pdcurses (Windows) development libraries

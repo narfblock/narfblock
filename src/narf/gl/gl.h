@@ -8,7 +8,6 @@
 #define NO_SDL_GLEXT
 #include <SDL.h>
 #include <SDL_opengl.h>
-#include <SDL_image.h>
 
 #ifdef __APPLE__
 #   ifdef GL_ES_VERSION_2_0

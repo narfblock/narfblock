@@ -1,7 +1,6 @@
 #include <math.h>
 
 #include <SDL.h>
-#include <SDL_image.h>
 
 #if SDL_MAJOR_VERSION < 2
 #error SDL2 required
@@ -68,8 +67,6 @@ narf::client::World *world = nullptr;
 #define WORLD_X_MAX 64
 #define WORLD_Y_MAX 64
 #define WORLD_Z_MAX 64
-
-SDL_Surface *tiles_surf;
 
 narf::gl::Context *display;
 narf::gl::Texture *tiles_tex;
@@ -226,29 +223,60 @@ bool init_video(int w, int h, bool fullscreen)
 }
 
 
+// TODO: move to util and wrap in a nice class
+void* readFile(const char* filename, size_t* size) {
+	FILE* fp = fopen(filename, "rb");
+	if (!fp) {
+		return nullptr;
+	}
+	fseek(fp, 0, SEEK_END);
+	*size = ftell(fp); // TODO: use ftello when available
+	fseek(fp, 0, SEEK_SET);
+	void* buf = malloc(*size);
+	if (!buf) {
+		fclose(fp);
+		return nullptr;
+	}
+	if (fread(buf, 1, *size, fp) != *size) {
+		fclose(fp);
+		free(buf);
+		return nullptr;
+	}
+	fclose(fp);
+	return buf;
+}
+
+
 bool init_textures()
 {
-	int imgFlags = IMG_INIT_PNG;
-	if (IMG_Init(imgFlags) != imgFlags) {
-		narf::console->println("IMG_Init failed: " + std::string(IMG_GetError()));
-		return false;
-	}
-
 	const std::string terrain_file = config.getString("client.misc.terrain", "terrain.png");
 	auto terrain_file_path = Poco::Path(narf::util::dataDir(), terrain_file);
 
-	tiles_surf = IMG_Load(terrain_file_path.toString().c_str());
-	if (!tiles_surf) {
-		narf::console->println("IMG_Load(" + terrain_file_path.toString() + ") failed: " + std::string(IMG_GetError()));
+	size_t tilesSize;
+	void* tilesData = readFile(terrain_file_path.toString().c_str(), &tilesSize);
+	if (!tilesData) {
+		narf::console->println("readFile(" + terrain_file_path.toString() + ") failed");
+		SDL_Quit();
+		return false;
+	}
+	narf::console->println("read " + std::to_string(tilesSize) + " bytes");
+	auto tilesImage = narf::loadPNG(tilesData, tilesSize);
+	free(tilesData);
+
+	if (!tilesImage) {
+		narf::console->println("loadPNG(" + terrain_file_path.toString() + ") failed");
 		SDL_Quit();
 		return false;
 	}
 
 	tiles_tex = new narf::gl::Texture(display);
-	if (!tiles_tex->upload(tiles_surf)) {
+	if (!tiles_tex->upload(tilesImage)) {
+		delete tilesImage;
 		assert(0);
 		return false;
 	}
+
+	delete tilesImage;
 
 	return true;
 }

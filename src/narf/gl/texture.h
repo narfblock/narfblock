@@ -3,6 +3,8 @@
 
 #include "narf/gl/gl.h"
 
+#include "narf/png.h"
+
 namespace narf {
 namespace gl {
 
@@ -21,7 +23,7 @@ public:
 		glDeleteTextures(1, &texture_);
 	}
 
-	bool upload(SDL_Surface *surf);
+	bool upload(narf::Image* image);
 
 	GLuint name() const { return texture_; }
 

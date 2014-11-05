@@ -29,7 +29,6 @@ if (CLIENT)
 	find_package (OpenGL REQUIRED)
 	find_package (GLEW REQUIRED)
 	find_package (SDL2 REQUIRED)
-	find_package (SDL2_image REQUIRED)
 	find_package (Freetype REQUIRED)
 	find_package (PNG REQUIRED)
 endif ()
@@ -83,13 +82,6 @@ if (CLIENT)
 			version
 			)
 	endif()
-
-	# add dependencies to SDL2_image libs for static linking
-	SET(SDL2IMAGE_LIBRARY
-		${SDL2IMAGE_LIBRARY}
-		${PNG_LIBRARY}
-		${ZLIB_LIBRARY}
-		)
 endif ()
 
 if (STATIC)
@@ -100,7 +92,6 @@ endif ()
 if (CLIENT)
 	include_directories (
 		"${SDL2_INCLUDE_DIR}"
-		"${SDL2IMAGE_INCLUDE_DIR}"
 		"${FREETYPE_INCLUDE_DIRS}"
 		"${GLEW_INCLUDE_DIR}"
 		)
@@ -152,6 +143,7 @@ if (CLIENT)
 		narf/gl/texture.cpp
 		narf/gl/textureatlas.cpp
 		narf/font.cpp
+		narf/png.cpp
 		narf/texture-font.cpp
 
 		narf/client/main.cpp
@@ -184,8 +176,9 @@ if (CLIENT)
 		${FREETYPE_GL_LIBRARY}
 		${GLEW_LIBRARY}
 		${OPENGL_LIBRARY}
-		${SDL2IMAGE_LIBRARY}
 		${SDL2_LIBRARY}
+		${PNG_LIBRARY}
+		${ZLIB_LIBRARY}
 		${ENet_LIBRARIES}
 		${CMAKE_THREAD_LIBS_INIT}
 		)
