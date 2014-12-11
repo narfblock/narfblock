@@ -2,9 +2,9 @@
 
 source "${deps}/pkg/common"
 
-src=poco-1.4.6p4.tar.gz
-sha1=49fc64bc23928d947fc8445e4e667f335bbe4274
-url="http://pocoproject.org/releases/poco-1.4.6/${src}"
+src=poco-1.4.7p1.tar.gz
+sha1=8f0c65a0e477f0d623ebc589069357ef7e69217c
+url="http://pocoproject.org/releases/poco-1.4.7/${src}"
 
 fetch $src $sha1 $url
 

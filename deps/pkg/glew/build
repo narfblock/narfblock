@@ -2,8 +2,8 @@
 
 source "${deps}/pkg/common"
 
-src=glew-1.10.0.tgz
-sha1=f41b45ca4a630ad1d00b8b87c5f493781a380300
+src=glew-1.11.0.tgz
+sha1=9bb5c87c055acd122a4956112bbb18ee72c38e5c
 url="http://download.sourceforge.net/glew/${src}"
 
 fetch $src $sha1 $url
