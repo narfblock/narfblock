@@ -113,8 +113,8 @@ typedef struct kerning_t
 class TextureFont {
 public:
 
-    TextureFont(TextureAtlas* atlas, float ptSize, const char* filename);
-    TextureFont(TextureAtlas* atlas, float ptSize, const void* memoryBase, size_t memorySize);
+    TextureFont(TextureAtlas* atlas, unsigned pixelSize, const char* filename);
+    TextureFont(TextureAtlas* atlas, unsigned pixelSize, const void* memoryBase, size_t memorySize);
     ~TextureFont();
 
     float height() const { return height_; }
@@ -136,11 +136,6 @@ public:
          * Wide character this glyph represents
          */
         uint32_t charcode;
-
-        /**
-         * Glyph id (used for display lists)
-         */
-        unsigned int id;
 
         /**
          * Glyph's width in pixels.
@@ -203,33 +198,18 @@ public:
          * A vector of kerning pairs relative to this glyph.
          */
         std::vector<kerning_t> kerning;
-
-        /**
-         * Glyph outline type (0 = None, 1 = line, 2 = inner, 3 = outer)
-         */
-        int outline_type;
-
-        /**
-         * Glyph outline thickness
-         */
-        float outline_thickness;
     };
 
     Glyph* getGlyph(uint32_t charcode);
 
 private:
-    int init();
-    int loadFace(float size, FT_Library* library, FT_Face* face);
-    int getFaceWithSize(float size, FT_Library* library, FT_Face* face);
-    int getFace(FT_Library* library, FT_Face* face);
-    int getHiResFace(FT_Library* library, FT_Face* face);
+    void printError(FT_Error error);
+    FT_Error setSize(unsigned pixelSize);
     void generateKerning();
-    size_t loadGlyph(uint32_t charcode);
+    Glyph* loadGlyph(uint32_t charcode);
 
-    enum class Location {
-        File = 0,
-        Memory,
-    };
+    FT_Library library_;
+    FT_Face face_;
 
     /**
      * Vector of glyphs contained in this font.
@@ -242,59 +222,9 @@ private:
     TextureAtlas* atlas_;
 
     /**
-     * font location
+     * Font size in pixels
      */
-    Location location_;
-
-    union {
-        /**
-         * Font filename, for when location == TEXTURE_FONT_FILE
-         */
-        char *filename_;
-
-        /**
-         * Font memory address, for when location == TEXTURE_FONT_MEMORY
-         */
-        struct {
-            const void *base;
-            size_t size;
-        } memory_;
-    };
-
-    /**
-     * Font size
-     */
-    float size_;
-
-    /**
-     * Whether to use autohint when rendering font
-     */
-    int hinting_;
-
-    /**
-     * Outline type (0 = None, 1 = line, 2 = inner, 3 = outer)
-     */
-    int outlineType_;
-
-    /**
-     * Outline thickness
-     */
-    float outlineThickness_;
-
-    /**
-     * Whether to use our own lcd filter.
-     */
-    int filtering_;
-
-    /**
-     * Whether to use kerning if available
-     */
-    int kerning_;
-
-    /**
-     * LCD filter weights
-     */
-    unsigned char lcdWeights_[5];
+    unsigned pixelSize_;
 
     /**
      * This field is simply used to compute a default line spacing (i.e., the
@@ -332,18 +262,6 @@ private:
      * for values below the baseline.
      */
     float descender_;
-
-    /**
-     * The position of the underline line for this face. It is the center of
-     * the underlining stem. Only relevant for scalable formats.
-     */
-    float underlinePosition_;
-
-    /**
-     * The thickness of the underline for this face. Only relevant for scalable
-     * formats.
-     */
-    float underlineThickness_;
 };
 
 #endif /* __TEXTURE_FONT_H__ */

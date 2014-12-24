@@ -20,7 +20,7 @@ narf::font::Font::~Font() {
 
 
 bool narf::font::Font::load(const std::string &filename, int size) {
-	font_ = new TextureFont(atlas_, (float)size, filename.c_str());
+	font_ = new TextureFont(atlas_, size, filename.c_str());
 	return font_ != nullptr && font_->height() != 0.0f;
 }
 
