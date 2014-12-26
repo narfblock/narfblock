@@ -70,7 +70,7 @@ narf::World::World(uint32_t size_x, uint32_t size_y, uint32_t size_z, uint32_t c
 
 
 narf::World::~World() {
-	for (uint32_t i = 0; i < size_x_ * size_y_ * size_z_; i++) {
+	for (uint32_t i = 0; i < chunks_x_ * chunks_y_ * chunks_z_; i++) {
 		if (chunks_[i]) {
 			delete chunks_[i];
 		}
