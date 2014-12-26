@@ -699,6 +699,20 @@ void sim_frame(const narf::Input &input, narf::timediff dt)
 	processPlayerCommandQueue(playerCommandQueue);
 }
 
+
+void processConnect(ENetEvent& evt) {
+	connectState = ConnectState::Connected;
+	narf::console->println("Connected to server " + narf::net::to_string(evt.peer->address));
+}
+
+
+void processDisconnect(ENetEvent& evt) {
+	narf::console->println("Disconnected from " + narf::net::to_string(evt.peer->address));
+	evt.peer->data = nullptr;
+	connectState = ConnectState::Unconnected;
+}
+
+
 void processChat(ENetEvent& evt) {
 	//narf::console->println("Got packet from " + narf::net::to_string(evt.peer->address) + " channel " + std::to_string(evt.channelID) + " size " + std::to_string(evt.packet->dataLength));
 	std::string text((char*)evt.packet->data, evt.packet->dataLength);
@@ -722,6 +736,7 @@ void processReceive(ENetEvent& evt) {
 	}
 }
 
+
 void pollNet()
 {
 	if (connectState != ConnectState::Connecting &&
@@ -734,14 +749,11 @@ void pollNet()
 	if (enet_host_service(client, &evt, 0) > 0) {
 		switch (evt.type) {
 		case ENET_EVENT_TYPE_CONNECT:
-			connectState = ConnectState::Connected;
-			narf::console->println("Connected to server " + narf::net::to_string(evt.peer->address));
+			processConnect(evt);
 			break;
 
 		case ENET_EVENT_TYPE_DISCONNECT:
-			narf::console->println("Disconnected from " + narf::net::to_string(evt.peer->address));
-			evt.peer->data = nullptr;
-			connectState = ConnectState::Unconnected;
+			processDisconnect(evt);
 			break;
 
 		case ENET_EVENT_TYPE_RECEIVE:
