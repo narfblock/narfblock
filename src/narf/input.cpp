@@ -50,6 +50,10 @@ void narf::Input::processNormalEvent(const SDL_Event *event) {
 			strafe_right_ = true;
 			last_strafe_ = last_strafe_right;
 			break;
+		case SDLK_q:
+			action_ternary_begin_ = !action_ternary_;
+			action_ternary_ = true;
+			break;
 		case SDLK_SPACE:
 			jump_ = true;
 			break;
@@ -81,6 +85,10 @@ void narf::Input::processNormalEvent(const SDL_Event *event) {
 			break;
 		case SDLK_d:
 			strafe_right_ = false;
+			break;
+		case SDLK_q:
+			action_ternary_ = false;
+			action_ternary_end_ = true;
 			break;
 		}
 		break;
