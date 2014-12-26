@@ -98,10 +98,15 @@ void cmdQuit(const std::string &args) {
 }
 
 
-void tell(const Client* to, const Client* from, const std::string& text) {
+std::string formatChat(const Client* from, const std::string& text) {
 	// TODO: use client nickname here
 	std::string fromName = from ? narf::net::to_string(from->peer->address) : "server";
-	std::string packetData("<" + fromName + "> " + text);
+	return "<" + fromName + "> " + text;
+}
+
+
+void tell(const Client* to, const Client* from, const std::string& text) {
+	std::string packetData(formatChat(from, text));
 	auto packet = enet_packet_create(packetData.c_str(), packetData.length(), ENET_PACKET_FLAG_RELIABLE);
 	enet_peer_send(to->peer, narf::net::CHAN_CHAT, packet);
 }
@@ -230,7 +235,7 @@ void ServerGameLoop::processDisconnect(ENetEvent& evt) {
 
 void ServerGameLoop::processChat(ENetEvent& evt, Client* client) {
 	std::string text((char*)evt.packet->data, evt.packet->dataLength);
-	narf::console->println("Chat: " + text);
+	narf::console->println(formatChat(client, text));
 	// send the chat out to all clients
 	tellAll(client, text);
 }
@@ -283,6 +288,9 @@ void ServerGameLoop::tick(narf::timediff dt) {
 	if (input != "") {
 		if (input[0] == '/') { // commands begin with slash
 			narf::cmd::exec(input.substr(1));
+		} else {
+			narf::console->println(formatChat(nullptr, input));
+			tellAll(nullptr, input);
 		}
 	}
 	ENetEvent evt;
