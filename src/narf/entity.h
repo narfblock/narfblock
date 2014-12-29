@@ -44,6 +44,7 @@ class Entity {
 public:
 
 	typedef uint32_t ID;
+	static const ID InvalidID = UINT32_MAX;
 
 	Entity(World *world, ID id) : id(id), bouncy(false), explodey(false), model(false), onGround(false), antigrav(false), world_(world) { }
 

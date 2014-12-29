@@ -50,6 +50,8 @@
 
 // TODO: this is all hacky test code - refactor into nicely modularized code
 
+void newWorld();
+
 narf::client::Console *clientConsole;
 
 narf::Entity::ID playerEID;
@@ -61,7 +63,7 @@ narf::Camera cam;
 
 const float movespeed = 25.0f;
 
-narf::client::World *world;
+narf::client::World *world = nullptr;
 
 #define WORLD_X_MAX 64
 #define WORLD_Y_MAX 64
@@ -422,7 +424,9 @@ void draw2d() {
 	entityInfoBuffer->print("numEntities: " + std::to_string(world->getNumEntities()), 0, (float)display->height() - hudFontHeight * 3.0f, blue);
 
 	std::string location_str;
-	{
+	if (playerEID == narf::Entity::InvalidID) {
+		location_str = "Pos: " + std::to_string(cam.position.x) + ", " + std::to_string(cam.position.y) + ", " + std::to_string(cam.position.z);
+	} else {
 		narf::EntityRef player(world, playerEID);
 		location_str = "Pos: " + std::to_string(player->position.x) + ", " + std::to_string(player->position.y) + ", " + std::to_string(player->position.z);
 	}
@@ -561,7 +565,7 @@ void sim_frame(const narf::Input &input, narf::timediff dt)
 
 	float movePitch = 0.0f;
 
-	{
+	if (playerEID != narf::Entity::InvalidID) {
 		narf::EntityRef player(world, playerEID);
 
 		if (player->antigrav) {
@@ -606,7 +610,7 @@ void sim_frame(const narf::Input &input, narf::timediff dt)
 
 	world->update(dt);
 
-	{
+	if (playerEID != narf::Entity::InvalidID) {
 		narf::EntityRef player(world, playerEID);
 		if (player->onGround && player->antigrav) {
 			player->antigrav = false;
@@ -669,9 +673,12 @@ void sim_frame(const narf::Input &input, narf::timediff dt)
 
 	if (input.action_ternary()) {
 		narf::PlayerCommand cmd(narf::PlayerCommand::Type::TernaryAction);
-		narf::EntityRef player(world, playerEID);
+		cmd.velocity = narf::math::Vector3f(0.0f, 0.0f, 0.0f);
+		if (playerEID != narf::Entity::InvalidID) {
+			narf::EntityRef player(world, playerEID);
+			cmd.velocity = player->velocity;
+		}
 		cmd.position = cam.position;
-		cmd.velocity = player->velocity;
 		cmd.orientation = cam.orientation;
 		playerCommandQueue.push(cmd);
 	}
@@ -703,6 +710,9 @@ void sim_frame(const narf::Input &input, narf::timediff dt)
 void processConnect(ENetEvent& evt) {
 	connectState = ConnectState::Connected;
 	narf::console->println("Connected to server " + narf::net::to_string(evt.peer->address));
+
+	// reset the world
+	newWorld();
 }
 
 
@@ -710,6 +720,9 @@ void processDisconnect(ENetEvent& evt) {
 	narf::console->println("Disconnected from " + narf::net::to_string(evt.peer->address));
 	evt.peer->data = nullptr;
 	connectState = ConnectState::Unconnected;
+
+	// TODO: delete world and drop back to menu
+	newWorld();
 }
 
 
@@ -865,8 +878,15 @@ narf::BlockType genNormalBlockType(unsigned texXPos, unsigned texXNeg, unsigned 
 }
 
 
-void gen_world()
+void newWorld()
 {
+	if (world) {
+		delete world;
+	}
+
+	playerEID = narf::Entity::InvalidID;
+	bouncyBlockEID = narf::Entity::InvalidID;
+
 	world = new narf::client::World(WORLD_X_MAX, WORLD_Y_MAX, WORLD_Z_MAX, 16, 16, 16);
 
 	// set up block types
@@ -1132,7 +1152,7 @@ extern "C" int main(int argc, char **argv)
 	config.initBool("client.video.vsync", false);
 
 	srand(0x1234);
-	gen_world();
+	newWorld();
 
 	config.initInt("client.video.renderDistance", 5);
 
