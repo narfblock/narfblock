@@ -98,6 +98,11 @@ void cmdQuit(const std::string &args) {
 }
 
 
+void cmdStats(const std::string& args) {
+	game->dumpTickTimeHistogram();
+}
+
+
 std::string formatChat(const Client* from, const std::string& text) {
 	// TODO: use client nickname here
 	std::string fromName = from ? narf::net::to_string(from->peer->address) : "server";
@@ -342,6 +347,7 @@ int main(int argc, char **argv)
 	narf::console->println("Type /quit to quit.");
 
 	narf::cmd::cmds["quit"] = cmdQuit;
+	narf::cmd::cmds["stats"] = cmdStats;
 
 	genWorld();
 

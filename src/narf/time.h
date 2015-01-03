@@ -42,14 +42,15 @@ class timediff {
 public:
 	int64_t us_;
 
-	static constexpr double scale = 1000000.0;
+	static constexpr double scaleSeconds = 1000000.0;
+	static constexpr double scaleMilliseconds = 1000.0;
 
 	timediff() : us_(0) {}
 
 	timediff(const timediff& td) : us_(td.us_) { }
 	timediff(int us) : us_(us) {}
 	timediff(int64_t us) : us_(us) {}
-	timediff(double seconds) : us_(static_cast<uint64_t>(seconds * scale)) { }
+	timediff(double seconds) : us_(static_cast<uint64_t>(seconds * scaleSeconds)) { }
 
 	timediff& operator =(const timediff& td) {
 		us_ = td.us_;
@@ -58,7 +59,11 @@ public:
 
 	operator double() const {
 		// convert to seconds
-		return static_cast<double>(us_) / scale;
+		return static_cast<double>(us_) / scaleSeconds;
+	}
+
+	double milliseconds() const {
+		return static_cast<double>(us_) / scaleMilliseconds;
 	}
 
 	timediff operator +(const timediff& td) {

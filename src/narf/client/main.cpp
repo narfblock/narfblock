@@ -1085,6 +1085,11 @@ void cmdLoad(const std::string& args) {
 }
 
 
+void cmdStats(const std::string& args) {
+	gameLoop->dumpTickTimeHistogram();
+}
+
+
 void fatalError(const std::string& msg) {
 	if (narf::console) {
 		narf::console->println(msg);
@@ -1117,6 +1122,7 @@ extern "C" int main(int argc, char **argv)
 	narf::cmd::cmds["disconnect"] = cmdDisconnect;
 	narf::cmd::cmds["save"] = cmdSave;
 	narf::cmd::cmds["load"] = cmdLoad;
+	narf::cmd::cmds["stats"] = cmdStats;
 
 	auto config_file = Poco::Path(narf::util::dataDir(), "client.ini").toString();
 	narf::console->println("Client config file: " + config_file);

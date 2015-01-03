@@ -60,10 +60,17 @@ public:
 	void setMaxFrameTime(timediff maxFrameTime) { maxFrameTime_ = maxFrameTime; }
 	double maxFrameTime() const { return maxFrameTime_; }
 
+	void recordTickTime(narf::timediff dt);
+	void dumpTickTimeHistogram();
+
 private:
 	double tickRate_;
 	timediff tickStep_;
 	timediff maxFrameTime_;
+
+	// statistics
+	uint32_t* tickTimeHistogram;
+	size_t tickTimeHistogramBuckets;
 };
 
 } // namespace narf

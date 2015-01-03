@@ -33,6 +33,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include <math.h>
 
 #include "narf/console.h"
 #include "narf/gameloop.h"
@@ -42,12 +43,14 @@ narf::GameLoop::GameLoop(timediff maxFrameTime, double tickRate) :
 	maxFrameTime_(maxFrameTime),
 	forceStatusUpdate(false),
 	quit(false),
-	callDraw(true) {
+	callDraw(true),
+	tickTimeHistogram(nullptr) {
 	setTickRate(tickRate);
 }
 
 
 narf::GameLoop::~GameLoop() {
+	delete[] tickTimeHistogram;
 }
 
 
@@ -55,6 +58,47 @@ void narf::GameLoop::setTickRate(double tickRateHz) {
 	tickRate_ = tickRateHz;
 	tickStep_ = timediff(1.0 / tickRateHz);
 	narf::console->println("setTickRate(" + std::to_string(tickRateHz) + "): tickStep:" + std::to_string(tickStep_.us_));
+	if (tickTimeHistogram) {
+		delete[] tickTimeHistogram;
+	}
+	tickTimeHistogramBuckets = (size_t)log2(tickStep_.milliseconds() + 1) + 2;
+	tickTimeHistogram = new uint32_t[tickTimeHistogramBuckets];
+	for (size_t bucket = 0; bucket < tickTimeHistogramBuckets; bucket++) {
+		tickTimeHistogram[bucket] = 0;
+	}
+}
+
+
+void narf::GameLoop::recordTickTime(narf::timediff dt) {
+	size_t bucket = 0;
+	int dtMs = (int)dt.milliseconds();
+	int bucketMax = 1;
+	while (bucket < tickTimeHistogramBuckets - 1) {
+		if (dtMs < bucketMax) {
+			break;
+		}
+		bucketMax *= 2;
+		bucket++;
+	}
+	tickTimeHistogram[bucket]++;
+}
+
+
+void narf::GameLoop::dumpTickTimeHistogram() {
+	narf::console->println("Tick time stats:");
+	int bucketMin = 0, bucketMax = 1;
+	for (size_t bucket = 0; bucket < tickTimeHistogramBuckets; bucket++) {
+		char buf[100];
+		auto count = tickTimeHistogram[bucket];
+		if (bucket == tickTimeHistogramBuckets - 1) {
+			snprintf(buf, sizeof(buf), ">=%d ms: %u", bucketMin, count);
+		} else {
+			snprintf(buf, sizeof(buf), "< %d ms: %u", bucketMax, count);
+		}
+		bucketMin = bucketMax;
+		bucketMax *= 2;
+		narf::console->println(buf);
+	}
 }
 
 
@@ -91,7 +135,9 @@ void narf::GameLoop::run() {
 
 			tAccum -= tickStep_;
 		}
-		tickTime += narf::time::now() - physicsStart;
+		auto thisTickTime = narf::time::now() - physicsStart;
+		recordTickTime(thisTickTime);
+		tickTime += thisTickTime;
 
 		// how far are we between the previous tick's state and the current state?
 		float stateBlend = (float)tAccum / (float)tickStep_;
