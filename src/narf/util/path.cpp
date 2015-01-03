@@ -45,12 +45,28 @@ std::string narf::util::exeName() {
 	return readLink("/proc/self/exe");
 }
 
+std::string narf::util::userConfigDir(const std::string& appName) {
+	// look up home dir and append .config/<appName>
+	char* home;
+	home = getenv("HOME");
+	// TODO: sanitize/validate $HOME?
+	if (!home) {
+		// TODO: fall back to getpwuid() (use getpwuid_r?)
+	}
+
+	if (home) {
+		return std::string(home) + "/.config/" + appName;
+	}
+	return "";
+}
+
 #endif // linux
 
 
 #ifdef _WIN32
 
 #include <windows.h>
+#include <shlobj.h>
 #include <Poco/Buffer.h>
 #include <Poco/UnicodeConverter.h>
 
@@ -66,6 +82,18 @@ std::string narf::util::exeName() {
 	std::string result;
 	Poco::UnicodeConverter::toUTF8(buffer.begin(), result);
 	return result;
+}
+
+
+std::string narf::util::userConfigDir(const std::string& appName) {
+	wchar_t buffer[MAX_PATH];
+	HRESULT hr = SHGetFolderPathW(nullptr, CSIDL_APPDATA | CSIDL_FLAG_CREATE, nullptr, SHGFP_TYPE_CURRENT, buffer);
+	if (!SUCCEEDED(hr)) {
+		return ""; // error
+	}
+	std::string result;
+	Poco::UnicodeConverter::toUTF8(buffer, result);
+	return result + "\\" + appName;
 }
 
 #endif // _WIN32

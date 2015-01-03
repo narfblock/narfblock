@@ -6,16 +6,19 @@
 #include "narf/util/tokenize.h"
 #include "narf/notifications/ConfigNotification.h"
 
-void narf::config::ConfigManager::load(std::string name, std::string filename) {
+bool narf::config::ConfigManager::load(std::string name, std::string filename) {
 	narf::config::ConfigIni* cfg;
+	bool ok = true;
 	try {
 		cfg = new narf::config::ConfigIni(filename);
 	} catch (...) {
 		// file not found or could not be opened
 		// use an empty config (get defaults)
 		cfg = new narf::config::ConfigIni();
+		ok = false;
 	}
 	configs[name] = cfg;
+	return ok;
 }
 
 

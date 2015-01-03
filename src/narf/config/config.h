@@ -29,7 +29,7 @@ namespace narf {
 		class ConfigManager : public Poco::Util::AbstractConfiguration {
 		public:
 			ConfigManager() {};
-			void load(std::string name, std::string filename);
+			bool load(std::string name, std::string filename);
 			bool getRaw(const std::string& key, std::string& value) const override;
 			void setRaw(const std::string& key, const std::string& value) override;
 			void setRawWithEvent(const std::string& key, const std::string& value);

@@ -1124,9 +1124,16 @@ extern "C" int main(int argc, char **argv)
 	narf::cmd::cmds["load"] = cmdLoad;
 	narf::cmd::cmds["stats"] = cmdStats;
 
-	auto config_file = Poco::Path(narf::util::dataDir(), "client.ini").toString();
-	narf::console->println("Client config file: " + config_file);
-	config.load("client", config_file);
+	auto configFile = Poco::Path(narf::util::userConfigDir("narfblock"), "client.ini").toString();
+	narf::console->println("Attempting to open user config file: " + configFile);
+	if (!config.load("client", configFile)) {
+		configFile = Poco::Path(narf::util::dataDir(), "client.ini").toString();
+		narf::console->println("Could not load user config file; falling back to defaults from " + configFile);
+		config.load("client", configFile);
+	} else {
+		narf::console->println("ok!");
+	}
+
 	config.propertyChanged += Poco::delegate(&configEventHandler, &ConfigEventHandler::onPropertyChanged);
 	config.enableEvents(true);
 

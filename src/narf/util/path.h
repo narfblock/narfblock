@@ -9,6 +9,8 @@ namespace narf {
 		std::string exeDir();
 
 		std::string dataDir();
+
+		std::string userConfigDir(const std::string& appName);
 	}
 }
 
