@@ -128,40 +128,6 @@ void TextureFont::printError(FT_Error error) {
 }
 
 
-TextureFont::TextureFont(TextureAtlas* atlas, unsigned pixelSize, const char* filename) :
-    atlas_(atlas), pixelSize_(pixelSize) {
-
-    narf::console->println("TextureFont: Loading " + std::string(filename));
-
-    FT_Error error;
-
-    library_ = nullptr;
-    face_ = nullptr;
-    ascender_ = descender_ = linegap_ = height_ = 0.0f;
-
-    error = FT_Init_FreeType(&library_);
-    if (error) {
-        printError(error);
-        // TODO: throw
-        return;
-    }
-
-    error = FT_New_Face(library_, filename, 0, &face_);
-    if (error) {
-        printError(error);
-        // TODO: throw
-        return;
-    }
-
-    error = setSize(pixelSize);
-    if (error) {
-        printError(error);
-        // TODO: throw
-        return;
-    }
-}
-
-
 TextureFont::TextureFont(TextureAtlas* atlas, unsigned pixelSize, const void* memoryBase, size_t memorySize) :
     atlas_(atlas), pixelSize_(pixelSize) {
     assert(memoryBase);

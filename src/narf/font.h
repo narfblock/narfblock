@@ -4,6 +4,7 @@
 #include "narf/texture-font.h"
 
 #include "narf/color.h"
+#include "narf/file.h"
 
 #include "narf/gl/gl.h"
 
@@ -38,6 +39,7 @@ namespace narf {
 		private:
 			TextureAtlas *atlas_;
 			TextureFont *font_;
+			MemoryFile file_;
 		};
 
 

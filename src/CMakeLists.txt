@@ -122,6 +122,7 @@ set (NARFBLOCK_COMMON_SOURCE_FILES
 	narf/bytestream.cpp
 	narf/chunk.cpp
 	narf/entity.cpp
+	narf/file.cpp
 	narf/gameloop.cpp
 	narf/playercmd.cpp
 	narf/texteditor.cpp

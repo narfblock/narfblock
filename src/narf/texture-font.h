@@ -113,7 +113,8 @@ typedef struct kerning_t
 class TextureFont {
 public:
 
-    TextureFont(TextureAtlas* atlas, unsigned pixelSize, const char* filename);
+    // Load a font from memory.
+    // The memory must exist for the life of the TextureFont.
     TextureFont(TextureAtlas* atlas, unsigned pixelSize, const void* memoryBase, size_t memorySize);
     ~TextureFont();
 

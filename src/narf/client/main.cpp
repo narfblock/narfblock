@@ -25,6 +25,7 @@
 #include "narf/camera.h"
 #include "narf/color.h"
 #include "narf/entity.h"
+#include "narf/file.h"
 #include "narf/font.h"
 #include "narf/gameloop.h"
 #include "narf/input.h"
@@ -223,48 +224,21 @@ bool init_video(int w, int h, bool fullscreen)
 }
 
 
-// TODO: move to util and wrap in a nice class
-void* readFile(const char* filename, size_t* size) {
-	FILE* fp = fopen(filename, "rb");
-	if (!fp) {
-		return nullptr;
-	}
-	fseek(fp, 0, SEEK_END);
-	*size = ftell(fp); // TODO: use ftello when available
-	fseek(fp, 0, SEEK_SET);
-	void* buf = malloc(*size);
-	if (!buf) {
-		fclose(fp);
-		return nullptr;
-	}
-	if (fread(buf, 1, *size, fp) != *size) {
-		fclose(fp);
-		free(buf);
-		return nullptr;
-	}
-	fclose(fp);
-	return buf;
-}
-
-
 bool init_textures()
 {
 	const std::string terrain_file = config.getString("client.misc.terrain", "terrain.png");
-	auto terrain_file_path = Poco::Path(narf::util::dataDir(), terrain_file);
+	auto terrainFilePath = Poco::Path(narf::util::dataDir(), terrain_file);
 
-	size_t tilesSize;
-	void* tilesData = readFile(terrain_file_path.toString().c_str(), &tilesSize);
-	if (!tilesData) {
-		narf::console->println("readFile(" + terrain_file_path.toString() + ") failed");
+	narf::MemoryFile tilesFile;
+	if (!tilesFile.read(terrainFilePath.toString())) {
+		narf::console->println("read of file " + terrainFilePath.toString() + " failed");
 		SDL_Quit();
 		return false;
 	}
-	narf::console->println("read " + std::to_string(tilesSize) + " bytes");
-	auto tilesImage = narf::loadPNG(tilesData, tilesSize);
-	free(tilesData);
+	auto tilesImage = narf::loadPNG(tilesFile.data, tilesFile.size);
 
 	if (!tilesImage) {
-		narf::console->println("loadPNG(" + terrain_file_path.toString() + ") failed");
+		narf::console->println("loadPNG(" + terrainFilePath.toString() + ") failed");
 		SDL_Quit();
 		return false;
 	}

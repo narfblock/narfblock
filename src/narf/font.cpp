@@ -1,4 +1,5 @@
 #include "narf/font.h"
+#include "narf/file.h"
 #include "narf/util/path.h"
 #include <math.h> // Need floor or something
 
@@ -20,7 +21,10 @@ narf::font::Font::~Font() {
 
 
 bool narf::font::Font::load(const std::string &filename, int size) {
-	font_ = new TextureFont(atlas_, size, filename.c_str());
+	if (!file_.read(filename)) {
+		return false;
+	}
+	font_ = new TextureFont(atlas_, size, file_.data, file_.size);
 	return font_ != nullptr && font_->height() != 0.0f;
 }
 
