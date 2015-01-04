@@ -2,6 +2,8 @@
 #define NARF_PNG_H
 
 #include <stdint.h>
+#include <cstddef>
+#include <cstring>
 
 namespace narf {
 	class Image {
