@@ -37,7 +37,21 @@
 
 #include <algorithm>
 
+#include <Poco/UnicodeConverter.h>
+
 #include "narf/file.h"
+
+
+#ifdef _WIN32
+static FILE* fopenUTF8(const char* filename, const char* mode) {
+	std::wstring filenameW, modeW;
+	Poco::UnicodeConverter::toUTF16(filename, filenameW);
+	Poco::UnicodeConverter::toUTF16(mode, modeW);
+	return _wfopen(filenameW.c_str(), modeW.c_str());
+}
+#else
+#define fopenUTF8 fopen
+#endif
 
 
 narf::MemoryFile::MemoryFile() : data(nullptr), size(0) {
@@ -63,7 +77,7 @@ bool narf::MemoryFile::resize(size_t newSize) {
 
 
 bool narf::MemoryFile::read(const char* filename) {
-	FILE* fp = fopen(filename, "rb");
+	FILE* fp = fopenUTF8(filename, "rb");
 	if (!fp) {
 		return false;
 	}
