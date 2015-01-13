@@ -106,7 +106,6 @@ endif ()
 
 include_directories (
 	"${PocoFoundation_INCLUDE_DIR}"
-	"${PocoUtil_INCLUDE_DIR}"
 	"${ENet_INCLUDE_DIRS}"
 	"${PROJECT_SOURCE_DIR}"
 	"${PROJECT_BINARY_DIR}"
@@ -171,7 +170,6 @@ if (CLIENT)
 		)
 
 	target_link_libraries (narfblock
-		${PocoUtil_LIBRARY}
 		${PocoFoundation_LIBRARY}
 		${FREETYPE_LIBRARY}
 		${FREETYPE_GL_LIBRARY}
@@ -201,7 +199,6 @@ if (SERVER)
 		)
 
 	target_link_libraries (narfblock-server
-		${PocoUtil_LIBRARY}
 		${PocoFoundation_LIBRARY}
 		${CMAKE_THREAD_LIBS_INIT}
 		${CURSES_LIBRARY}
@@ -219,7 +216,6 @@ if (TEST)
 		)
 
 	target_link_libraries (narfblock-test
-		${PocoUtil_LIBRARY}
 		${PocoFoundation_LIBRARY}
 		${ENet_LIBRARIES}
 		${CMAKE_THREAD_LIBS_INIT}
