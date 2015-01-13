@@ -6,11 +6,6 @@
 #error SDL2 required
 #endif
 
-#include <Poco/Path.h>
-#include <Poco/File.h>
-#include <Poco/BasicEvent.h>
-#include <Poco/Delegate.h>
-
 #include <enet/enet.h>
 
 #include <stdlib.h>
@@ -44,9 +39,6 @@
 #include "narf/client/chunk.h"
 
 #include "narf/gl/gl.h"
-
-#include "narf/notifications/ConfigNotification.h"
-#include <Poco/NObserver.h>
 
 // TODO: this is all hacky test code - refactor into nicely modularized code
 
@@ -220,18 +212,18 @@ bool init_video(int w, int h, bool fullscreen)
 bool init_textures()
 {
 	const std::string terrain_file = config.getString("misc.terrain", "terrain.png");
-	auto terrainFilePath = Poco::Path(narf::util::dataDir(), terrain_file);
+	auto terrainFilePath = narf::util::appendPath(narf::util::dataDir(), terrain_file);
 
 	narf::MemoryFile tilesFile;
-	if (!tilesFile.read(terrainFilePath.toString())) {
-		narf::console->println("read of file " + terrainFilePath.toString() + " failed");
+	if (!tilesFile.read(terrainFilePath)) {
+		narf::console->println("read of file " + terrainFilePath + " failed");
 		SDL_Quit();
 		return false;
 	}
 	auto tilesImage = narf::loadPNG(tilesFile.data, tilesFile.size);
 
 	if (!tilesImage) {
-		narf::console->println("loadPNG(" + terrainFilePath.toString() + ") failed");
+		narf::console->println("loadPNG(" + terrainFilePath + ") failed");
 		SDL_Quit();
 		return false;
 	}
@@ -1092,10 +1084,10 @@ extern "C" int main(int argc, char **argv)
 	narf::cmd::cmds["stats"] = cmdStats;
 
 	narf::MemoryFile iniMem;
-	auto configFile = Poco::Path(narf::util::userConfigDir("narfblock"), "client.ini").toString();
+	auto configFile = narf::util::appendPath(narf::util::userConfigDir("narfblock"), "client.ini");
 	narf::console->println("Attempting to open user config file: " + configFile);
 	if (!iniMem.read(configFile)) {
-		configFile = Poco::Path(narf::util::dataDir(), "client.ini").toString();
+		configFile = narf::util::appendPath(narf::util::dataDir(), "client.ini");
 		narf::console->println("Could not load user config file; falling back to local config file: " + configFile);
 		if (!iniMem.read(configFile)) {
 			narf::console->println("Could not load local config file; falling back to compile-time defaults");

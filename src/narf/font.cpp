@@ -6,7 +6,6 @@
 #include <Poco/TextIterator.h>
 #include <Poco/TextEncoding.h>
 #include <Poco/UTF8Encoding.h>
-#include <Poco/Path.h>
 
 
 narf::font::Font::Font() : font_(nullptr) {
@@ -146,7 +145,7 @@ narf::font::Font* narf::font::FontManager::getFont(const std::string &fontname, 
 		return fonts_[key];
 	}
 
-	auto basename = Poco::Path(narf::util::dataDir(), fontname).toString();
+	auto basename = narf::util::appendPath(narf::util::dataDir(), fontname);
 	auto f = new Font();
 	if (!f->load(basename + ".otf", size)) {
 		if (!f->load(basename + ".ttf", size)) {

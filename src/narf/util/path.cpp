@@ -1,13 +1,13 @@
 #include "narf/console.h"
 #include "narf/util/path.h"
 
-#include <Poco/Path.h>
-#include <Poco/File.h>
 
 #ifdef linux
 
 #include <sys/stat.h>
 #include <unistd.h>
+
+const std::string narf::util::DirSeparator("/");
 
 static std::string readLink(const std::string &path) {
 	ssize_t len = 1024;
@@ -60,6 +60,15 @@ std::string narf::util::userConfigDir(const std::string& appName) {
 	return "";
 }
 
+
+bool narf::util::dirExists(const std::string& path) {
+	struct stat st;
+	if (stat(path.c_str(), &st) == -1) {
+		return false;
+	}
+	return (st.st_mode & S_IFMT) == S_IFDIR;
+}
+
 #endif // linux
 
 
@@ -69,6 +78,8 @@ std::string narf::util::userConfigDir(const std::string& appName) {
 #include <shlobj.h>
 #include <Poco/Buffer.h>
 #include <Poco/UnicodeConverter.h>
+
+const std::string narf::util::DirSeparator("\\");
 
 std::string narf::util::exeName() {
 	size_t len = 32768; // max NT-style name length + terminator
@@ -96,13 +107,41 @@ std::string narf::util::userConfigDir(const std::string& appName) {
 	return result + "\\" + appName;
 }
 
+
+bool narf::util::dirExists(const std::string& path) {
+	std::wstring pathW;
+	Poco::UnicodeConverter::toUTF16(path, pathW);
+	DWORD attrs = GetFileAttributesW(pathW.c_str());
+	return (attrs != INVALID_FILE_ATTRIBUTES) && (attrs & FILE_ATTRIBUTE_DIRECTORY);
+}
+
 #endif // _WIN32
+
+std::string narf::util::dirName(const std::string& path) {
+	size_t len = path.length();
+	while (len > 0 && path[len - 1] == DirSeparator[0]) {
+		len--;
+	}
+	auto lastSlash = path.rfind(narf::util::DirSeparator, len - 1);
+	// TODO
+	if (lastSlash != std::string::npos) {
+		return path.substr(0, lastSlash);
+	}
+	return path;
+}
 
 
 std::string narf::util::exeDir() {
-	auto path = Poco::Path(narf::util::exeName());
-	path.setFileName("");
-	return path.toString();
+	return dirName(exeName());
+}
+
+
+std::string narf::util::appendPath(const std::string& path, const std::string& append) {
+	if (path.back() == DirSeparator[0]) {
+		return path + append;
+	} else {
+		return path + DirSeparator + append;
+	}
 }
 
 
@@ -114,19 +153,17 @@ std::string narf::util::dataDir() {
 	}
 
 	// walk up the path until data directory is found
-	narf::console->println("Current Dir: " + Poco::Path::current());
 	narf::console->println("Executable Dir: " + narf::util::exeDir());
 
-	for (Poco::Path dir = Poco::Path(narf::util::exeDir()); ; dir = dir.parent()) {
-		auto dataDir = Poco::Path(dir, "data");
-		narf::console->println("Checking " + dataDir.toString());
-		auto tmp = Poco::File(dataDir);
-		if (tmp.exists()) {
-			narf::console->println("Found data directory: " + dataDir.toString());
-			cachedDataDir = dataDir.toString();
+	for (auto dir = narf::util::exeDir(); ; dir = dirName(dir)) {
+		auto dataDir = appendPath(dir, "data");
+		narf::console->println("Checking " + dataDir);
+		if (dirExists(dataDir)) {
+			narf::console->println("Found data directory: " + dataDir);
+			cachedDataDir = dataDir;
 			return cachedDataDir;
 		}
-		if (dir.toString() == dir.parent().toString()) {
+		if (dir.compare(dirName(dir)) == 0) {
 			break;
 		}
 	}
