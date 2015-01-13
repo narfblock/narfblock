@@ -28,12 +28,12 @@
 #include "narf/file.h"
 #include "narf/font.h"
 #include "narf/gameloop.h"
+#include "narf/ini.h"
 #include "narf/input.h"
 #include "narf/block.h"
 #include "narf/playercmd.h"
 #include "narf/time.h"
 #include "narf/cmd/cmd.h"
-#include "narf/config/config.h"
 #include "narf/math/math.h"
 #include "narf/net/net.h"
 #include "narf/util/path.h"
@@ -57,7 +57,7 @@ narf::client::Console *clientConsole;
 narf::Entity::ID playerEID;
 narf::Entity::ID bouncyBlockEID; // temp hack
 
-narf::config::ConfigManager config;
+narf::IniFile config;
 
 narf::Camera cam;
 
@@ -124,7 +124,7 @@ narf::font::Font* setFont(
 	const std::string& nameVar, const std::string& nameDefault,
 	const std::string& sizeVar, int sizeDefault) {
 	auto fontName = config.getString(nameVar, nameDefault);
-	auto fontSize = config.getInt(sizeVar, sizeDefault);
+	auto fontSize = config.getInt32(sizeVar, sizeDefault);
 
 	narf::console->println("Setting " + useName + " font to " + fontName + " " + std::to_string(fontSize) + "px");
 
@@ -137,69 +137,62 @@ narf::font::Font* setFont(
 }
 
 
-class ConfigEventHandler {
-public:
-	void onPropertyChanged(const Poco::Util::AbstractConfiguration::KeyValue& kv) {
-		// TODO: this could be done better...
-		auto key = kv.key();
-		narf::console->println("onPropertyChanged(" + key + ")");
-		//auto value = kv.value;
-		if (key == "client.video.renderDistance") {
-			world->renderDistance = config.getInt(key);
-			narf::console->println("Setting renderDistance to " + std::to_string(world->renderDistance));
-		} else if (key == "client.video.consoleCursorShape") {
-			auto shapeStr = config.getString(key);
-			clientConsole->setCursorShape(narf::client::Console::cursorShapeFromString(shapeStr));
-		} else if (key == "client.video.vsync") {
-			auto vsync = config.getBool(key);
-			display->setVsync(vsync);
-			narf::console->println("Setting vsync to " + std::to_string(vsync));
-		} else if (key == "client.foo.gravity") {
-			world->set_gravity((float)config.getDouble(key));
-			narf::console->println("Setting gravity to " + std::to_string(world->get_gravity()));
-		} else if (key == "client.misc.tickRate") {
-			auto tickRate = config.getDouble(key);
-			narf::console->println("Setting tickRate to " + std::to_string(tickRate));
-			if (gameLoop) {
-				gameLoop->setTickRate(tickRate);
-			}
-		} else if (key == "client.misc.maxFrameTime") {
-			auto maxFrameTime = config.getDouble(key, 0.25);
-			narf::console->println("Setting maxFrameTime to " + std::to_string(maxFrameTime));
-			if (gameLoop) {
-				gameLoop->setMaxFrameTime(maxFrameTime);
-			}
-		} else if (key == "client.video.hudFont" ||
-		           key == "client.video.hudFontSize") {
-			auto font = setFont(
-				"HUD",
-				"client.video.hudFont", "DroidSansMono",
-				"client.video.hudFontSize", 30);
-			if (font) {
-				if (gameLoop) {
-					gameLoop->forceStatusUpdate = true;
-				}
-				fps_text_buffer->setFont(font);
-				block_info_buffer->setFont(font);
-				entityInfoBuffer->setFont(font);
-				location_buffer->setFont(font);
-			}
-		} else if (key == "client.video.consoleFont" ||
-		           key == "client.video.consoleFontSize") {
-			auto font = setFont(
-				"console",
-				"client.video.consoleFont", "DroidSansMono",
-				"client.video.consoleFontSize", 18);
-			if (font) {
-				clientConsole->setFont(font);
-			}
-		} else {
-			narf::console->println("Config var updated: " + key);
+void configEvent(const std::string& key) {
+	// TODO: this could be done better...
+	narf::console->println("onPropertyChanged(" + key + ")");
+	if (key == "video.renderDistance") {
+		world->renderDistance = config.getInt32(key);
+		narf::console->println("Setting renderDistance to " + std::to_string(world->renderDistance));
+	} else if (key == "video.consoleCursorShape") {
+		auto shapeStr = config.getString(key);
+		clientConsole->setCursorShape(narf::client::Console::cursorShapeFromString(shapeStr));
+	} else if (key == "video.vsync") {
+		auto vsync = config.getBool(key);
+		display->setVsync(vsync);
+		narf::console->println("Setting vsync to " + std::to_string(vsync));
+	} else if (key == "foo.gravity") {
+		world->set_gravity(config.getFloat(key));
+		narf::console->println("Setting gravity to " + std::to_string(world->get_gravity()));
+	} else if (key == "misc.tickRate") {
+		auto tickRate = config.getDouble(key);
+		narf::console->println("Setting tickRate to " + std::to_string(tickRate));
+		if (gameLoop) {
+			gameLoop->setTickRate(tickRate);
 		}
+	} else if (key == "misc.maxFrameTime") {
+		auto maxFrameTime = config.getDouble(key, 0.25);
+		narf::console->println("Setting maxFrameTime to " + std::to_string(maxFrameTime));
+		if (gameLoop) {
+			gameLoop->setMaxFrameTime(maxFrameTime);
+		}
+	} else if (key == "video.hudFont" ||
+	           key == "video.hudFontSize") {
+		auto font = setFont(
+			"HUD",
+			"video.hudFont", "DroidSansMono",
+			"video.hudFontSize", 30);
+		if (font) {
+			if (gameLoop) {
+				gameLoop->forceStatusUpdate = true;
+			}
+			fps_text_buffer->setFont(font);
+			block_info_buffer->setFont(font);
+			entityInfoBuffer->setFont(font);
+			location_buffer->setFont(font);
+		}
+	} else if (key == "video.consoleFont" ||
+	           key == "video.consoleFontSize") {
+		auto font = setFont(
+			"console",
+			"video.consoleFont", "DroidSansMono",
+			"video.consoleFontSize", 18);
+		if (font) {
+			clientConsole->setFont(font);
+		}
+	} else {
+		narf::console->println("Config var updated: " + key);
 	}
-};
-
-ConfigEventHandler configEventHandler;
+}
 
 
 float clampf(float val, float min, float max)
@@ -226,7 +219,7 @@ bool init_video(int w, int h, bool fullscreen)
 
 bool init_textures()
 {
-	const std::string terrain_file = config.getString("client.misc.terrain", "terrain.png");
+	const std::string terrain_file = config.getString("misc.terrain", "terrain.png");
 	auto terrainFilePath = Poco::Path(narf::util::dataDir(), terrain_file);
 
 	narf::MemoryFile tilesFile;
@@ -795,7 +788,7 @@ void pollNet()
 
 ClientGameLoop::ClientGameLoop(double maxFrameTime, double tickRate) :
 	narf::GameLoop(maxFrameTime, tickRate),
-	inputDivider(static_cast<float>(config.getDouble("client.misc.inputDivider", 1000))),
+	inputDivider(config.getFloat("misc.inputDivider", 1000)),
 	input(clientConsole->getTextEditor(), 1.0f / inputDivider, 1.0f / inputDivider) {
 }
 
@@ -950,7 +943,7 @@ void cmdSet(const std::string &args) {
 		std::string key(tokens[0]);
 		std::string value(tokens[1]);
 		narf::console->println("Setting '" + key + "' to '" + value + "'");
-		config.setRawWithEvent(key, value);
+		config.setString(key, value);
 	} else {
 		narf::console->println("wrong number of parameters to set");
 	}
@@ -1098,18 +1091,22 @@ extern "C" int main(int argc, char **argv)
 	narf::cmd::cmds["load"] = cmdLoad;
 	narf::cmd::cmds["stats"] = cmdStats;
 
+	narf::MemoryFile iniMem;
 	auto configFile = Poco::Path(narf::util::userConfigDir("narfblock"), "client.ini").toString();
 	narf::console->println("Attempting to open user config file: " + configFile);
-	if (!config.load("client", configFile)) {
+	if (!iniMem.read(configFile)) {
 		configFile = Poco::Path(narf::util::dataDir(), "client.ini").toString();
-		narf::console->println("Could not load user config file; falling back to defaults from " + configFile);
-		config.load("client", configFile);
-	} else {
-		narf::console->println("ok!");
+		narf::console->println("Could not load user config file; falling back to local config file: " + configFile);
+		if (!iniMem.read(configFile)) {
+			narf::console->println("Could not load local config file; falling back to compile-time defaults");
+		}
 	}
 
-	config.propertyChanged += Poco::delegate(&configEventHandler, &ConfigEventHandler::onPropertyChanged);
-	config.enableEvents(true);
+	if (iniMem.size) {
+		config.load(iniMem.data, iniMem.size);
+	}
+
+	config.updateHandler = configEvent;
 
 	client = enet_host_create(nullptr, 1, narf::net::MAX_CHANNELS, 0, 0);
 	if (!client) {
@@ -1137,9 +1134,9 @@ extern "C" int main(int argc, char **argv)
 	narf::console->println("Current video mode is " + std::to_string(w) + "x" + std::to_string(h));
 
 	// TODO: convert these to be modifiable at runtime and use config.init*
-	bool fullscreen = config.getBool("client.video.fullscreen", true);
-	float width_cfg = static_cast<float>(config.getDouble("client.video.width", 0.6));
-	float height_cfg = static_cast<float>(config.getDouble("client.video.height", 0.6));
+	bool fullscreen = config.getBool("video.fullscreen", true);
+	float width_cfg = config.getFloat("video.width", 0.6f);
+	float height_cfg = config.getFloat("video.height", 0.6f);
 	if (!fullscreen) {
 		if (width_cfg > 1) {
 			w = (int)width_cfg;
@@ -1164,12 +1161,12 @@ extern "C" int main(int argc, char **argv)
 		return 1;
 	}
 
-	config.initBool("client.video.vsync", false);
+	config.initBool("video.vsync", false);
 
 	srand(0x1234);
 	newWorld();
 
-	config.initInt("client.video.renderDistance", 5);
+	config.initInt32("video.renderDistance", 5);
 
 	playerEID = world->newEntity();
 	{
@@ -1203,30 +1200,30 @@ extern "C" int main(int argc, char **argv)
 	entityInfoBuffer = new narf::font::TextBuffer(nullptr);
 	location_buffer = new narf::font::TextBuffer(nullptr);
 
-	config.initString("client.video.hudFont", "DroidSansMono");
-	config.initInt("client.video.hudFontSize", 30);
+	config.initString("video.hudFont", "DroidSansMono");
+	config.initInt32("video.hudFontSize", 30);
 	if (!fps_text_buffer->getFont()) {
 		fatalError("Error: could not load HUD font");
 		return 1;
 	}
 
-	config.initString("client.video.consoleFont", "DroidSansMono");
-	config.initInt("client.video.consoleFontSize", 18);
+	config.initString("video.consoleFont", "DroidSansMono");
+	config.initInt32("video.consoleFontSize", 18);
 	if (!clientConsole->getFont()) {
 		fatalError("Error: could not load Console font");
 		return 1;
 	}
 
-	config.initString("client.video.consoleCursorShape", "default");
+	config.initString("video.consoleCursorShape", "default");
 
 	SDL_SetRelativeMouseMode(SDL_TRUE);
 
-	config.initDouble("client.misc.tickRate", 60);
-	config.initDouble("client.misc.maxFrameTime", 0.25);
+	config.initDouble("misc.tickRate", 60);
+	config.initDouble("misc.maxFrameTime", 0.25);
 
 	narf::console->println("Unicode test\xE2\x80\xBC pi: \xCF\x80 (2-byte sequence), square root: \xE2\x88\x9A (3-byte sequence), U+2070E: \xF0\xA0\x9C\x8E (4-byte sequence)");
 
-	gameLoop = new ClientGameLoop(config.getDouble("client.misc.maxFrameTime"), config.getDouble("client.misc.tickRate"));
+	gameLoop = new ClientGameLoop(config.getDouble("misc.maxFrameTime"), config.getDouble("misc.tickRate"));
 	gameLoop->run();
 
 	if (connectState == ConnectState::Connected) {

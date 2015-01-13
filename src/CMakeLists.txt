@@ -124,12 +124,12 @@ set (NARFBLOCK_COMMON_SOURCE_FILES
 	narf/entity.cpp
 	narf/file.cpp
 	narf/gameloop.cpp
+	narf/ini.cpp
 	narf/playercmd.cpp
 	narf/texteditor.cpp
 	narf/time.cpp
 	narf/world.cpp
 	narf/cmd/cmd.cpp
-	narf/config/config.cpp
 	narf/math/floats.cpp
 	narf/math/ints.cpp
 	narf/util/tokenize.cpp
