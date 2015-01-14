@@ -1,11 +1,8 @@
 #include "narf/font.h"
 #include "narf/file.h"
+#include "narf/utf.h"
 #include "narf/util/path.h"
 #include <math.h> // Need floor or something
-
-#include <Poco/TextIterator.h>
-#include <Poco/TextEncoding.h>
-#include <Poco/UTF8Encoding.h>
 
 
 narf::font::Font::Font() : font_(nullptr) {
@@ -29,15 +26,16 @@ bool narf::font::Font::load(const std::string &filename, int size) {
 
 
 float narf::font::Font::width(const std::string &text, int nchars) const {
-	Poco::UTF8Encoding utf8Encoding;
-	Poco::TextIterator i(text, utf8Encoding);
-	Poco::TextIterator end(text);
+	narf::UTF8Iterator i(text);
 
 	float width = 0;
 
 	uint32_t prev = 0;
-	for (int n = 0; i != end && n < nchars; ++i, ++n) {
-		auto c = *i;
+	int n = 0;
+	for (const auto& c : i) {
+		if (n++ >= nchars) {
+			break;
+		}
 		auto glyph = font_->getGlyph(c);
 		if (glyph) {
 			if (prev) {
@@ -67,12 +65,9 @@ void narf::font::TextBuffer::print(const std::string &text, float x, float y, co
 	float r = color.r, g = color.g, b = color.b, a = color.a;
 	float pos_x = (float)x;
 	float pos_y = (float)y;
-	Poco::UTF8Encoding utf8Encoding;
-	Poco::TextIterator i(text, utf8Encoding);
-	Poco::TextIterator end(text);
+	narf::UTF8Iterator i(text);
 	uint32_t prev = 0;
-	for (; i != end; ++i) {
-		auto c = *i;
+	for (const auto& c : i) {
 		auto glyph = font_->font_->getGlyph(c);
 		if (glyph != NULL) {
 			if (prev) {

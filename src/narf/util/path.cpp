@@ -76,22 +76,22 @@ bool narf::util::dirExists(const std::string& path) {
 
 #include <windows.h>
 #include <shlobj.h>
-#include <Poco/Buffer.h>
-#include <Poco/UnicodeConverter.h>
+
+#include "narf/utf.h"
 
 const std::string narf::util::DirSeparator("\\");
 
 std::string narf::util::exeName() {
-	size_t len = 32768; // max NT-style name length + terminator
-	Poco::Buffer<wchar_t> buffer(len);
+	const DWORD len = 32768; // max NT-style name length + terminator
+	wchar_t buffer[len];
 
-	DWORD ret = GetModuleFileNameW(NULL, buffer.begin(), len);
+	DWORD ret = GetModuleFileNameW(NULL, buffer, len);
 	if (ret == 0 || ret >= len) {
 		return ""; // error
 	}
 
 	std::string result;
-	Poco::UnicodeConverter::toUTF8(buffer.begin(), result);
+	narf::toUTF8(buffer, result);
 	return result;
 }
 
@@ -103,14 +103,14 @@ std::string narf::util::userConfigDir(const std::string& appName) {
 		return ""; // error
 	}
 	std::string result;
-	Poco::UnicodeConverter::toUTF8(buffer, result);
+	narf::toUTF8(buffer, result);
 	return result + "\\" + appName;
 }
 
 
 bool narf::util::dirExists(const std::string& path) {
 	std::wstring pathW;
-	Poco::UnicodeConverter::toUTF16(path, pathW);
+	narf::toUTF16(path, pathW);
 	DWORD attrs = GetFileAttributesW(pathW.c_str());
 	return (attrs != INVALID_FILE_ATTRIBUTES) && (attrs & FILE_ATTRIBUTE_DIRECTORY);
 }

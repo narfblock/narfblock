@@ -73,7 +73,6 @@ for host_triplet in ${hosts}; do
 	[ $client = y ] && build freetype
 	[ $client = y ] && build glew
 
-	build poco
 	build cmake-toolchain
 done
 

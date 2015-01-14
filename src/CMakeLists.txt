@@ -34,7 +34,6 @@ if (CLIENT)
 endif ()
 
 find_package (Threads REQUIRED)
-find_package (Poco REQUIRED)
 find_package (ZLIB REQUIRED)
 find_package (ENet REQUIRED)
 
@@ -85,7 +84,6 @@ if (CLIENT)
 endif ()
 
 if (STATIC)
-	add_definitions(-DPOCO_STATIC)
 	add_definitions(-DGLEW_STATIC)
 endif ()
 
@@ -105,7 +103,6 @@ endif ()
 
 
 include_directories (
-	"${PocoFoundation_INCLUDE_DIR}"
 	"${ENet_INCLUDE_DIRS}"
 	"${PROJECT_SOURCE_DIR}"
 	"${PROJECT_BINARY_DIR}"
@@ -127,6 +124,7 @@ set (NARFBLOCK_COMMON_SOURCE_FILES
 	narf/playercmd.cpp
 	narf/texteditor.cpp
 	narf/time.cpp
+	narf/utf.cpp
 	narf/world.cpp
 	narf/cmd/cmd.cpp
 	narf/math/floats.cpp
@@ -170,7 +168,6 @@ if (CLIENT)
 		)
 
 	target_link_libraries (narfblock
-		${PocoFoundation_LIBRARY}
 		${FREETYPE_LIBRARY}
 		${FREETYPE_GL_LIBRARY}
 		${GLEW_LIBRARY}
@@ -199,7 +196,6 @@ if (SERVER)
 		)
 
 	target_link_libraries (narfblock-server
-		${PocoFoundation_LIBRARY}
 		${CMAKE_THREAD_LIBS_INIT}
 		${CURSES_LIBRARY}
 		${ENet_LIBRARIES}
@@ -216,7 +212,6 @@ if (TEST)
 		)
 
 	target_link_libraries (narfblock-test
-		${PocoFoundation_LIBRARY}
 		${ENet_LIBRARIES}
 		${CMAKE_THREAD_LIBS_INIT}
 		)
