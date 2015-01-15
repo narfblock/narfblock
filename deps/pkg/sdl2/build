@@ -23,6 +23,11 @@ sed \
     -e 's/__declspec(dllexport)//g' \
     -i include/begin_code.h
 
+# disable dynamic API nonsense
+sed \
+    -e 's/#define SDL_DYNAMIC_API 1/#define SDL_DYNAMIC_API 0/g' \
+    -i src/dynapi/SDL_dynapi.h
+
 ./configure --host=${host_triplet} --prefix=${prefix} \
     --disable-render \
     --disable-render-d3d \
