@@ -32,14 +32,13 @@ void narf::gl::Context::setVsync(bool enabled) {
 
 bool narf::gl::Context::setDisplayMode(const char *title, int width, int height, bool fullscreen)
 {
-	Uint32 flags = SDL_WINDOW_OPENGL;
+	Uint32 flags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE;
 	if (fullscreen) {
 		flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
-	} else {
-		flags |= SDL_WINDOW_RESIZABLE;
 	}
 
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+	SDL_SetHint(SDL_HINT_VIDEO_MINIMIZE_ON_FOCUS_LOSS, "0");
 
 	window_ = SDL_CreateWindow(title, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height, flags);
 	if (!window_) {
@@ -80,4 +79,19 @@ bool narf::gl::Context::setDisplayMode(const char *title, int width, int height,
 #endif
 
 	return true;
+}
+
+
+void narf::gl::Context::toggleFullscreen() {
+	Uint32 flags = SDL_GetWindowFlags(window_);
+	bool curFullscreen = (flags & (SDL_WINDOW_FULLSCREEN | SDL_WINDOW_FULLSCREEN_DESKTOP)) != 0;
+	int ret;
+	if (curFullscreen) {
+		ret = SDL_SetWindowFullscreen(window_, 0);
+	} else {
+		ret = SDL_SetWindowFullscreen(window_, SDL_WINDOW_FULLSCREEN_DESKTOP);
+	}
+	if (ret != 0) {
+		console->println("WARNING: SDL_SetWindowFullscreen failed: " + std::string(SDL_GetError()));
+	}
 }

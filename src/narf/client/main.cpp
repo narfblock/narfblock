@@ -682,6 +682,10 @@ void sim_frame(const narf::Input &input, narf::timediff dt)
 		fog = !fog;
 	}
 
+	if (input.toggle_fullscreen()) {
+		display->toggleFullscreen();
+	}
+
 	if (input.screenshot()) { // Hack in a screenshot function
 		if (screenshot == 0) {
 			screenshot = 1;

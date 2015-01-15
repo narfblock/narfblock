@@ -28,6 +28,11 @@ void narf::Input::processNormalEvent(const SDL_Event *event) {
 	case SDL_KEYDOWN:
 		switch (event->key.keysym.sym) {
 		case SDLK_RETURN:
+			if (event->key.keysym.mod & KMOD_ALT) {
+				toggle_fullscreen_ = true;
+				break;
+			}
+			// fall through
 		case SDLK_SLASH:
 			state_ = InputStateText;
 			break;
@@ -198,6 +203,7 @@ void narf::Input::begin_sample()
 	toggle_wireframe_ = false;
 	toggle_backface_culling_ = false;
 	toggle_fog_ = false;
+	toggle_fullscreen_ = false;
 	screenshot_ = false;
 	look_rel_ = narf::math::Vector2f(0.0f, 0.0f);
 	text_.clear();

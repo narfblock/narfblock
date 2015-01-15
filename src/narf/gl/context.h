@@ -53,6 +53,8 @@ public:
 
 	void setVsync(bool enabled);
 
+	void toggleFullscreen();
+
 	uint32_t width() const {
 		int w, h;
 		SDL_GetWindowSize(window_, &w, &h);
