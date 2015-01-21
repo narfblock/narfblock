@@ -69,7 +69,7 @@
 class TextureAtlas {
 public:
 
-    TextureAtlas(uint32_t width, uint32_t height, uint32_t depth);
+    TextureAtlas(size_t width, size_t height, uint32_t depth);
     ~TextureAtlas();
 
     void upload();
@@ -77,28 +77,28 @@ public:
     struct Region {
         uint32_t x;
         uint32_t y;
-        uint32_t width;
-        uint32_t height;
+        size_t width;
+        size_t height;
     };
 
-    Region getRegion(uint32_t width, uint32_t height);
-    void setRegion(uint32_t x, uint32_t y, uint32_t width, uint32_t height, const void* data, size_t stride);
+    Region getRegion(size_t width, size_t height);
+    void setRegion(uint32_t x, uint32_t y, size_t width, size_t height, const void* data, size_t stride);
 
     unsigned int id() const { return id_; }
 
-    uint32_t width() const { return width_; }
-    uint32_t height() const { return height_; }
+    size_t width() const { return width_; }
+    size_t height() const { return height_; }
     uint32_t depth() const { return depth_; }
 
 private:
 
-    int fit(size_t index, uint32_t width, uint32_t height);
+    int fit(size_t index, size_t width, size_t height);
     void merge();
 
     struct Node {
         uint32_t x;
         uint32_t y;
-        uint32_t width;
+        size_t width;
     };
 
     /**
@@ -109,12 +109,12 @@ private:
     /**
      *  Width (in pixels) of the underlying texture
      */
-    uint32_t width_;
+    size_t width_;
 
     /**
      * Height (in pixels) of the underlying texture
      */
-    uint32_t height_;
+    size_t height_;
 
     /**
      * Depth (in bytes) of the underlying texture

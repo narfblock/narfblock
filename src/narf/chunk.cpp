@@ -88,7 +88,7 @@ void narf::Chunk::deserialize(narf::ByteStreamReader& s) {
 			assert(0);
 			return;
 		}
-		blocks_[i].id = id;
+		blocks_[i].id = static_cast<narf::BlockTypeId>(id);
 	}
 	markDirty();
 }

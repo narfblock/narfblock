@@ -851,7 +851,7 @@ void newWorld()
 
 	world = new narf::client::World(WORLD_X_MAX, WORLD_Y_MAX, WORLD_Z_MAX, 16, 16, 16);
 
-	auto stone2 = 7; // TODO HAX
+	uint8_t stone2 = 7; // TODO HAX
 
 	for (uint32_t z = 16; z < 23; z++) {
 		//fillRectPrism(30 + z, 35 + (z - 16), 30 + z, 35 + (z - 16), z, z + 1, stone2);
@@ -987,7 +987,7 @@ void cmdLoad(const std::string& args) {
 	auto size = ftell(f);
 	fseek(f, 0, SEEK_SET);
 	narf::ByteStreamReader s(size);
-	if (s.size() != size) {
+	if (s.size() != static_cast<size_t>(size)) {
 		narf::console->println("Error reserving space for data");
 		fclose(f);
 		return;

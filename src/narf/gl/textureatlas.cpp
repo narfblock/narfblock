@@ -39,7 +39,7 @@
 #include "narf/gl/gl.h"
 #include "narf/gl/textureatlas.h"
 
-TextureAtlas::TextureAtlas(uint32_t width, uint32_t height, uint32_t depth) :
+TextureAtlas::TextureAtlas(size_t width, size_t height, uint32_t depth) :
     width_(width), height_(height), depth_(depth),
     used_(0), id_(0) {
     // We want a one pixel border around the whole atlas to avoid any artefact when
@@ -67,7 +67,7 @@ TextureAtlas::~TextureAtlas() {
 }
 
 
-void TextureAtlas::setRegion(uint32_t x, uint32_t y, uint32_t regionWidth, uint32_t regionHeight, const void* newData, size_t stride) {
+void TextureAtlas::setRegion(uint32_t x, uint32_t y, size_t regionWidth, size_t regionHeight, const void* newData, size_t stride) {
     auto srcData = static_cast<const uint8_t*>(newData);
 
     assert(x < width_ - 1);
@@ -75,14 +75,14 @@ void TextureAtlas::setRegion(uint32_t x, uint32_t y, uint32_t regionWidth, uint3
     assert(y < height_ - 1);
     assert(y + regionHeight <= height_ - 1);
 
-    for (uint32_t i = 0; i < regionHeight; i++) {
+    for (size_t i = 0; i < regionHeight; i++) {
         memcpy(data_ + ((y + i) * width_ + x) * depth_,
                srcData + (i * stride), regionWidth * depth_);
     }
 }
 
 
-int TextureAtlas::fit(size_t index, uint32_t width, uint32_t height) {
+int TextureAtlas::fit(size_t index, size_t width, size_t height) {
     const auto& node = nodes_[index];
     auto x = node.x;
     auto y = node.y;
@@ -123,11 +123,11 @@ void TextureAtlas::merge() {
 }
 
 
-TextureAtlas::Region TextureAtlas::getRegion(uint32_t regionWidth, uint32_t regionHeight) {
+TextureAtlas::Region TextureAtlas::getRegion(size_t regionWidth, size_t regionHeight) {
     int y, best_index;
     Region region = {0, 0, regionWidth, regionHeight};
-    uint32_t bestWidth = UINT32_MAX;
-    uint32_t bestHeight = UINT32_MAX;
+    size_t bestWidth = UINT32_MAX;
+    size_t bestHeight = UINT32_MAX;
 
     best_index  = -1;
     for (size_t i = 0; i < nodes_.size(); i++) {
@@ -136,7 +136,7 @@ TextureAtlas::Region TextureAtlas::getRegion(uint32_t regionWidth, uint32_t regi
             const auto& node = nodes_[i];
             if ((y + regionHeight < bestHeight) ||
                 ((y + regionHeight == bestHeight) && (node.width < bestWidth))) {
-                best_index = i;
+                best_index = static_cast<int>(i);
                 bestHeight = y + regionHeight;
                 bestWidth = node.width;
                 region.x = node.x;
@@ -153,7 +153,7 @@ TextureAtlas::Region TextureAtlas::getRegion(uint32_t regionWidth, uint32_t regi
 
     Node newNode;
     newNode.x = region.x;
-    newNode.y = region.y + regionHeight;
+    newNode.y = region.y + static_cast<uint32_t>(regionHeight);
     newNode.width = regionWidth;
     nodes_.insert(nodes_.begin() + best_index, newNode);
 
@@ -162,7 +162,7 @@ TextureAtlas::Region TextureAtlas::getRegion(uint32_t regionWidth, uint32_t regi
         auto& prev = nodes_[i - 1];
 
         if (node.x < prev.x + prev.width) {
-            uint32_t shrink = prev.x + prev.width - node.x;
+            uint32_t shrink = prev.x + static_cast<uint32_t>(prev.width) - node.x;
             if (shrink >= node.width) {
                 nodes_.erase(nodes_.begin() + i);
                 --i;
@@ -195,17 +195,17 @@ void TextureAtlas::upload() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     if (depth_ == 4) {
 #ifdef GL_UNSIGNED_INT_8_8_8_8_REV
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width_, height_,
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, static_cast<GLsizei>(width_), static_cast<GLsizei>(height_),
                      0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, data_);
 #else
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width_, height_,
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, static_cast<GLsizei>(width_), static_cast<GLsizei>(height_),
                      0, GL_RGBA, GL_UNSIGNED_BYTE, data_);
 #endif
     } else if (depth_ == 3) {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width_, height_,
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, static_cast<GLsizei>(width_), static_cast<GLsizei>(height_),
                      0, GL_RGB, GL_UNSIGNED_BYTE, data_);
     } else {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, width_, height_,
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, static_cast<GLsizei>(width_), static_cast<GLsizei>(height_),
                      0, GL_ALPHA, GL_UNSIGNED_BYTE, data_ );
     }
 }

@@ -199,8 +199,8 @@ TextureFont::Glyph* TextureFont::loadGlyph(uint32_t charcode) {
         return nullptr;
     }
 
-    size_t x = region.x;
-    size_t y = region.y;
+    uint32_t x = region.x;
+    uint32_t y = region.y;
     atlas_->setRegion(x, y, w, h, face_->glyph->bitmap.buffer, face_->glyph->bitmap.pitch);
 
     Glyph glyph;
