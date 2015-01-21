@@ -43,13 +43,18 @@ endif ()
 
 include (DownloadFont)
 
-if (CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
+if (CMAKE_CXX_COMPILER_ID STREQUAL Clang)
+	set(CMAKE_COMPILER_IS_CLANG 1)
+endif ()
+
+if (CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_CLANG)
 	SET(CMAKE_C_FLAGS
-		"-Wpointer-arith -Wtype-limits -Wwrite-strings -Wuninitialized -Wno-pmf-conversions -Werror=redundant-decls -Wsign-compare -Wconversion -g -Wl,--as-needed -fno-ident")
+		"-Wpointer-arith -Wtype-limits -Wwrite-strings -Wuninitialized -Werror=redundant-decls -Wsign-compare -Wconversion -g -fno-ident")
 	SET(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -std=gnu++0x")
 	if (STATIC)
 		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static -static-libgcc -static-libstdc++")
 	endif()
+	SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--as-needed")
 endif ()
 
 if (MSVC)
