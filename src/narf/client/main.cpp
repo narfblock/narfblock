@@ -615,7 +615,7 @@ void sim_frame(const narf::Input &input, narf::timediff dt)
 	selected_block_face = {};
 	bool traceHitBlock = false;
 	world->rayTrace(pos, cam.orientation,
-		[&](const narf::math::coord::Point3f& point, const narf::World::BlockCoord& blockCoord, const narf::BlockFace& face){
+		[&](const narf::math::coord::Point3f& point, const narf::BlockCoord& blockCoord, const narf::BlockFace& face){
 			// TODO: stop the trace if it runs off the edge of the world vertically
 			if (point.distanceTo(pos) >= maxInteractDistance) {
 				return true; // ran out of distance
@@ -633,7 +633,7 @@ void sim_frame(const narf::Input &input, narf::timediff dt)
 
 	if (traceHitBlock) {
 		if (input.action_primary_begin() || input.action_secondary_begin()) {
-			narf::World::BlockCoord wbc(selected_block_face.x, selected_block_face.y, selected_block_face.z);
+			narf::BlockCoord wbc(selected_block_face.x, selected_block_face.y, selected_block_face.z);
 			if (input.action_primary_begin()) {
 				// remove block at cursor
 				narf::PlayerCommand cmd(narf::PlayerCommand::Type::PrimaryAction);
@@ -826,8 +826,8 @@ int randi(int min, int max)
 	return (int)randf((float)min, (float)max); // HAX
 }
 
-void fillRectPrism(const narf::World::BlockCoord& c1, const narf::World::BlockCoord& c2, uint8_t block_id) {
-	narf::math::coord::ZYXCoordIter<narf::World::BlockCoord> iter(c1, c2);
+void fillRectPrism(const narf::BlockCoord& c1, const narf::BlockCoord& c2, uint8_t block_id) {
+	narf::math::coord::ZYXCoordIter<narf::BlockCoord> iter(c1, c2);
 	for (const auto& c : iter) {
 		narf::Block b;
 		b.id = block_id;
@@ -837,35 +837,6 @@ void fillRectPrism(const narf::World::BlockCoord& c1, const narf::World::BlockCo
 
 void fill_plane(uint32_t z, uint8_t block_id) {
 	fillRectPrism({0, 0, z}, {WORLD_X_MAX, WORLD_Y_MAX, z + 1}, block_id);
-}
-
-
-void calcTexCoord(narf::BlockTexCoord *tc, unsigned texId) {
-	unsigned texX = texId % 16;
-	unsigned texY = texId / 16;
-
-	float texCoordTileSize = 1.0f / 16.0f; // TODO: calculate from actual texture size
-
-	tc->u1 = (float)texX * texCoordTileSize;
-	tc->v1 = (float)texY * texCoordTileSize;
-
-	tc->u2 = tc->u1 + texCoordTileSize;
-	tc->v2 = tc->v1 + texCoordTileSize;
-}
-
-
-// calc tex coords from id
-narf::BlockType genNormalBlockType(unsigned texXPos, unsigned texXNeg, unsigned texYPos, unsigned texYNeg, unsigned texZPos, unsigned texZNeg) {
-	narf::BlockType bt;
-	bt.solid = true;
-	bt.indestructible = false;
-	calcTexCoord(&bt.texCoords[narf::XPos], texXPos);
-	calcTexCoord(&bt.texCoords[narf::XNeg], texXNeg);
-	calcTexCoord(&bt.texCoords[narf::YPos], texYPos);
-	calcTexCoord(&bt.texCoords[narf::YNeg], texYNeg);
-	calcTexCoord(&bt.texCoords[narf::ZPos], texZPos);
-	calcTexCoord(&bt.texCoords[narf::ZNeg], texZNeg);
-	return bt;
 }
 
 
@@ -880,23 +851,7 @@ void newWorld()
 
 	world = new narf::client::World(WORLD_X_MAX, WORLD_Y_MAX, WORLD_Z_MAX, 16, 16, 16);
 
-	// set up block types
-	// TODO: put this in a config file
-	auto airType = genNormalBlockType(0, 0, 0, 0, 0, 0); // TODO
-	airType.solid = false;
-	world->addBlockType(airType); // air
-
-	auto adminiumType = genNormalBlockType(4, 4, 4, 4, 4, 4);
-	adminiumType.indestructible = true;
-	world->addBlockType(adminiumType); // adminium
-
-	world->addBlockType(genNormalBlockType(2, 2, 2, 2, 2, 2)); // dirt
-	world->addBlockType(genNormalBlockType(3, 3, 3, 3, 0, 2)); // dirt with grass top
-	world->addBlockType(genNormalBlockType(4, 4, 4, 4, 4, 4)); // TODO
-	world->addBlockType(genNormalBlockType(5, 5, 5, 5, 5, 5)); // brick
-	world->addBlockType(genNormalBlockType(1, 1, 1, 1, 1, 1)); // stone1
-	auto stone2 = world->addBlockType(genNormalBlockType(16, 16, 16, 16, 16, 16)); // stone2
-	world->addBlockType(genNormalBlockType(17, 17, 17, 17, 17, 17)); // stone3
+	auto stone2 = 7; // TODO HAX
 
 	for (uint32_t z = 16; z < 23; z++) {
 		//fillRectPrism(30 + z, 35 + (z - 16), 30 + z, 35 + (z - 16), z, z + 1, stone2);

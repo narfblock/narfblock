@@ -45,7 +45,7 @@ narf::EntityRef::~EntityRef() {
 
 
 // TODO: move this to a subclass of entity
-void explode(narf::World *world, const narf::World::BlockCoord& bc, int32_t radius) {
+void explode(narf::World *world, const narf::BlockCoord& bc, int32_t radius) {
 	narf::Block air;
 	air.id = 0;
 
@@ -80,8 +80,8 @@ bool narf::Entity::update(narf::timediff dt)
 	auto acceleration = narf::math::Vector3f(0.0f, 0.0f, antigrav ? 0.0f : world_->get_gravity());
 
 	// TODO: once coords are converted to integers, get rid of casts of dt to double
-	velocity += acceleration * (double)dt;
-	position += velocity * (double)dt;
+	velocity += acceleration * (float)dt;
+	position += velocity * (float)dt;
 
 	// wrap around
 	// TODO: ensure position can't go beyond one extra world size with extreme velocity
@@ -97,25 +97,68 @@ bool narf::Entity::update(narf::timediff dt)
 		position.y = position.y - (float)world_->size_y();
 	}
 
-	// TODO: bogus collision detection
-	World::BlockCoord bc((uint32_t)position.x, (uint32_t)position.y, (uint32_t)position.z);
-	if (world_->get_block(bc)->id != 0) {
-		if (explodey) {
-			explode(world_, bc, 5);
-			// TODO: delete this entity
-			alive = false;
-			explodey = false;
-			velocity.x = velocity.y = 0.0f;
-		}
+	// TODO: entity AABB should be determined based on its model
+	// for now, make everything 0.75x0.75x0.75
+	math::Vector3f center(position.x, position.y, position.z + 0.375f);
+	math::Vector3f halfSize(0.375f, 0.375f, 0.375f);
+	AABB entAABB(center, halfSize);
 
-		if (bouncy) {
-			position.z = ceilf(position.z) + (ceilf(position.z) - position.z);
-			velocity.z = -velocity.z;
-		} else {
-			position.z = ceilf(position.z);
-			velocity.z = 0.0f;
-			onGround = true;
+	// check against all blocks that could potentially intersect
+	BlockCoord c(
+			(uint32_t)(position.x - halfSize.x),
+			(uint32_t)(position.y - halfSize.y),
+			(uint32_t)(position.z - halfSize.z));
+
+	// size of entity aabb
+	// + 1 to round up
+	// + 1 since CoordIter iterates up to but not including
+	uint32_t sx = 2u + (uint32_t)(halfSize.x * 2.0f);
+	uint32_t sy = 2u + (uint32_t)(halfSize.y * 2.0f);
+	uint32_t sz = 2u + (uint32_t)(halfSize.z * 2.0f);
+
+	math::coord::ZYXCoordIter<BlockCoord> iter(
+			{c.x, c.y, c.z},
+			{c.x + sx, c.y + sy, c.z + sz});
+
+	bool collided = false;
+	bool bounced = false;
+	for (const auto& bc : iter) {
+		auto block = world_->get_block(bc);
+		AABB blockAABB(world_->getBlockType(block->id)->getAABB(bc));
+
+		if (world_->get_block(bc)->id != 0 && blockAABB.intersect(entAABB)) {
+			if (explodey) {
+				explode(world_, bc, 5);
+				alive = false;
+				explodey = false;
+				velocity.x = velocity.y = 0.0f;
+			}
+
+			if (bouncy) {
+				if (!bounced) {
+					position.z = ceilf(position.z) + (ceilf(position.z) - position.z);
+					velocity.z = -velocity.z;
+					bounced = true; // only apply bounce once...
+				}
+			} else {
+				// TODO: there shouldn't be any difference between these two cases
+				if (bc.z < ceilf(position.z)) {
+					// hit a block below us; just zero out vertical velocity and push up
+					position.z = ceilf(position.z);
+					velocity.z = 0.0f;
+					onGround = true;
+				} else {
+					collided = true;
+				}
+			}
 		}
+	}
+
+	if (collided) {
+		// for now, just teleport back to the previous position
+		// TODO: better collision resolution
+		// TODO: handle blocks above
+		position = prevPosition;
 	}
 
 	if (!narf::math::AlmostEqual(velocity.z, 0.0f)) {

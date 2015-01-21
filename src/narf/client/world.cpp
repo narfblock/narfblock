@@ -39,7 +39,7 @@
 void draw_cube(float x, float y, float z, uint8_t type, unsigned draw_face_mask);
 
 
-void narf::client::World::put_block(const narf::Block *b, const narf::World::BlockCoord& wbc) {
+void narf::client::World::put_block(const narf::Block *b, const narf::BlockCoord& wbc) {
 	ChunkCoord cc;
 	narf::Chunk::BlockCoord cbc;
 	calcChunkCoords(wbc, cc, cbc);
@@ -102,7 +102,8 @@ void narf::client::World::renderSlice(narf::gl::Texture *tiles_tex, uint32_t cx_
 			float x = ent.position.x * stateBlend + ent.prevPosition.x * (1.0f - stateBlend);
 			float y = ent.position.y * stateBlend + ent.prevPosition.y * (1.0f - stateBlend);
 			float z = ent.position.z * stateBlend + ent.prevPosition.z * (1.0f - stateBlend);
-			::draw_cube(x, y, z, 1, 0xFF);
+			// x, y is the center of the entity; assume all entities are 1x1x1 for now
+			::draw_cube(x - 0.5f, y - 0.5f, z, 1, 0xFF);
 		}
 	}
 }

@@ -57,36 +57,10 @@ narf::World *world;
 #define WORLD_Y_MAX 64
 #define WORLD_Z_MAX 64
 
-// TODO: this is copied from client
-narf::BlockType genNormalBlockType() {
-	narf::BlockType bt;
-	bt.solid = true;
-	bt.indestructible = false;
-	return bt;
-}
 
 // TODO: this is copied from client
 void genWorld() {
 	world = new narf::World(WORLD_X_MAX, WORLD_Y_MAX, WORLD_Z_MAX, 16, 16, 16);
-
-	// set up block types
-	// TODO: put this in a config file
-	auto airType = genNormalBlockType(); // TODO
-	airType.solid = false;
-	world->addBlockType(airType); // air
-
-	auto adminiumType = genNormalBlockType();
-	adminiumType.indestructible = true;
-	world->addBlockType(adminiumType); // adminium
-
-	world->addBlockType(genNormalBlockType()); // dirt
-	world->addBlockType(genNormalBlockType()); // dirt with grass top
-	world->addBlockType(genNormalBlockType()); // TODO
-	world->addBlockType(genNormalBlockType()); // brick
-	world->addBlockType(genNormalBlockType()); // stone1
-	auto stone2 = world->addBlockType(genNormalBlockType()); // stone2
-	world->addBlockType(genNormalBlockType()); // stone3
-
 	world->set_gravity(-24.0f);
 }
 

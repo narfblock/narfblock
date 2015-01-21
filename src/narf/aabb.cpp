@@ -1,7 +1,7 @@
 /*
- * NarfBlock player commands
+ * Axis-aligned bounding box intersection
  *
- * Copyright (c) 2014 Daniel Verkamp
+ * Copyright (c) 2015 Daniel Verkamp
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,43 +30,17 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef NARF_PLAYERCMD_H
-#define NARF_PLAYERCMD_H
+#include "narf/aabb.h"
 
-#include "narf/bytestream.h"
-#include "narf/math/math.h"
-#include "narf/world.h"
+bool narf::AABB::intersect(const AABB& o) const {
+	auto d = this->center - o.center;
+	d.x = fabsf(d.x);
+	d.y = fabsf(d.y);
+	d.z = fabsf(d.z);
 
-namespace narf {
+	auto s = this->halfSize + o.halfSize;
 
-class PlayerCommand {
-public:
-	enum class Type {
-		Invalid = 0,
-		PrimaryAction = 1,
-		SecondaryAction = 2,
-		TernaryAction = 3,
-	};
-
-	PlayerCommand(Type type);
-	PlayerCommand(ByteStreamReader& s);
-
-	void serialize(ByteStreamWriter& s) const;
-
-	void exec(World* world);
-
-	Type type() const { return type_; }
-
-	// TODO: these should be inferred from player location and orientation
-	BlockCoord wbc;
-	math::Vector3f position;
-	math::Vector3f velocity;
-	math::Orientationf orientation;
-
-protected:
-	Type type_;
-};
-
-} // namespace narf
-
-#endif // NARF_PLAYERCMD_H
+	return d.x <= s.x &&
+	       d.y <= s.y &&
+	       d.z <= s.z;
+}

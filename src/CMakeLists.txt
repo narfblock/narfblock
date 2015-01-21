@@ -115,6 +115,8 @@ configure_file (
 
 # source files used by both client and server
 set (NARFBLOCK_COMMON_SOURCE_FILES
+	narf/aabb.cpp
+	narf/block.cpp
 	narf/bytestream.cpp
 	narf/chunk.cpp
 	narf/entity.cpp

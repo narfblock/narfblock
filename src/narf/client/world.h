@@ -61,7 +61,7 @@ public:
 
 	void render(narf::gl::Texture *tiles_tex, const narf::Camera *cam, float stateBlend);
 
-	void put_block(const Block *b, const narf::World::BlockCoord& wbc) override;
+	void put_block(const Block *b, const BlockCoord& wbc) override;
 
 	int32_t renderDistance; // radius in chunks
 

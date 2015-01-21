@@ -33,7 +33,13 @@
 #ifndef NARF_BLOCK_H
 #define NARF_BLOCK_H
 
+#include "narf/aabb.h"
+#include "narf/math/math.h"
+
 namespace narf {
+
+// block coordinate within world
+typedef math::coord::Point3<uint32_t> BlockCoord;
 
 typedef uint8_t BlockTypeId;
 
@@ -68,6 +74,20 @@ public:
 
 	// texture coords within tileset bitmap for each face (in BlockFace order)
 	BlockTexCoord texCoords[6];
+
+	// added to block center to get center of AABB (0,0,0 if AABB is centered on block)
+	math::Vector3f aabbCenterOffset;
+
+	// dimensions of bounding box relative to center
+	math::Vector3f aabbHalfSize;
+
+	BlockType(
+		unsigned texXPos, unsigned texXNeg,
+		unsigned texYPos, unsigned texYNeg,
+		unsigned texZPos, unsigned texZNeg);
+
+	// calculate AABB for a block of this type at location bc
+	AABB getAABB(const BlockCoord& bc) const;
 };
 
 } // namespace narf

@@ -66,6 +66,24 @@ narf::World::World(uint32_t size_x, uint32_t size_y, uint32_t size_z, uint32_t c
 	chunk_mask_y_ = chunks_y_ - 1;
 
 	chunks_ = (Chunk**)calloc(chunks_x_ * chunks_y_ * chunks_z_, sizeof(Chunk*));
+
+	// initialize block types
+	// TODO: put this in a config file
+	auto airType = BlockType(0, 0, 0, 0, 0, 0); // TODO
+	airType.solid = false;
+	addBlockType(airType); // air
+
+	auto adminiumType = BlockType(4, 4, 4, 4, 4, 4);
+	adminiumType.indestructible = true;
+	addBlockType(adminiumType); // adminium
+
+	addBlockType(BlockType(2, 2, 2, 2, 2, 2)); // dirt
+	addBlockType(BlockType(3, 3, 3, 3, 0, 2)); // dirt with grass top
+	addBlockType(BlockType(4, 4, 4, 4, 4, 4)); // TODO
+	addBlockType(BlockType(5, 5, 5, 5, 5, 5)); // brick
+	addBlockType(BlockType(1, 1, 1, 1, 1, 1)); // stone1
+	addBlockType(BlockType(16, 16, 16, 16, 16, 16)); // stone2
+	addBlockType(BlockType(17, 17, 17, 17, 17, 17)); // stone3
 }
 
 
@@ -79,7 +97,7 @@ narf::World::~World() {
 }
 
 
-const narf::Block *narf::World::get_block(const World::BlockCoord& wbc) {
+const narf::Block *narf::World::get_block(const narf::BlockCoord& wbc) {
 	ChunkCoord cc;
 	narf::Chunk::BlockCoord cbc;
 	calcChunkCoords(wbc, cc, cbc);
@@ -88,7 +106,7 @@ const narf::Block *narf::World::get_block(const World::BlockCoord& wbc) {
 }
 
 
-void narf::World::put_block(const narf::Block *b, const World::BlockCoord& wbc) {
+void narf::World::put_block(const narf::Block *b, const narf::BlockCoord& wbc) {
 	ChunkCoord cc;
 	narf::Chunk::BlockCoord cbc;
 	calcChunkCoords(wbc, cc, cbc);
@@ -97,7 +115,7 @@ void narf::World::put_block(const narf::Block *b, const World::BlockCoord& wbc) 
 }
 
 
-bool narf::World::is_opaque(const narf::World::BlockCoord& wbc) {
+bool narf::World::is_opaque(const narf::BlockCoord& wbc) {
 	ChunkCoord cc;
 	narf::Chunk::BlockCoord cbc;
 	calcChunkCoords(wbc, cc, cbc);
@@ -107,7 +125,7 @@ bool narf::World::is_opaque(const narf::World::BlockCoord& wbc) {
 
 
 void narf::World::calcChunkCoords(
-	const narf::World::BlockCoord& wbc,
+	const narf::BlockCoord& wbc,
 	ChunkCoord& cc,
 	narf::Chunk::BlockCoord& cbc) const {
 
@@ -216,11 +234,7 @@ void narf::World::update(narf::timediff dt) {
 
 
 narf::BlockTypeId narf::World::addBlockType(const narf::BlockType &bt) {
-	if (numBlockTypes_ == (sizeof(blockTypes_) / sizeof(*blockTypes_)) - 1) {
-		return 0; // TODO - get a better invalid value
-	}
-
-	blockTypes_[numBlockTypes_] = bt;
+	blockTypes_.push_back(bt);
 	return numBlockTypes_++;
 }
 
@@ -256,7 +270,7 @@ static narf::math::coord::Point3f nextBlockIntersect(const narf::math::coord::Po
 
 void narf::World::rayTrace(narf::math::coord::Point3f basePoint, narf::math::Vector3f direction, std::function<bool(const narf::math::coord::Point3f&, const BlockCoord&, const BlockFace&)> test) {
 	narf::math::coord::Point3f prevPoint = basePoint;
-	narf::World::BlockCoord prevBlockCoord(0, 0, 0);
+	BlockCoord prevBlockCoord(0, 0, 0);
 
 	float xDir = (direction.x > 0) ? 1.0f : -1.0f;
 	float yDir = (direction.y > 0) ? 1.0f : -1.0f;

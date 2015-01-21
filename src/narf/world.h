@@ -51,9 +51,6 @@ namespace narf {
 class World {
 friend class EntityRef;
 public:
-	// block coordinate within world
-	typedef math::coord::Point3<uint32_t> BlockCoord;
-
 	// chunk coordinate (in units of chunks) within world
 	typedef math::coord::Point3<uint32_t> ChunkCoord;
 
@@ -128,10 +125,10 @@ protected:
 	void update(Entity::ID entID, double t, double dt);
 
 	BlockTypeId numBlockTypes_;
-	BlockType blockTypes_[256];
+	std::vector<BlockType> blockTypes_;
 
 	void calcChunkCoords(
-		const World::BlockCoord& wbc,
+		const BlockCoord& wbc,
 		ChunkCoord& cc,
 		Chunk::BlockCoord& cbc) const;
 
