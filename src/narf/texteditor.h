@@ -7,7 +7,7 @@
 namespace narf {
 	class TextEditor {
 	public:
-		int cursor;
+		uint32_t cursor;
 		size_t sel_length;
 		TextEditor();
 		~TextEditor();

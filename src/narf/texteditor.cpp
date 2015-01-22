@@ -28,21 +28,21 @@ void narf::TextEditor::addString(const std::string &s) {
 
 void narf::TextEditor::setString(const std::string &s) {
 	str_ = s;
-	cursor = int(str_.size());
+	cursor = static_cast<uint32_t>(str_.size());
 	updated();
 }
 
 void narf::TextEditor::moveCursor(const int count) {
-	cursor += count;
-	cursor = std::max(0, std::min(cursor, (int)str_.size()));
+	cursor = static_cast<uint32_t>(std::max(0, static_cast<int>(cursor) + count));
+	cursor = std::min(cursor, static_cast<uint32_t>(str_.size()));
 	updated();
 }
 
 void narf::TextEditor::delAtCursor(const int count) {
 	if (count < 0) {
-		cursor = std::max(0, cursor + count);
+		moveCursor(count);
 	}
-	str_.erase(cursor, std::abs(count));
+	str_.erase(cursor, static_cast<uint32_t>(std::abs(count)));
 	updated();
 }
 
@@ -52,6 +52,6 @@ void narf::TextEditor::homeCursor() {
 }
 
 void narf::TextEditor::endCursor() {
-	cursor = int(str_.size());
+	cursor = static_cast<uint32_t>(str_.size());
 	updated();
 }

@@ -24,8 +24,8 @@ struct narf::client::ClientConsoleImpl {
 	int lineHeight;
 	int x;
 	int y;
-	int width;
-	int height;
+	size_t width;
+	size_t height;
 	int paddingLeft;
 	narf::font::TextBuffer *textBuffer;
 	narf::font::TextBuffer *editBuffer;
@@ -80,7 +80,7 @@ void narf::client::Console::setFont(narf::font::Font *font) {
 }
 
 
-void narf::client::Console::setLocation(int x, int y, int width, int height) {
+void narf::client::Console::setLocation(int x, int y, size_t width, size_t height) {
 	if (impl->x != x ||
 		impl->y != y ||
 		impl->width != width ||
@@ -116,7 +116,7 @@ void narf::client::Console::update() {
 
 		int y = impl->y + impl->lineHeight * 3 / 2;
 		for (auto iter = impl->text.rbegin(); iter != impl->text.rend(); ++iter) {
-			if (y + impl->lineHeight >= impl->height) {
+			if (static_cast<size_t>(y + impl->lineHeight) >= impl->height) {
 				break;
 			}
 
@@ -143,8 +143,8 @@ void narf::client::Console::render() {
 		// draw console background
 		auto x1 = float(impl->x);
 		auto y1 = float(impl->y);
-		auto x2 = float(impl->x + impl->width);
-		auto y2 = float(impl->y + impl->height);
+		auto x2 = float(impl->x + static_cast<int>(impl->width));
+		auto y2 = float(impl->y + static_cast<int>(impl->height));
 
 		glPushAttrib(GL_ALL_ATTRIB_BITS);
 		glColor4f(0.5f, 0.5f, 0.5f, 0.7f);

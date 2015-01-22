@@ -66,7 +66,7 @@ narf::CursesConsole::CursesConsole() {
 void narf::CursesConsole::refreshInput() {
 	mvwprintw(impl->inputWin, 0, 0, "> %s", impl->textEditor.getString().c_str());
 	wclrtoeol(impl->inputWin);
-	wmove(impl->inputWin, 0, impl->textEditor.cursor + 2);
+	wmove(impl->inputWin, 0, static_cast<int>(impl->textEditor.cursor + 2));
 	wrefresh(impl->inputWin);
 
 }
