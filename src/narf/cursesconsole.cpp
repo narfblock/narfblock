@@ -82,7 +82,7 @@ void narf::CursesConsole::println(const std::string &s) {
 
 	// TODO: this is total hack
 	for (auto iter = s.begin(); iter != s.end(); ++iter) {
-		waddch(impl->consoleWin, *iter);
+		waddch(impl->consoleWin, static_cast<chtype>(*iter));
 	}
 	waddch(impl->consoleWin, '\n');
 

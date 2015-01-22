@@ -10,9 +10,9 @@
 const std::string narf::util::DirSeparator("/");
 
 static std::string readLink(const std::string &path) {
-	ssize_t len = 1024;
-	ssize_t lenStep = 1024;
-	ssize_t maxLen = 1024 * 4096;
+	size_t len = 1024;
+	size_t lenStep = 1024;
+	size_t maxLen = 1024 * 4096;
 
 	do {
 		char *buf = new char[len + 1];
@@ -25,7 +25,7 @@ static std::string readLink(const std::string &path) {
 			return std::string("");
 		}
 
-		if (bytes > len) {
+		if (static_cast<size_t>(bytes) > len) {
 			// try again with larger buffer
 			len += lenStep;
 			delete [] buf;

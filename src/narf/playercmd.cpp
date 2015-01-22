@@ -52,6 +52,8 @@ narf::PlayerCommand::PlayerCommand(narf::ByteStreamReader& s) {
 	type_ = (Type)tmp16;
 
 	switch (type_) {
+	case Type::Invalid:
+		break;
 	case Type::PrimaryAction:
 	case Type::SecondaryAction:
 		if (
@@ -73,6 +75,8 @@ narf::PlayerCommand::PlayerCommand(narf::ByteStreamReader& s) {
 void narf::PlayerCommand::serialize(narf::ByteStreamWriter& s) const {
 	s.writeLE((uint16_t)type_);
 	switch (type_) {
+	case Type::Invalid:
+		break;
 	case Type::PrimaryAction:
 	case Type::SecondaryAction:
 		s.writeLE(wbc.x);
@@ -88,6 +92,8 @@ void narf::PlayerCommand::serialize(narf::ByteStreamWriter& s) const {
 
 void narf::PlayerCommand::exec(narf::World* world) {
 	switch (type_) {
+	case Type::Invalid:
+		break;
 	case Type::PrimaryAction:
 	case Type::SecondaryAction:
 		if (type_ == Type::PrimaryAction) {

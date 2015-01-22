@@ -129,6 +129,7 @@ void narf::client::World::render(narf::gl::Texture *tiles_tex, const narf::Camer
 	 *   F  |  G  |  H
 	 */
 
+	// TODO: Would be better if these were uint32_t, so maybe do the assert differently
 	int32_t cx_min = cx - std::min(renderDistance, (int32_t)chunks_x_ - 1);
 	int32_t cx_max = cx + std::min(renderDistance, (int32_t)chunks_x_ - 1) + 1;
 

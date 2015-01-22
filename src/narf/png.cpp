@@ -173,7 +173,7 @@ narf::Image* narf::loadPNG(const void* data, size_t size) {
 	}
 
 	{
-		ptrdiff_t stride = png_get_rowbytes(png, info);
+		auto stride = png_get_rowbytes(png, info);
 		png_bytep offs = static_cast<png_bytep>(image->data());
 		for (uint32_t y = 0; y < image->height(); y++) {
 			rows[y] = offs;

@@ -146,7 +146,7 @@ TextureFont::TextureFont(TextureAtlas* atlas, unsigned pixelSize, const void* me
         return;
     }
 
-    error = FT_New_Memory_Face(library_, static_cast<const FT_Byte*>(memoryBase), memorySize, 0, &face_);
+    error = FT_New_Memory_Face(library_, static_cast<const FT_Byte*>(memoryBase), static_cast<FT_Long>(memorySize), 0, &face_);
     if (error) {
         printError(error);
         // TODO: throw
@@ -188,8 +188,8 @@ TextureFont::Glyph* TextureFont::loadGlyph(uint32_t charcode) {
         return nullptr;
     }
 
-    size_t w = face_->glyph->bitmap.width;
-    size_t h = face_->glyph->bitmap.rows;
+    size_t w = static_cast<size_t>(face_->glyph->bitmap.width);
+    size_t h = static_cast<size_t>(face_->glyph->bitmap.rows);
 
     // We want each glyph to be separated by at least one black pixel
     auto region = atlas_->getRegion(w + 1, h + 1);
@@ -201,7 +201,7 @@ TextureFont::Glyph* TextureFont::loadGlyph(uint32_t charcode) {
 
     uint32_t x = region.x;
     uint32_t y = region.y;
-    atlas_->setRegion(x, y, w, h, face_->glyph->bitmap.buffer, face_->glyph->bitmap.pitch);
+    atlas_->setRegion(x, y, w, h, face_->glyph->bitmap.buffer, static_cast<size_t>(face_->glyph->bitmap.pitch));
 
     Glyph glyph;
     glyph.charcode = charcode;

@@ -116,7 +116,7 @@ narf::font::Font* setFont(
 	const std::string& nameVar, const std::string& nameDefault,
 	const std::string& sizeVar, int sizeDefault) {
 	auto fontName = config.getString(nameVar, nameDefault);
-	auto fontSize = config.getInt32(sizeVar, sizeDefault);
+	auto fontSize = static_cast<size_t>(config.getInt32(sizeVar, sizeDefault));
 
 	narf::console->println("Setting " + useName + " font to " + fontName + " " + std::to_string(fontSize) + "px");
 
@@ -358,9 +358,9 @@ void draw_cursor() {
 void updateConsoleSize() {
 	auto consoleX = 0;
 	auto consoleY = 0;
-	auto consoleWidth = display->width();
-	auto consoleHeight = 175; // TODO: calculate dynamically based on screen size
-	clientConsole->setLocation(consoleX, consoleY, consoleWidth, consoleHeight);
+	size_t consoleWidth = display->width();
+	size_t consoleHeight = 175; // TODO: calculate dynamically based on screen size
+	clientConsole->setLocation(consoleX, consoleY, static_cast<int>(consoleWidth), static_cast<int>(consoleHeight));
 }
 
 
@@ -633,7 +633,7 @@ void sim_frame(const narf::Input &input, narf::timediff dt)
 
 	if (traceHitBlock) {
 		if (input.action_primary_begin() || input.action_secondary_begin()) {
-			narf::BlockCoord wbc(selected_block_face.x, selected_block_face.y, selected_block_face.z);
+			narf::BlockCoord wbc(static_cast<uint32_t>(selected_block_face.x), static_cast<uint32_t>(selected_block_face.y), static_cast<uint32_t>(selected_block_face.z));
 			if (input.action_primary_begin()) {
 				// remove block at cursor
 				narf::PlayerCommand cmd(narf::PlayerCommand::Type::PrimaryAction);
@@ -864,9 +864,9 @@ void newWorld()
 
 	// generate some random blocks above the ground
 	for (int i = 0; i < 1000; i++) {
-		uint32_t x = randi(0, WORLD_X_MAX - 1);
-		uint32_t y = randi(0, WORLD_Y_MAX - 1);
-		uint32_t z = randi(16, 23);
+		uint32_t x = static_cast<uint32_t>(randi(0, WORLD_X_MAX - 1));
+		uint32_t y = static_cast<uint32_t>(randi(0, WORLD_Y_MAX - 1));
+		uint32_t z = static_cast<uint32_t>(randi(16, 23));
 		narf::Block b;
 		b.id = (uint8_t)randi(2, 3);
 		world->put_block(&b, {x, y, z});
@@ -984,10 +984,10 @@ void cmdLoad(const std::string& args) {
 
 	fseek(f, 0, SEEK_END);
 	// TODO: use ftello?
-	auto size = ftell(f);
+	auto size = static_cast<size_t>(ftell(f));
 	fseek(f, 0, SEEK_SET);
 	narf::ByteStreamReader s(size);
-	if (s.size() != static_cast<size_t>(size)) {
+	if (s.size() != size) {
 		narf::console->println("Error reserving space for data");
 		fclose(f);
 		return;

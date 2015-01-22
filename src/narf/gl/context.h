@@ -58,13 +58,13 @@ public:
 	uint32_t width() const {
 		int w, h;
 		SDL_GetWindowSize(window_, &w, &h);
-		return w;
+		return static_cast<uint32_t>(w);
 	}
 
 	uint32_t height() const {
 		int w, h;
 		SDL_GetWindowSize(window_, &w, &h);
-		return h;
+		return static_cast<uint32_t>(h);
 	}
 
 private:

@@ -16,11 +16,11 @@ narf::font::Font::~Font() {
 }
 
 
-bool narf::font::Font::load(const std::string &filename, int size) {
+bool narf::font::Font::load(const std::string &filename, size_t size) {
 	if (!file_.read(filename)) {
 		return false;
 	}
-	font_ = new TextureFont(atlas_, size, file_.data, file_.size);
+	font_ = new TextureFont(atlas_, static_cast<uint32_t>(size), file_.data, file_.size);
 	return font_ != nullptr && font_->height() != 0.0f;
 }
 
@@ -50,8 +50,8 @@ float narf::font::Font::width(const std::string &text, int nchars) const {
 }
 
 
-float narf::font::TextBuffer::width(const std::string &text, int nchars) const {
-	return font_->width(text, nchars);
+float narf::font::TextBuffer::width(const std::string &text, size_t nchars) const {
+	return font_->width(text, static_cast<int>(nchars));
 }
 
 
@@ -134,7 +134,7 @@ void narf::font::TextBuffer::clear() {
 }
 
 
-narf::font::Font* narf::font::FontManager::getFont(const std::string &fontname, int size) {
+narf::font::Font* narf::font::FontManager::getFont(const std::string &fontname, size_t size) {
 	auto key = getKey(fontname, size);
 	if (fonts_.count(key) > 0) {
 		return fonts_[key];
@@ -154,6 +154,6 @@ narf::font::Font* narf::font::FontManager::getFont(const std::string &fontname, 
 }
 
 
-std::string narf::font::FontManager::getKey(const std::string& fontname, int size) const {
+std::string narf::font::FontManager::getKey(const std::string& fontname, size_t size) const {
 	return fontname + "-" + std::to_string(size);
 }

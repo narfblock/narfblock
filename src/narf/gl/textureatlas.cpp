@@ -106,7 +106,7 @@ int TextureAtlas::fit(size_t index, size_t width, size_t height) {
         widthLeft -= node.width;
         ++index;
     }
-    return y;
+    return static_cast<int>(y);
 }
 
 
@@ -116,7 +116,7 @@ void TextureAtlas::merge() {
         auto& next = nodes_[i + 1];
         if (node.y == next.y) {
             node.width += next.width;
-            nodes_.erase(nodes_.begin() + i + 1);
+            nodes_.erase(nodes_.begin() + static_cast<long>(i) + 1);
             --i;
         }
     }
@@ -124,15 +124,17 @@ void TextureAtlas::merge() {
 
 
 TextureAtlas::Region TextureAtlas::getRegion(size_t regionWidth, size_t regionHeight) {
-    int y, best_index;
+    int fitted, best_index;
+    uint32_t y;
     Region region = {0, 0, regionWidth, regionHeight};
     size_t bestWidth = UINT32_MAX;
     size_t bestHeight = UINT32_MAX;
 
     best_index  = -1;
     for (size_t i = 0; i < nodes_.size(); i++) {
-        y = fit(i, regionWidth, regionHeight);
-        if (y >= 0) {
+        fitted = fit(i, regionWidth, regionHeight);
+        if (fitted >= 0) {
+            y = static_cast<uint32_t>(fitted);
             const auto& node = nodes_[i];
             if ((y + regionHeight < bestHeight) ||
                 ((y + regionHeight == bestHeight) && (node.width < bestWidth))) {
@@ -140,7 +142,7 @@ TextureAtlas::Region TextureAtlas::getRegion(size_t regionWidth, size_t regionHe
                 bestHeight = y + regionHeight;
                 bestWidth = node.width;
                 region.x = node.x;
-                region.y = y;
+                region.y = static_cast<uint32_t>(y);
             }
         }
     }
@@ -157,14 +159,14 @@ TextureAtlas::Region TextureAtlas::getRegion(size_t regionWidth, size_t regionHe
     newNode.width = regionWidth;
     nodes_.insert(nodes_.begin() + best_index, newNode);
 
-    for (size_t i = best_index + 1; i < nodes_.size(); ++i) {
+    for (size_t i = static_cast<size_t>(best_index) + 1; i < nodes_.size(); ++i) {
         auto& node = nodes_[i];
         auto& prev = nodes_[i - 1];
 
         if (node.x < prev.x + prev.width) {
             uint32_t shrink = prev.x + static_cast<uint32_t>(prev.width) - node.x;
             if (shrink >= node.width) {
-                nodes_.erase(nodes_.begin() + i);
+                nodes_.erase(nodes_.begin() + static_cast<long>(i));
                 --i;
             } else {
                 node.x += shrink;
@@ -202,10 +204,10 @@ void TextureAtlas::upload() {
                      0, GL_RGBA, GL_UNSIGNED_BYTE, data_);
 #endif
     } else if (depth_ == 3) {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, static_cast<GLsizei>(width_), static_cast<GLsizei>(height_),
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, static_cast<GLsizei>(width_), static_cast<GLsizei>(height_),
                      0, GL_RGB, GL_UNSIGNED_BYTE, data_);
     } else {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, static_cast<GLsizei>(width_), static_cast<GLsizei>(height_),
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, static_cast<GLsizei>(width_), static_cast<GLsizei>(height_),
                      0, GL_ALPHA, GL_UNSIGNED_BYTE, data_ );
     }
 }

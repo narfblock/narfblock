@@ -72,6 +72,7 @@ bool narf::MemoryFile::resize(size_t newSize) {
 		data = newData;
 		size = newSize;
 	}
+	return true;
 }
 
 
@@ -82,7 +83,7 @@ bool narf::MemoryFile::read(const char* filename) {
 	}
 
 	fseek(fp, 0, SEEK_END);
-	long fileSize = ftell(fp); // TODO: use ftello/64-bit stuff when available
+	size_t fileSize = static_cast<size_t>(ftell(fp)); // TODO: use ftello/64-bit stuff when available
 	fseek(fp, 0, SEEK_SET);
 
 	if (fileSize > SIZE_MAX) {

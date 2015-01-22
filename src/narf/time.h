@@ -50,7 +50,7 @@ public:
 	timediff(const timediff& td) : us_(td.us_) { }
 	timediff(int us) : us_(us) {}
 	timediff(int64_t us) : us_(us) {}
-	timediff(double seconds) : us_(static_cast<uint64_t>(seconds * scaleSeconds)) { }
+	timediff(double seconds) : us_(static_cast<int64_t>(seconds * scaleSeconds)) { }
 
 	timediff& operator =(const timediff& td) {
 		us_ = td.us_;

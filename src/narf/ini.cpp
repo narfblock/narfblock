@@ -138,7 +138,7 @@ redo:
 				sectionStart = d;
 			}
 			if (c == ']') {
-				section = std::string(sectionStart, d - sectionStart);
+				section = std::string(sectionStart, static_cast<size_t>(d - sectionStart));
 				sectionStart = nullptr;
 				state = State::EndLine;
 			}
@@ -151,7 +151,7 @@ redo:
 				} else {
 					state = State::Equals;
 				}
-				key = std::string(keyStart, d - keyStart);
+				key = std::string(keyStart, static_cast<size_t>(d - keyStart));
 				keyStart = nullptr;
 			} else if (isNewLine(c)) {
 				warn("key without value");
@@ -181,7 +181,7 @@ redo:
 			} else {
 				if (isNewLine(c) || c == '\0') {
 					// TODO: trim right-side whitespace
-					std::string value(valueStart, d - valueStart);
+					std::string value(valueStart, static_cast<size_t>(d - valueStart));
 					setString(section + "." + key, value);
 					valueStart = nullptr;
 					state = State::EndLine;

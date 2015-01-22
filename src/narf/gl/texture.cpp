@@ -50,7 +50,7 @@ bool narf::gl::Texture::upload(narf::Image* image)
 	glTexImage2D(
 		GL_TEXTURE_2D, 0,
 		GL_RGBA,
-		image->width(), image->height(), 0,
+		static_cast<GLsizei>(image->width()), static_cast<GLsizei>(image->height()), 0,
 		GL_RGBA, GL_UNSIGNED_BYTE, image->data());
 
 	if (glGetError() != GL_NO_ERROR) {
