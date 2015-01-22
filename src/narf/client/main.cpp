@@ -360,7 +360,7 @@ void updateConsoleSize() {
 	auto consoleY = 0;
 	size_t consoleWidth = display->width();
 	size_t consoleHeight = 175; // TODO: calculate dynamically based on screen size
-	clientConsole->setLocation(consoleX, consoleY, static_cast<int>(consoleWidth), static_cast<int>(consoleHeight));
+	clientConsole->setLocation(consoleX, consoleY, consoleWidth, consoleHeight);
 }
 
 
@@ -432,8 +432,10 @@ void draw2d() {
 
 void draw(float stateBlend) {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	auto dwidth = static_cast<GLsizei>(display->width());
+	auto dheight = static_cast<GLsizei>(display->height());
 
-	glViewport(0, 0, display->width(), display->height());
+	glViewport(0, 0, dwidth, dheight);
 
 	draw3d(stateBlend);
 	draw2d();
@@ -442,9 +444,9 @@ void draw(float stateBlend) {
 
 	if (screenshot == 1) {
 		// http://stackoverflow.com/questions/5862097/sdl-opengl-screenshot-is-black hax hax
-		SDL_Surface* image = SDL_CreateRGBSurface(SDL_SWSURFACE, display->width(), display->height(), 24, 0x000000FF, 0x0000FF00, 0x00FF0000, 0);
-		SDL_Surface* result = SDL_CreateRGBSurface(SDL_SWSURFACE, display->width(), display->height(), 24, 0x000000FF, 0x0000FF00, 0x00FF0000, 0);
-		glReadPixels(0, 0, display->width(), display->height(), GL_RGB, GL_UNSIGNED_BYTE, image->pixels);
+		SDL_Surface* image = SDL_CreateRGBSurface(SDL_SWSURFACE, dwidth, dheight, 24, 0x000000FF, 0x0000FF00, 0x00FF0000, 0);
+		SDL_Surface* result = SDL_CreateRGBSurface(SDL_SWSURFACE, dwidth, dheight, 24, 0x000000FF, 0x0000FF00, 0x00FF0000, 0);
+		glReadPixels(0, 0, dwidth, dheight, GL_RGB, GL_UNSIGNED_BYTE, image->pixels);
 		narf::console->println("Taking a screenshot. " + std::to_string(image->w) + "x" + std::to_string(image->h) + "x24");
 
 		// Flip upside down
