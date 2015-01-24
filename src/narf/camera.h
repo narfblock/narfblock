@@ -43,9 +43,9 @@ public:
 
 	Camera() : position(0.0f, 0.0f, 0.0f) { }
 
-	math::Vector3f position;
+	Vector3f position;
 
-	narf::math::Orientationf orientation;
+	Orientationf orientation;
 };
 
 } // namespace narf

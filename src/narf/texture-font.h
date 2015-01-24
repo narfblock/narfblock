@@ -115,7 +115,7 @@ public:
 
     // Load a font from memory.
     // The memory must exist for the life of the TextureFont.
-    TextureFont(TextureAtlas* atlas, unsigned pixelSize, const void* memoryBase, size_t memorySize);
+    TextureFont(TextureAtlas* atlas, uint32_t pixelSize, const void* memoryBase, size_t memorySize);
     ~TextureFont();
 
     float height() const { return height_; }
@@ -141,12 +141,12 @@ public:
         /**
          * Glyph's width in pixels.
          */
-        size_t width;
+        uint32_t width;
 
         /**
          * Glyph's height in pixels.
          */
-        size_t height;
+        uint32_t height;
 
         /**
          * Glyph's left bearing expressed in integer pixels.
@@ -205,7 +205,7 @@ public:
 
 private:
     void printError(FT_Error error);
-    FT_Error setSize(unsigned pixelSize);
+    FT_Error setSize(uint32_t pixelSize);
     void generateKerning();
     Glyph* loadGlyph(uint32_t charcode);
 
@@ -225,7 +225,7 @@ private:
     /**
      * Font size in pixels
      */
-    unsigned pixelSize_;
+    uint32_t pixelSize_;
 
     /**
      * This field is simply used to compute a default line spacing (i.e., the

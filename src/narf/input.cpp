@@ -5,7 +5,7 @@
 #include "narf/input.h"
 #include "narf/client/console.h"
 
-void narf::Input::process_event(const SDL_Event *event) {
+void narf::Input::processEvent(const SDL_Event *event) {
 	switch (state_) {
 	case InputStateNormal:
 		processNormalEvent(event);
@@ -29,7 +29,7 @@ void narf::Input::processNormalEvent(const SDL_Event *event) {
 		switch (event->key.keysym.sym) {
 		case SDLK_RETURN:
 			if (event->key.keysym.mod & KMOD_ALT) {
-				toggle_fullscreen_ = true;
+				toggleFullscreen_ = true;
 				break;
 			}
 			// fall through
@@ -40,39 +40,39 @@ void narf::Input::processNormalEvent(const SDL_Event *event) {
 			exit_ = true;
 			break;
 		case SDLK_w:
-			move_forward_ = true;
-			last_move_ = last_move_forward;
+			moveForward_ = true;
+			lastMove_ = LastMoveForward;
 			break;
 		case SDLK_s:
-			move_backward_ = true;
-			last_move_ = last_move_backward;
+			moveBackward_ = true;
+			lastMove_ = LastMoveBackward;
 			break;
 		case SDLK_a:
-			strafe_left_ = true;
-			last_strafe_ = last_strafe_left;
+			strafeLeft_ = true;
+			lastStrafe_ = LastStrafeLeft;
 			break;
 		case SDLK_d:
-			strafe_right_ = true;
-			last_strafe_ = last_strafe_right;
+			strafeRight_ = true;
+			lastStrafe_ = LastStrafeRight;
 			break;
 		case SDLK_q:
-			action_ternary_begin_ = !action_ternary_;
-			action_ternary_ = true;
+			actionTernaryBegin_ = !actionTernary_;
+			actionTernary_ = true;
 			break;
 		case SDLK_SPACE:
 			jump_ = true;
 			break;
 		case SDLK_F1:
-			toggle_wireframe_ = true;
+			toggleWireframe_ = true;
 			break;
 		case SDLK_F2:
-			toggle_backface_culling_ = true;
+			toggleBackfaceCulling_ = true;
 			break;
 		case SDLK_F3:
 			screenshot_ = true;
 			break;
 		case SDLK_F4:
-			toggle_fog_ = true;
+			toggleFog_ = true;
 			break;
 		}
 		break;
@@ -80,42 +80,42 @@ void narf::Input::processNormalEvent(const SDL_Event *event) {
 	case SDL_KEYUP:
 		switch (event->key.keysym.sym) {
 		case SDLK_w:
-			move_forward_ = false;
+			moveForward_ = false;
 			break;
 		case SDLK_s:
-			move_backward_ = false;
+			moveBackward_ = false;
 			break;
 		case SDLK_a:
-			strafe_left_ = false;
+			strafeLeft_ = false;
 			break;
 		case SDLK_d:
-			strafe_right_ = false;
+			strafeRight_ = false;
 			break;
 		case SDLK_q:
-			action_ternary_ = false;
-			action_ternary_end_ = true;
+			actionTernary_ = false;
+			actionTernaryEnd_ = true;
 			break;
 		}
 		break;
 
 	case SDL_MOUSEMOTION:
-		look_rel_ += narf::math::Vector2f((float)event->motion.xrel * look_sensitivity_x_,
-		                                  (float)event->motion.yrel * look_sensitivity_y_);
+		lookRel_ += Vector2f((float)event->motion.xrel * lookSensitivityX_,
+		                     (float)event->motion.yrel * lookSensitivityY_);
 		break;
 
 	case SDL_MOUSEBUTTONDOWN:
 		switch (event->button.button) {
 		case SDL_BUTTON_LEFT:
-			action_primary_begin_ = !action_primary_;
-			action_primary_ = true;
+			actionPrimaryBegin_ = !actionPrimary_;
+			actionPrimary_ = true;
 			break;
 		case SDL_BUTTON_RIGHT:
-			action_secondary_begin_ = !action_secondary_;
-			action_secondary_ = true;
+			actionSecondaryBegin_ = !actionSecondary_;
+			actionSecondary_ = true;
 			break;
 		case SDL_BUTTON_MIDDLE:
-			action_ternary_begin_ = !action_ternary_;
-			action_ternary_ = true;
+			actionTernaryBegin_ = !actionTernary_;
+			actionTernary_ = true;
 			break;
 		}
 		break;
@@ -123,16 +123,16 @@ void narf::Input::processNormalEvent(const SDL_Event *event) {
 	case SDL_MOUSEBUTTONUP:
 		switch (event->button.button) {
 		case SDL_BUTTON_LEFT:
-			action_primary_ = false;
-			action_primary_end_ = true;
+			actionPrimary_ = false;
+			actionPrimaryEnd_ = true;
 			break;
 		case SDL_BUTTON_RIGHT:
-			action_secondary_ = false;
-			action_secondary_end_ = true;
+			actionSecondary_ = false;
+			actionSecondaryEnd_ = true;
 			break;
 		case SDL_BUTTON_MIDDLE:
-			action_ternary_ = false;
-			action_ternary_end_ = true;
+			actionTernary_ = false;
+			actionTernaryEnd_ = true;
 			break;
 		}
 		break;
@@ -193,23 +193,23 @@ void narf::Input::processTextEvent(const SDL_Event *event) {
 }
 
 
-void narf::Input::begin_sample()
+void narf::Input::beginSample()
 {
 	// reset one-shot events and relative measurements
 	jump_ = false;
-	action_primary_begin_ = action_primary_end_ = false;
-	action_secondary_begin_ = action_secondary_end_ = false;
-	action_ternary_begin_ = action_ternary_end_ = false;
-	toggle_wireframe_ = false;
-	toggle_backface_culling_ = false;
-	toggle_fog_ = false;
-	toggle_fullscreen_ = false;
+	actionPrimaryBegin_ = actionPrimaryEnd_ = false;
+	actionSecondaryBegin_ = actionSecondaryEnd_ = false;
+	actionTernaryBegin_ = actionTernaryEnd_ = false;
+	toggleWireframe_ = false;
+	toggleBackfaceCulling_ = false;
+	toggleFog_ = false;
+	toggleFullscreen_ = false;
 	screenshot_ = false;
-	look_rel_ = narf::math::Vector2f(0.0f, 0.0f);
+	lookRel_ = Vector2f(0.0f, 0.0f);
 	text_.clear();
 }
 
 
-void narf::Input::end_sample()
+void narf::Input::endSample()
 {
 }

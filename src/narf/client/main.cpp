@@ -44,7 +44,7 @@
 
 void newWorld();
 
-narf::client::Console *clientConsole;
+narf::ClientConsole *clientConsole;
 
 narf::Entity::ID playerEID;
 narf::Entity::ID bouncyBlockEID; // temp hack
@@ -62,15 +62,15 @@ narf::client::World *world = nullptr;
 #define WORLD_Z_MAX 64
 
 narf::gl::Context *display;
-narf::gl::Texture *tiles_tex;
+narf::gl::Texture *tilesTex;
 
-narf::font::FontManager font_manager;
-narf::font::TextBuffer *fps_text_buffer;
-narf::font::TextBuffer *block_info_buffer;
+narf::font::FontManager fontManager;
+narf::font::TextBuffer *fpsTextBuffer;
+narf::font::TextBuffer *blockInfoBuffer;
 narf::font::TextBuffer *entityInfoBuffer;
-narf::font::TextBuffer *location_buffer;
+narf::font::TextBuffer *locationBuffer;
 
-narf::BlockWrapper selected_block_face;
+narf::BlockWrapper selectedBlockFace;
 
 ENetHost* client = nullptr;
 ENetPeer* server = nullptr;
@@ -90,9 +90,9 @@ std::queue<narf::PlayerCommand> playerCommandQueue;
 
 // debug options
 bool wireframe = false;
-bool backface_culling = true;
+bool backfaceCulling = true;
 bool fog = true;
-int screenshot = 0;
+bool screenshot = false;
 
 GLfloat fogColor[4] = {0.5f, 0.5f, 0.5f, 1.0f};
 
@@ -114,13 +114,13 @@ ClientGameLoop* gameLoop;
 narf::font::Font* setFont(
 	const std::string& useName, // e.g. "Console" or "HUD"
 	const std::string& nameVar, const std::string& nameDefault,
-	const std::string& sizeVar, int sizeDefault) {
+	const std::string& sizeVar, uint32_t sizeDefault) {
 	auto fontName = config.getString(nameVar, nameDefault);
-	auto fontSize = static_cast<size_t>(config.getInt32(sizeVar, sizeDefault));
+	auto fontSize = config.getUInt32(sizeVar, sizeDefault);
 
 	narf::console->println("Setting " + useName + " font to " + fontName + " " + std::to_string(fontSize) + "px");
 
-	auto font = font_manager.getFont(fontName, fontSize);
+	auto font = fontManager.getFont(fontName, fontSize);
 	if (!font) {
 		narf::console->println("Error: could not load font " + fontName);
 	}
@@ -137,7 +137,7 @@ void configEvent(const std::string& key) {
 		narf::console->println("Setting renderDistance to " + std::to_string(world->renderDistance));
 	} else if (key == "video.consoleCursorShape") {
 		auto shapeStr = config.getString(key);
-		clientConsole->setCursorShape(narf::client::Console::cursorShapeFromString(shapeStr));
+		clientConsole->setCursorShape(narf::ClientConsole::cursorShapeFromString(shapeStr));
 	} else if (key == "video.vsync") {
 		auto vsync = config.getBool(key);
 		display->setVsync(vsync);
@@ -167,10 +167,10 @@ void configEvent(const std::string& key) {
 			if (gameLoop) {
 				gameLoop->forceStatusUpdate = true;
 			}
-			fps_text_buffer->setFont(font);
-			block_info_buffer->setFont(font);
+			fpsTextBuffer->setFont(font);
+			blockInfoBuffer->setFont(font);
 			entityInfoBuffer->setFont(font);
-			location_buffer->setFont(font);
+			locationBuffer->setFont(font);
 		}
 	} else if (key == "video.consoleFont" ||
 	           key == "video.consoleFontSize") {
@@ -195,7 +195,7 @@ float clampf(float val, float min, float max)
 }
 
 
-bool init_video(int w, int h, bool fullscreen)
+bool initVideo(uint32_t w, uint32_t h, bool fullscreen)
 {
 	display = new narf::gl::Context();
 	if (!display->setDisplayMode("NarfBlock", w, h, fullscreen)) {
@@ -228,8 +228,8 @@ bool init_textures()
 		return false;
 	}
 
-	tiles_tex = new narf::gl::Texture(display);
-	if (!tiles_tex->upload(tilesImage)) {
+	tilesTex = new narf::gl::Texture(display);
+	if (!tilesTex->upload(tilesImage)) {
 		delete tilesImage;
 		assert(0);
 		return false;
@@ -300,7 +300,7 @@ void draw3d(float stateBlend) {
 
 	glEnable(GL_DEPTH_TEST);
 
-	if (backface_culling) {
+	if (backfaceCulling) {
 		glEnable(GL_CULL_FACE);
 	}
 
@@ -325,11 +325,11 @@ void draw3d(float stateBlend) {
 
 	glEnable(GL_TEXTURE_2D);
 
-	world->render(tiles_tex, &cam, stateBlend);
+	world->render(tilesTex, &cam, stateBlend);
 
-	if (selected_block_face.block) {
+	if (selectedBlockFace.block) {
 		// draw a selection rectangle
-		drawCubeHighlight(selected_block_face);
+		drawCubeHighlight(selectedBlockFace);
 	}
 }
 
@@ -356,10 +356,10 @@ void draw_cursor() {
 
 
 void updateConsoleSize() {
-	auto consoleX = 0;
-	auto consoleY = 0;
-	size_t consoleWidth = display->width();
-	size_t consoleHeight = 175; // TODO: calculate dynamically based on screen size
+	auto consoleX = 0u;
+	auto consoleY = 0u;
+	auto consoleWidth = display->width();
+	auto consoleHeight = 175u; // TODO: calculate dynamically based on screen size
 	clientConsole->setLocation(consoleX, consoleY, consoleWidth, consoleHeight);
 }
 
@@ -389,22 +389,22 @@ void draw2d() {
 
 	auto blue = narf::Color(0.0f, 0.0f, 1.0f);
 
-	auto hudFontHeight = block_info_buffer->getFont()->height();
+	auto hudFontHeight = blockInfoBuffer->getFont()->height();
 
-	block_info_buffer->clear();
-	if (selected_block_face.block) {
+	blockInfoBuffer->clear();
+	if (selectedBlockFace.block) {
 		std::string block_info_str = "Block info: ";
 
 		const char *BlockFace_str[] = {"East", "West", "North", "South", "Top", "Bottom", "Invalid"};
 
-		block_info_str += "ID: " + std::to_string(selected_block_face.block->id) +
-			" Pos: " + std::to_string(selected_block_face.x) +
-			", " + std::to_string(selected_block_face.y) +
-			", " + std::to_string(selected_block_face.z) +
-			" " + BlockFace_str[selected_block_face.face] +
-			" (" + std::to_string((int)selected_block_face.face) + ")";
+		block_info_str += "ID: " + std::to_string(selectedBlockFace.block->id) +
+			" Pos: " + std::to_string(selectedBlockFace.x) +
+			", " + std::to_string(selectedBlockFace.y) +
+			", " + std::to_string(selectedBlockFace.z) +
+			" " + BlockFace_str[selectedBlockFace.face] +
+			" (" + std::to_string((int)selectedBlockFace.face) + ")";
 
-		block_info_buffer->print(block_info_str, 0, (float)display->height() - hudFontHeight * 4.0f, blue);
+		blockInfoBuffer->print(block_info_str, 0, (float)display->height() - hudFontHeight * 4.0f, blue);
 	}
 
 	entityInfoBuffer->clear();
@@ -418,49 +418,46 @@ void draw2d() {
 		location_str = "Pos: " + std::to_string(player->position.x) + ", " + std::to_string(player->position.y) + ", " + std::to_string(player->position.z);
 	}
 	location_str += " Yaw: " + std::to_string(cam.orientation.yaw) + " Pitch: " + std::to_string(cam.orientation.pitch);
-	location_buffer->clear();
-	location_buffer->print(location_str, 0, (float)display->height() - hudFontHeight * 2.0f, blue);
+	locationBuffer->clear();
+	locationBuffer->print(location_str, 0, (float)display->height() - hudFontHeight * 2.0f, blue);
 
 	updateConsoleSize();
 	clientConsole->render();
-	fps_text_buffer->render();
-	block_info_buffer->render();
+	fpsTextBuffer->render();
+	blockInfoBuffer->render();
 	entityInfoBuffer->render();
-	location_buffer->render();
+	locationBuffer->render();
 }
 
 
 void draw(float stateBlend) {
+	display->updateViewport();
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	auto dwidth = static_cast<GLsizei>(display->width());
-	auto dheight = static_cast<GLsizei>(display->height());
-
-	glViewport(0, 0, dwidth, dheight);
 
 	draw3d(stateBlend);
 	draw2d();
 
 	display->swap();
 
-	if (screenshot == 1) {
-		// http://stackoverflow.com/questions/5862097/sdl-opengl-screenshot-is-black hax hax
+	if (screenshot) {
+		screenshot = false;
+		auto dwidth = static_cast<int>(display->width());
+		auto dheight = static_cast<int>(display->height());
 		SDL_Surface* image = SDL_CreateRGBSurface(SDL_SWSURFACE, dwidth, dheight, 24, 0x000000FF, 0x0000FF00, 0x00FF0000, 0);
-		SDL_Surface* result = SDL_CreateRGBSurface(SDL_SWSURFACE, dwidth, dheight, 24, 0x000000FF, 0x0000FF00, 0x00FF0000, 0);
 		glReadPixels(0, 0, dwidth, dheight, GL_RGB, GL_UNSIGNED_BYTE, image->pixels);
 		narf::console->println("Taking a screenshot. " + std::to_string(image->w) + "x" + std::to_string(image->h) + "x24");
 
 		// Flip upside down
-		for(int32_t y = 0; y < image->h; ++y) {
-			for(int32_t x = 0; x < image->w; ++x) {
-				for(int32_t b = 0; b < 3; ++b) {
-					((uint8_t*)result->pixels)[3 * (y * image->w + x) + b] = ((uint8_t*)image->pixels)[3 * ((image->h - y - 1) * image->w + x) + b];
-				}
-			}
+		auto linesize = image->w * 3;
+		auto pixels = static_cast<uint8_t*>(image->pixels);
+		auto halfHeight = image->h / 2;
+		for (int32_t y = 0; y < halfHeight; y++) {
+			auto p1 = pixels + y * linesize;
+			auto p2 = pixels + (image->h - y - 1) * linesize;
+			std::swap_ranges(p1, p1 + linesize, p2);
 		}
-		SDL_SaveBMP(result, "pic.bmp");
+		SDL_SaveBMP(image, "pic.bmp");
 		SDL_FreeSurface(image);
-		SDL_FreeSurface(result);
-		screenshot = 2;
 	}
 }
 
@@ -481,11 +478,11 @@ void poll_input(narf::Input *input)
 {
 	SDL_Event e;
 
-	input->begin_sample();
+	input->beginSample();
 	while (SDL_PollEvent(&e)) {
-		input->process_event(&e);
+		input->processEvent(&e);
 	}
-	input->end_sample();
+	input->endSample();
 }
 
 
@@ -542,15 +539,15 @@ void sim_frame(const narf::Input &input, narf::timediff dt)
 	}
 
 	// TODO: decouple player direction and camera direction
-	cam.orientation.yaw -= input.look_rel().x;
+	cam.orientation.yaw -= input.lookRel().x;
 	cam.orientation.yaw = fmodf(cam.orientation.yaw, (float)M_PI * 2.0f);
 
 	cam.orientation.pitch.minimum = -(float)M_PI;
 	cam.orientation.pitch.maximum = (float)M_PI;
-	cam.orientation.pitch -= input.look_rel().y;
+	cam.orientation.pitch -= input.lookRel().y;
 	cam.orientation.pitch = clampf(cam.orientation.pitch, -(float)M_PI/2, (float)M_PI/2);
 
-	narf::math::Vector3f vel_rel(0.0f, 0.0f, 0.0f);
+	narf::Vector3f vel_rel(0.0f, 0.0f, 0.0f);
 
 	float movePitch = 0.0f;
 
@@ -562,16 +559,16 @@ void sim_frame(const narf::Input &input, narf::timediff dt)
 			movePitch = cam.orientation.pitch;
 		}
 
-		if (input.move_forward()) {
-			vel_rel += narf::math::Orientationf(movePitch, cam.orientation.yaw);
-		} else if (input.move_backward()) {
-			vel_rel -= narf::math::Orientationf(movePitch, cam.orientation.yaw);
+		if (input.moveForward()) {
+			vel_rel += narf::Orientationf(movePitch, cam.orientation.yaw);
+		} else if (input.moveBackward()) {
+			vel_rel -= narf::Orientationf(movePitch, cam.orientation.yaw);
 		}
 
-		if (input.strafe_left()) {
-			vel_rel += narf::math::Orientationf(0.0f, cam.orientation.yaw + (float)M_PI / 2);
-		} else if (input.strafe_right()) {
-			vel_rel -= narf::math::Orientationf(0.0f, cam.orientation.yaw + (float)M_PI / 2);
+		if (input.strafeLeft()) {
+			vel_rel += narf::Orientationf(0.0f, cam.orientation.yaw + (float)M_PI / 2);
+		} else if (input.strafeRight()) {
+			vel_rel -= narf::Orientationf(0.0f, cam.orientation.yaw + (float)M_PI / 2);
 		}
 
 		// normalize so that diagonal movement is not faster than cardinal directions
@@ -579,7 +576,7 @@ void sim_frame(const narf::Input &input, narf::timediff dt)
 
 		if (input.jump()) {
 			if (player->onGround) {
-				vel_rel += narf::math::Vector3f(0.0f, 0.0f, 8.0f);
+				vel_rel += narf::Vector3f(0.0f, 0.0f, 8.0f);
 			} else if (player->velocity.z > 0.0f) {
 				// still going up - double jump triggers flying
 				player->antigrav = true;
@@ -612,12 +609,12 @@ void sim_frame(const narf::Input &input, narf::timediff dt)
 	}
 
 	// Let's see what we're looking at
-	auto pos = narf::math::coord::Point3f(cam.position.x, cam.position.y, cam.position.z);
+	auto pos = narf::Point3f(cam.position.x, cam.position.y, cam.position.z);
 	auto maxInteractDistance = 7.5f;
-	selected_block_face = {};
+	selectedBlockFace = {};
 	bool traceHitBlock = false;
 	world->rayTrace(pos, cam.orientation,
-		[&](const narf::math::coord::Point3f& point, const narf::BlockCoord& blockCoord, const narf::BlockFace& face){
+		[&](const narf::Point3f& point, const narf::BlockCoord& blockCoord, const narf::BlockFace& face){
 			// TODO: stop the trace if it runs off the edge of the world vertically
 			if (point.distanceTo(pos) >= maxInteractDistance) {
 				return true; // ran out of distance
@@ -626,7 +623,7 @@ void sim_frame(const narf::Input &input, narf::timediff dt)
 			auto block = world->get_block(blockCoord);
 			if (block->id != 0) {
 				// found a solid block
-				selected_block_face = {block, (int32_t)blockCoord.x, (int32_t)blockCoord.y, (int32_t)blockCoord.z, face};
+				selectedBlockFace = {block, (int32_t)blockCoord.x, (int32_t)blockCoord.y, (int32_t)blockCoord.z, face};
 				traceHitBlock = true;
 				return true; // stop the trace
 			}
@@ -634,9 +631,9 @@ void sim_frame(const narf::Input &input, narf::timediff dt)
 		});
 
 	if (traceHitBlock) {
-		if (input.action_primary_begin() || input.action_secondary_begin()) {
-			narf::BlockCoord wbc(static_cast<uint32_t>(selected_block_face.x), static_cast<uint32_t>(selected_block_face.y), static_cast<uint32_t>(selected_block_face.z));
-			if (input.action_primary_begin()) {
+		if (input.actionPrimaryBegin() || input.actionSecondaryBegin()) {
+			narf::BlockCoord wbc(static_cast<uint32_t>(selectedBlockFace.x), static_cast<uint32_t>(selectedBlockFace.y), static_cast<uint32_t>(selectedBlockFace.z));
+			if (input.actionPrimaryBegin()) {
 				// remove block at cursor
 				narf::PlayerCommand cmd(narf::PlayerCommand::Type::PrimaryAction);
 				cmd.wbc = wbc;
@@ -644,7 +641,7 @@ void sim_frame(const narf::Input &input, narf::timediff dt)
 			} else {
 				// add new block next to selected face
 				// TODO: move this adjustment to PlayerCommand::exec()
-				switch (selected_block_face.face) {
+				switch (selectedBlockFace.face) {
 				case narf::BlockFace::XPos: wbc.x++; break;
 				case narf::BlockFace::XNeg: wbc.x--; break;
 				case narf::BlockFace::YPos: wbc.y++; break;
@@ -660,9 +657,9 @@ void sim_frame(const narf::Input &input, narf::timediff dt)
 		}
 	}
 
-	if (input.action_ternary()) {
+	if (input.actionTernary()) {
 		narf::PlayerCommand cmd(narf::PlayerCommand::Type::TernaryAction);
-		cmd.velocity = narf::math::Vector3f(0.0f, 0.0f, 0.0f);
+		cmd.velocity = narf::Vector3f(0.0f, 0.0f, 0.0f);
 		if (playerEID != narf::Entity::InvalidID) {
 			narf::EntityRef player(world, playerEID);
 			cmd.velocity = player->velocity;
@@ -672,28 +669,24 @@ void sim_frame(const narf::Input &input, narf::timediff dt)
 		playerCommandQueue.push(cmd);
 	}
 
-	if (input.toggle_wireframe()) {
+	if (input.toggleWireframe()) {
 		wireframe = !wireframe;
 	}
 
-	if (input.toggle_backface_culling()) {
-		backface_culling = !backface_culling;
+	if (input.toggleBackfaceCulling()) {
+		backfaceCulling = !backfaceCulling;
 	}
 
-	if (input.toggle_fog()) {
+	if (input.toggleFog()) {
 		fog = !fog;
 	}
 
-	if (input.toggle_fullscreen()) {
+	if (input.toggleFullscreen()) {
 		display->toggleFullscreen();
 	}
 
-	if (input.screenshot()) { // Hack in a screenshot function
-		if (screenshot == 0) {
-			screenshot = 1;
-		}
-	} else {
-		screenshot = 0;
+	if (input.screenshot()) {
+		screenshot = true;
 	}
 
 	processPlayerCommandQueue(playerCommandQueue);
@@ -806,10 +799,10 @@ void ClientGameLoop::tick(narf::timediff dt) {
 
 
 void ClientGameLoop::updateStatus(const std::string& status) {
-	auto hudFontHeight = fps_text_buffer->getFont()->height();
+	auto hudFontHeight = fpsTextBuffer->getFont()->height();
 	auto blue = narf::Color(0.0f, 0.0f, 1.0f);
-	fps_text_buffer->clear();
-	fps_text_buffer->print(status, 0.0f, (float)display->height() - hudFontHeight, blue);
+	fpsTextBuffer->clear();
+	fpsTextBuffer->print(status, 0.0f, (float)display->height() - hudFontHeight, blue);
 }
 
 
@@ -829,7 +822,7 @@ int randi(int min, int max)
 }
 
 void fillRectPrism(const narf::BlockCoord& c1, const narf::BlockCoord& c2, uint8_t block_id) {
-	narf::math::coord::ZYXCoordIter<narf::BlockCoord> iter(c1, c2);
+	narf::ZYXCoordIter<narf::BlockCoord> iter(c1, c2);
 	for (const auto& c : iter) {
 		narf::Block b;
 		b.id = block_id;
@@ -1026,7 +1019,7 @@ extern "C" int main(int argc, char **argv)
 	freopen("stderr.txt", "w", stderr);
 #endif
 
-	clientConsole = new narf::client::Console();
+	clientConsole = new narf::ClientConsole();
 	narf::console = clientConsole;
 
 	narf::console->println("Version: " + std::to_string(VERSION_MAJOR) + "." + std::to_string(VERSION_MINOR) + std::string(VERSION_RELEASE) + "+" VERSION_REV);
@@ -1081,8 +1074,8 @@ extern "C" int main(int argc, char **argv)
 		return 1;
 	}
 
-	auto w = mode.w;
-	auto h = mode.h;
+	auto w = static_cast<uint32_t>(mode.w);
+	auto h = static_cast<uint32_t>(mode.h);
 
 	narf::console->println("Current video mode is " + std::to_string(w) + "x" + std::to_string(h));
 
@@ -1092,23 +1085,21 @@ extern "C" int main(int argc, char **argv)
 	float height_cfg = config.getFloat("video.height", 0.6f);
 	if (!fullscreen) {
 		if (width_cfg > 1) {
-			w = (int)width_cfg;
+			w = (uint32_t)width_cfg;
 		} else {
-			w = (int)((float)w * width_cfg);
+			w = (uint32_t)((float)w * width_cfg);
 		}
 		if (height_cfg > 1) {
-			h = (int)height_cfg;
+			h = (uint32_t)height_cfg;
 		} else {
-			h = (int)((float)h * height_cfg);
+			h = (uint32_t)((float)h * height_cfg);
 		}
 		narf::console->println("Setting video to windowed " + std::to_string(w) + "x" + std::to_string(h));
 	} else {
 		narf::console->println("Setting video to fullscreen");
 	}
 
-	// TODO: read w, h, bpp from config file to override defaults
-
-	if (!init_video(w, h, fullscreen)) {
+	if (!initVideo(w, h, fullscreen)) {
 		fatalError("Error: could not set OpenGL video mode " + std::to_string(w) + "x" + std::to_string(h));
 		SDL_Quit();
 		return 1;
@@ -1126,7 +1117,7 @@ extern "C" int main(int argc, char **argv)
 		narf::EntityRef player(world, playerEID);
 
 		// initial player position
-		player->position = narf::math::Vector3f(15.0f, 10.0f, 16.0f);
+		player->position = narf::Vector3f(15.0f, 10.0f, 16.0f);
 		player->prevPosition = player->position;
 	}
 
@@ -1137,7 +1128,7 @@ extern "C" int main(int argc, char **argv)
 	bouncyBlockEID = world->newEntity();
 	{
 		narf::EntityRef bouncyBlock(world, bouncyBlockEID);
-		bouncyBlock->position = narf::math::Vector3f(10.0f, 10.0f, 21.0f);
+		bouncyBlock->position = narf::Vector3f(10.0f, 10.0f, 21.0f);
 		bouncyBlock->prevPosition = bouncyBlock->position;
 		bouncyBlock->bouncy = true;
 		bouncyBlock->model = true;
@@ -1148,14 +1139,14 @@ extern "C" int main(int argc, char **argv)
 		return 1;
 	}
 
-	fps_text_buffer = new narf::font::TextBuffer(nullptr);
-	block_info_buffer = new narf::font::TextBuffer(nullptr);
+	fpsTextBuffer = new narf::font::TextBuffer(nullptr);
+	blockInfoBuffer = new narf::font::TextBuffer(nullptr);
 	entityInfoBuffer = new narf::font::TextBuffer(nullptr);
-	location_buffer = new narf::font::TextBuffer(nullptr);
+	locationBuffer = new narf::font::TextBuffer(nullptr);
 
 	config.initString("video.hudFont", "DroidSansMono");
 	config.initInt32("video.hudFontSize", 30);
-	if (!fps_text_buffer->getFont()) {
+	if (!fpsTextBuffer->getFont()) {
 		fatalError("Error: could not load HUD font");
 		return 1;
 	}

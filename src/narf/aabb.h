@@ -39,12 +39,12 @@ namespace narf {
 
 class AABB {
 public:
-	AABB(const math::Vector3f& center, const math::Vector3f halfSize) :
+	AABB(const Vector3f& center, const Vector3f halfSize) :
 		center(center), halfSize(halfSize) {
 	}
 
-	math::Vector3f center;
-	math::Vector3f halfSize; // "radius"
+	Vector3f center;
+	Vector3f halfSize; // "radius"
 
 	// determine whether two AABBs intersect
 	bool intersect(const AABB& o) const;

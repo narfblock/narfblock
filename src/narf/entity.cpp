@@ -77,7 +77,7 @@ bool narf::Entity::update(narf::timediff dt)
 
 	bool alive = true;
 	// cheesy Euler integration
-	auto acceleration = narf::math::Vector3f(0.0f, 0.0f, antigrav ? 0.0f : world_->get_gravity());
+	auto acceleration = Vector3f(0.0f, 0.0f, antigrav ? 0.0f : world_->get_gravity());
 
 	// TODO: once coords are converted to integers, get rid of casts of dt to double
 	velocity += acceleration * (float)dt;
@@ -99,8 +99,8 @@ bool narf::Entity::update(narf::timediff dt)
 
 	// TODO: entity AABB should be determined based on its model
 	// for now, make everything 0.75x0.75x0.75
-	math::Vector3f center(position.x, position.y, position.z + 0.375f);
-	math::Vector3f halfSize(0.375f, 0.375f, 0.375f);
+	Vector3f center(position.x, position.y, position.z + 0.375f);
+	Vector3f halfSize(0.375f, 0.375f, 0.375f);
 	AABB entAABB(center, halfSize);
 
 	// check against all blocks that could potentially intersect
@@ -116,9 +116,9 @@ bool narf::Entity::update(narf::timediff dt)
 	uint32_t sy = 2u + (uint32_t)(halfSize.y * 2.0f);
 	uint32_t sz = 2u + (uint32_t)(halfSize.z * 2.0f);
 
-	math::coord::ZYXCoordIter<BlockCoord> iter(
-			{c.x, c.y, c.z},
-			{c.x + sx, c.y + sy, c.z + sz});
+	ZYXCoordIter<BlockCoord> iter(
+		{c.x, c.y, c.z},
+		{c.x + sx, c.y + sy, c.z + sz});
 
 	bool collided = false;
 	bool bounced = false;
@@ -161,7 +161,7 @@ bool narf::Entity::update(narf::timediff dt)
 		position = prevPosition;
 	}
 
-	if (!narf::math::AlmostEqual(velocity.z, 0.0f)) {
+	if (!almostEqual(velocity.z, 0.0f)) {
 		onGround = false;
 	}
 

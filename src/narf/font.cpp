@@ -16,22 +16,22 @@ narf::font::Font::~Font() {
 }
 
 
-bool narf::font::Font::load(const std::string &filename, size_t size) {
+bool narf::font::Font::load(const std::string &filename, uint32_t pixelSize) {
 	if (!file_.read(filename)) {
 		return false;
 	}
-	font_ = new TextureFont(atlas_, static_cast<uint32_t>(size), file_.data, file_.size);
+	font_ = new TextureFont(atlas_, pixelSize, file_.data, file_.size);
 	return font_ != nullptr && font_->height() != 0.0f;
 }
 
 
-float narf::font::Font::width(const std::string &text, int nchars) const {
+float narf::font::Font::width(const std::string &text, size_t nchars) const {
 	narf::UTF8Iterator i(text);
 
 	float width = 0;
 
 	uint32_t prev = 0;
-	int n = 0;
+	size_t n = 0;
 	for (const auto& c : i) {
 		if (n++ >= nchars) {
 			break;
@@ -51,7 +51,7 @@ float narf::font::Font::width(const std::string &text, int nchars) const {
 
 
 float narf::font::TextBuffer::width(const std::string &text, size_t nchars) const {
-	return font_->width(text, static_cast<int>(nchars));
+	return font_->width(text, nchars);
 }
 
 
@@ -134,16 +134,16 @@ void narf::font::TextBuffer::clear() {
 }
 
 
-narf::font::Font* narf::font::FontManager::getFont(const std::string &fontname, size_t size) {
-	auto key = getKey(fontname, size);
+narf::font::Font* narf::font::FontManager::getFont(const std::string &fontname, uint32_t pixelSize) {
+	auto key = getKey(fontname, pixelSize);
 	if (fonts_.count(key) > 0) {
 		return fonts_[key];
 	}
 
 	auto basename = narf::util::appendPath(narf::util::dataDir(), fontname);
 	auto f = new Font();
-	if (!f->load(basename + ".otf", size)) {
-		if (!f->load(basename + ".ttf", size)) {
+	if (!f->load(basename + ".otf", pixelSize)) {
+		if (!f->load(basename + ".ttf", pixelSize)) {
 			delete f;
 			return nullptr;
 		}
@@ -154,6 +154,6 @@ narf::font::Font* narf::font::FontManager::getFont(const std::string &fontname, 
 }
 
 
-std::string narf::font::FontManager::getKey(const std::string& fontname, size_t size) const {
-	return fontname + "-" + std::to_string(size);
+std::string narf::font::FontManager::getKey(const std::string& fontname, uint32_t pixelSize) const {
+	return fontname + "-" + std::to_string(pixelSize);
 }

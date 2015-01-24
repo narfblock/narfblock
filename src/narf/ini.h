@@ -60,6 +60,7 @@ public:
 	double getDouble(const std::string& key) const;
 	float getFloat(const std::string& key) const;
 	int32_t getInt32(const std::string& key) const;
+	uint32_t getUInt32(const std::string& key) const;
 
 	void setBool(const std::string& key, bool value);
 	void setDouble(const std::string& key, double value);
@@ -79,6 +80,7 @@ public:
 	double getDouble(const std::string& key, double defaultValue) const;
 	float getFloat(const std::string& key, float defaultValue) const;
 	int32_t getInt32(const std::string& key, int32_t defaultValue) const;
+	uint32_t getUInt32(const std::string& key, uint32_t defaultValue) const;
 private:
 	// keys are stored as section.key (all sections are stored in the same map)
 	std::unordered_map<std::string, std::string> values_;

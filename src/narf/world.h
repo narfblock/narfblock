@@ -52,7 +52,7 @@ class World {
 friend class EntityRef;
 public:
 	// chunk coordinate (in units of chunks) within world
-	typedef math::coord::Point3<uint32_t> ChunkCoord;
+	typedef Point3<uint32_t> ChunkCoord;
 
 	World(uint32_t size_x, uint32_t size_y, uint32_t size_z, uint32_t chunk_size_x, uint32_t chunk_size_y, uint32_t chunk_size_z);
 
@@ -81,8 +81,8 @@ public:
 	void set_gravity(float g) { gravity_ = g; }
 	float get_gravity() { return gravity_; }
 
-	static void rayTrace(narf::math::coord::Point3f basePoint, narf::math::Vector3f direction,
-		std::function<bool(const narf::math::coord::Point3f&, const BlockCoord&, const BlockFace&)> test);
+	static void rayTrace(Point3f basePoint, Vector3f direction,
+		std::function<bool(const Point3f&, const BlockCoord&, const BlockFace&)> test);
 
 	Entity::ID newEntity();
 

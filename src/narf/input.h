@@ -16,66 +16,66 @@ public:
 		InputStateText,
 	};
 
-	Input(TextEditor &textEditor, float look_sensitivity_x, float look_sensitivity_y) :
+	Input(TextEditor &textEditor, float lookSensitivityX, float lookSensitivityY) :
 		textEditor(textEditor),
 		state_(InputStateNormal),
-		look_sensitivity_x_(look_sensitivity_x),
-		look_sensitivity_y_(look_sensitivity_y),
-		move_forward_(false),
-		move_backward_(false),
-		last_move_(last_move_neither),
-		strafe_left_(false),
-		strafe_right_(false),
-		last_strafe_(last_strafe_neither),
+		lookSensitivityX_(lookSensitivityX),
+		lookSensitivityY_(lookSensitivityY),
+		moveForward_(false),
+		moveBackward_(false),
+		lastMove_(LastMoveNeither),
+		strafeLeft_(false),
+		strafeRight_(false),
+		lastStrafe_(LastStrafeNeither),
 		jump_(false),
 		exit_(false),
-		action_primary_(false),
-		action_primary_begin_(false),
-		action_primary_end_(false),
-		action_secondary_(false),
-		action_secondary_begin_(false),
-		action_secondary_end_(false),
-		action_ternary_(false),
-		action_ternary_begin_(false),
-		action_ternary_end_(false),
-		toggle_wireframe_(false),
-		toggle_backface_culling_(false),
-		toggle_fog_(false),
-		toggle_fullscreen_(false),
-		look_rel_(0.0f, 0.0f) { }
+		actionPrimary_(false),
+		actionPrimaryBegin_(false),
+		actionPrimaryEnd_(false),
+		actionSecondary_(false),
+		actionSecondaryBegin_(false),
+		actionSecondaryEnd_(false),
+		actionTernary_(false),
+		actionTernaryBegin_(false),
+		actionTernaryEnd_(false),
+		toggleWireframe_(false),
+		toggleBackfaceCulling_(false),
+		toggleFog_(false),
+		toggleFullscreen_(false),
+		lookRel_(0.0f, 0.0f) { }
 
-	void begin_sample();
-	void process_event(const SDL_Event *event);
-	void end_sample();
+	void beginSample();
+	void processEvent(const SDL_Event *event);
+	void endSample();
 
-	bool strafe_left() const { return strafe_left_ && (last_strafe_ == last_strafe_left || !strafe_right_); }
-	bool strafe_right() const { return strafe_right_ && (last_strafe_ == last_strafe_right || !strafe_left_); }
+	bool strafeLeft() const { return strafeLeft_ && (lastStrafe_ == LastStrafeLeft || !strafeRight_); }
+	bool strafeRight() const { return strafeRight_ && (lastStrafe_ == LastStrafeRight || !strafeLeft_); }
 
-	bool move_forward() const { return move_forward_ && (last_move_ == last_move_forward || !move_backward_); }
-	bool move_backward() const { return move_backward_ && (last_move_ == last_move_backward || !move_forward_); }
+	bool moveForward() const { return moveForward_ && (lastMove_ == LastMoveForward || !moveBackward_); }
+	bool moveBackward() const { return moveBackward_ && (lastMove_ == LastMoveBackward || !moveForward_); }
 
 	bool jump() const { return jump_; }
 	bool exit() const { return exit_; }
 
-	bool action_primary() const { return action_primary_; }
-	bool action_primary_begin() const { return action_primary_begin_; }
-	bool action_primary_end() const { return action_primary_end_; }
+	bool actionPrimary() const { return actionPrimary_; }
+	bool actionPrimaryBegin() const { return actionPrimaryBegin_; }
+	bool actionPrimaryEnd() const { return actionPrimaryEnd_; }
 
-	bool action_secondary() const { return action_secondary_; }
-	bool action_secondary_begin() const { return action_secondary_begin_; }
-	bool action_secondary_end() const { return action_secondary_end_; }
+	bool actionSecondary() const { return actionSecondary_; }
+	bool actionSecondaryBegin() const { return actionSecondaryBegin_; }
+	bool actionSecondaryEnd() const { return actionSecondaryEnd_; }
 
-	bool action_ternary() const { return action_ternary_; }
-	bool action_ternary_begin() const { return action_ternary_begin_; }
-	bool action_ternary_end() const { return action_ternary_end_; }
+	bool actionTernary() const { return actionTernary_; }
+	bool actionTernaryBegin() const { return actionTernaryBegin_; }
+	bool actionTernaryEnd() const { return actionTernaryEnd_; }
 
-	bool toggle_wireframe() const { return toggle_wireframe_; }
-	bool toggle_backface_culling() const { return toggle_backface_culling_; }
-	bool toggle_fog() const { return toggle_fog_; }
-	bool toggle_fullscreen() const { return toggle_fullscreen_; }
+	bool toggleWireframe() const { return toggleWireframe_; }
+	bool toggleBackfaceCulling() const { return toggleBackfaceCulling_; }
+	bool toggleFog() const { return toggleFog_; }
+	bool toggleFullscreen() const { return toggleFullscreen_; }
 	bool screenshot() const { return screenshot_; }
 
-	const math::Vector2f look_rel() const { return look_rel_; }
+	const Vector2f lookRel() const { return lookRel_; }
 
 	const std::string &text() const { return text_; }
 
@@ -90,40 +90,40 @@ private:
 
 	State state_;
 
-	float look_sensitivity_x_;
-	float look_sensitivity_y_;
+	float lookSensitivityX_;
+	float lookSensitivityY_;
 
-	bool move_forward_;
-	bool move_backward_;
-	enum { last_move_neither, last_move_forward, last_move_backward } last_move_;
+	bool moveForward_;
+	bool moveBackward_;
+	enum { LastMoveNeither, LastMoveForward, LastMoveBackward } lastMove_;
 
-	bool strafe_left_;
-	bool strafe_right_;
-	enum { last_strafe_neither, last_strafe_left, last_strafe_right } last_strafe_;
+	bool strafeLeft_;
+	bool strafeRight_;
+	enum { LastStrafeNeither, LastStrafeLeft, LastStrafeRight } lastStrafe_;
 
 	bool jump_;
 
 	bool exit_;
 
-	bool action_primary_; // left click
-	bool action_primary_begin_;
-	bool action_primary_end_;
+	bool actionPrimary_; // left click
+	bool actionPrimaryBegin_;
+	bool actionPrimaryEnd_;
 
-	bool action_secondary_; // right click
-	bool action_secondary_begin_;
-	bool action_secondary_end_;
+	bool actionSecondary_; // right click
+	bool actionSecondaryBegin_;
+	bool actionSecondaryEnd_;
 
-	bool action_ternary_; // middle click
-	bool action_ternary_begin_;
-	bool action_ternary_end_;
+	bool actionTernary_; // middle click
+	bool actionTernaryBegin_;
+	bool actionTernaryEnd_;
 
-	bool toggle_wireframe_;
-	bool toggle_backface_culling_;
-	bool toggle_fog_;
-	bool toggle_fullscreen_;
+	bool toggleWireframe_;
+	bool toggleBackfaceCulling_;
+	bool toggleFog_;
+	bool toggleFullscreen_;
 	bool screenshot_;
 
-	math::Vector2f look_rel_;
+	Vector2f lookRel_;
 
 	std::string text_;
 };

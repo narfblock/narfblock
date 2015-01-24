@@ -6,221 +6,173 @@
 #include <math.h>
 #include <assert.h>
 #include "narf/math/floats.h"
-#include "narf/math/coord2D.h"
 #include "narf/math/orientation.h"
 
 namespace narf {
-	namespace math {
+	template<class T>
+	class Vector3;
 
-		template<class T>
-		class Vector3;
+	template<class T>
+	class Point3;
 
-		namespace coord {
+	template<class T>
+	T distance(T x, T y, T z, T x2, T y2, T z2);
 
-			template<class T>
-			class Point3;
+	template<class T>
+	T distance(Point3<T> A, Point3<T> B);
 
-			template<class T>
-			T distance(T x, T y, T z, T x2, T y2, T z2);
+	template<class T>
+	class Point3 {
+	public:
+		T x;
+		T y;
+		T z;
+		Point3() {}
+		Point3(T x, T y, T z) : x(x), y(y), z(z) {};
+		bool operator==(const Point3<T>& rhs) const {
+			return almostEqual(x, rhs.x) && almostEqual(y, rhs.y) && almostEqual(z, rhs.z);
+		}
+		bool operator!=(const Point3<T>& rhs) const {
+			return !(*this == rhs);
+		}
+		float distanceTo(Point3<T> other) const {
+			return distance(x, y, z, other.x, other.y, other.z);
+		}
+		float distanceTo(T x2, T y2, T z2) const {
+			return distance(x, y, z, x2, y2, z2);
+		}
+		const Point3<T> operator+(const Point3<T> &add) const {
+			return Point3<T>(x + add.x, y + add.y, z + add.z);
+		}
+		Point3<T> &operator -=(const Point3<T> &sub) {
+			x -= sub.x;
+			y -= sub.y;
+			z -= sub.z;
+			return *this;
+		}
+		const Point3<T> operator-(const Point3<T> &sub) const {
+			return Point3<T>(x - sub.x, y - sub.y, z - sub.z);
+		}
+		const T operator[](const int idx) const {
+			assert(idx >=0 && idx < 3);
+			return (idx == 0) ? x : ((idx == 1) ? y : z);
+		}
+		operator Orientation<T> () const {
+			auto a = Vector3<T>(x, y, z);
+			auto b = Vector3<T>(x, y, 0);
+			auto c = Vector3<T>(0, 1, 0);
+			return Orientation<T>(b.angleTo(a), (x < 0 ? -1 : 1) * c.angleTo(b));
+		}
+	};
 
-			template<class T>
-			T distance(Point3<T> A, Point3<T> B);
+	typedef Point3<float> Point3f;
+	typedef Point3<double> Point3d;
+	typedef Point3<uint32_t> Point3i;
 
-			template<class T>
-			class Spherical {
-				public:
-					T radius;
-					T azimuth;
-					T inclination;
-					Spherical(T radius, T inclination, T azimuth) : radius(radius), azimuth(azimuth), inclination(inclination) {};
+	template<class T>
+	T distanceSquared(T x, T y, T z, T x2, T y2, T z2) {
+		T a = (x - x2) * (x - x2);
+		T b = (y - y2) * (y - y2);
+		T c = (z - z2) * (z - z2);
+		return a + b + c;
+	}
 
-					T distanceTo(Spherical<T>& other) {
-						T rel_angle_cos = sin(inclination) * sin(other.inclination) + cos(inclination) * cos(other.inclination) * cos(azimuth - other.azimuth);
-						return sqrt(radius * radius + other.radius * other.radius - 2 * radius * other.radius * rel_angle_cos);
-					}
+	template<class T>
+	T distance(T x, T y, T z, T x2, T y2, T z2) {
+		return static_cast<T>(sqrt(distanceSquared(x, y, z, x2, y2, z2)));
+	}
 
-					bool operator==(Spherical<T> rhs) const {
-						return narf::math::AlmostEqual(radius, rhs.radius) &&
-							narf::math::AlmostEqual(inclination, rhs.inclination) &&
-							narf::math::AlmostEqual(azimuth, rhs.azimuth);
-					}
-					operator Point3<T> () const {
-						T x = radius * sin(inclination) * cos(azimuth);
-						T y = radius * sin(inclination) * sin(azimuth);
-						T z = radius * cos(inclination);
-						return Point3<T>(x, y, z);
-					}
-					//narf::math::Orientation<T> getOrientation() const {
-						//return narf::math::Orientation<T>(inclination, azimuth);
-					//}
-			};
-
-			template<class T>
-			class Point3 {
-				public:
-					T x;
-					T y;
-					T z;
-					Point3() {}
-					Point3(T x, T y, T z) : x(x), y(y), z(z) {};
-					bool operator==(const Point3<T>& rhs) const {
-						return narf::math::AlmostEqual(x, rhs.x) && narf::math::AlmostEqual(y, rhs.y) && narf::math::AlmostEqual(z, rhs.z);
-					}
-					bool operator!=(const Point3<T>& rhs) const {
-						return !(*this == rhs);
-					}
-					operator Spherical<T> () const {
-						float radius = distanceTo(0, 0, 0);
-						float inclination = !narf::math::AlmostEqual(radius, 0) ? acos(z/radius) : 0;
-						float azimuth = !narf::math::AlmostEqual(x, 0) ? atan2(y, x) : 0;
-						return Spherical<T>(radius, inclination, azimuth);
-					}
-					float distanceTo(Point3<T> other) const {
-						return distance(x, y, z, other.x, other.y, other.z);
-					}
-					float distanceTo(T x2, T y2, T z2) const {
-						return distance(x, y, z, x2, y2, z2);
-					}
-					Point3<T> &operator +=(const Point3<T> &add) {
-						x += add.x;
-						y += add.y;
-						z += add.z;
-						return *this;
-					}
-					const Point3<T> operator+(const Point3<T> &add) const {
-						return Point3<T>(x + add.x, y + add.y, z + add.z);
-					}
-					Point3<T> &operator -=(const Point3<T> &sub) {
-						x -= sub.x;
-						y -= sub.y;
-						z -= sub.z;
-						return *this;
-					}
-					const Point3<T> operator-(const Point3<T> &sub) const {
-						return Point3<T>(x - sub.x, y - sub.y, z - sub.z);
-					}
-					const T operator[](const int idx) const {
-						assert(idx >=0 && idx < 3);
-						return (idx == 0) ? x : ((idx == 1) ? y : z);
-					}
-					Point2<T> make2D(int idx0, int idx1) const {
-						return Point2<T>((*this)[idx0], (*this)[idx1]);
-					}
-					operator Orientation<T> () const {
-						auto a = narf::math::Vector3<T>(x, y, z);
-						auto b = narf::math::Vector3<T>(x, y, 0);
-						auto c = narf::math::Vector3<T>(0, 1, 0);
-						return Orientation<T>(b.angleTo(a), (x < 0 ? -1 : 1) * c.angleTo(b));
-					}
-			};
-
-			typedef Spherical<float> Sphericalf;
-			typedef Spherical<double> Sphericald;
-			typedef Point3<float> Point3f;
-			typedef Point3<double> Point3d;
-			typedef Point3<uint32_t> Point3i;
-
-			template<class T>
-			T distance(T x, T y, T z, T x2, T y2, T z2) {
-				T a = (x - x2) * (x - x2);
-				T b = (y - y2) * (y - y2);
-				T c = (z - z2) * (z - z2);
-				return static_cast<T>(sqrt(a + b + c));
-			}
-
-			template<class T>
-			T distance(Point3<T> A, Point3<T> B) {
-				return A.distanceTo(B);
-			}
+	template<class T>
+	T distance(Point3<T> A, Point3<T> B) {
+		return A.distanceTo(B);
+	}
 
 #define Coord3Type typename
-			template<Coord3Type T>
-			class Coord3IterProducer {
-			public:
-				virtual T next(const T& pos) const = 0;
-			};
+	template<Coord3Type T>
+	class Coord3IterProducer {
+	public:
+		virtual T next(const T& pos) const = 0;
+	};
 
-			template<typename T>
-			class Coord3Iter {
-			private:
-				const Coord3IterProducer<T>* producer_;
-				T pos_;
+	template<typename T>
+	class Coord3Iter {
+	private:
+		const Coord3IterProducer<T>* producer_;
+		T pos_;
 
-			public:
-				Coord3Iter(const Coord3IterProducer<T>* producer, T pos) :
-					producer_(producer), pos_(pos) {}
+	public:
+		Coord3Iter(const Coord3IterProducer<T>* producer, T pos) :
+			producer_(producer), pos_(pos) {}
 
-				bool operator!=(const Coord3Iter& other) const {
-					// TODO: using Point3 operator!= somehow pulls in Angle, which doesn't work for ints
-					// so define equality by hand here
-					return pos_.x != other.pos_.x ||
-						pos_.y != other.pos_.y ||
-						pos_.z != other.pos_.z;
-				}
-
-				T operator*() const {
-					return pos_;
-				}
-
-				const Coord3Iter& operator++() {
-					pos_ = producer_->next(pos_);
-					return *this;
-				}
-			};
-
-
-			template<Coord3Type T>
-			class ZYXCoordIter : Coord3IterProducer<T> {
-			private:
-				T start_;
-				T end_;
-
-			public:
-				ZYXCoordIter(const T& start, const T& end) {
-					assert(start.x != end.x);
-					assert(start.y != end.y);
-					assert(start.z != end.z);
-
-					start_.x = std::min(start.x, end.x);
-					start_.y = std::min(start.y, end.y);
-					start_.z = std::min(start.z, end.z);
-
-					end_.x = std::max(start.x, end.x);
-					end_.y = std::max(start.y, end.y);
-					end_.z = std::max(start.z, end.z);
-				}
-
-				Coord3Iter<T> begin() const {
-					return Coord3Iter<T>(this, start_);
-				}
-
-				Coord3Iter<T> end() const {
-					return Coord3Iter<T>(this, end_);
-				}
-
-				T next(const T& pos) const {
-					auto n(pos);
-					n.x++;
-					if (n.x == end_.x) {
-						n.x = start_.x;
-						n.y++;
-					}
-
-					if (n.y == end_.y) {
-						n.y = start_.y;
-						n.z++;
-					}
-
-					if (n.z == end_.z) {
-						// iteration complete
-						n = end_;
-					}
-
-					return n;
-				}
-			};
+		bool operator!=(const Coord3Iter& other) const {
+			// TODO: using Point3 operator!= somehow pulls in Angle, which doesn't work for ints
+			// so define equality by hand here
+			return pos_.x != other.pos_.x ||
+				pos_.y != other.pos_.y ||
+				pos_.z != other.pos_.z;
 		}
-	}
+
+		T operator*() const {
+			return pos_;
+		}
+
+		const Coord3Iter& operator++() {
+			pos_ = producer_->next(pos_);
+			return *this;
+		}
+	};
+
+
+	template<Coord3Type T>
+	class ZYXCoordIter : Coord3IterProducer<T> {
+	private:
+		T start_;
+		T end_;
+
+	public:
+		ZYXCoordIter(const T& start, const T& end) {
+			assert(start.x != end.x);
+			assert(start.y != end.y);
+			assert(start.z != end.z);
+
+			start_.x = std::min(start.x, end.x);
+			start_.y = std::min(start.y, end.y);
+			start_.z = std::min(start.z, end.z);
+
+			end_.x = std::max(start.x, end.x);
+			end_.y = std::max(start.y, end.y);
+			end_.z = std::max(start.z, end.z);
+		}
+
+		Coord3Iter<T> begin() const {
+			return Coord3Iter<T>(this, start_);
+		}
+
+		Coord3Iter<T> end() const {
+			return Coord3Iter<T>(this, end_);
+		}
+
+		T next(const T& pos) const {
+			auto n(pos);
+			n.x++;
+			if (n.x == end_.x) {
+				n.x = start_.x;
+				n.y++;
+			}
+
+			if (n.y == end_.y) {
+				n.y = start_.y;
+				n.z++;
+			}
+
+			if (n.z == end_.z) {
+				// iteration complete
+				n = end_;
+			}
+
+			return n;
+		}
+	};
 }
 
 #endif

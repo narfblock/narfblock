@@ -30,10 +30,10 @@ namespace narf {
 			Font();
 			~Font();
 
-			bool load(const std::string &filename, size_t size);
+			bool load(const std::string &filename, uint32_t pixelSize);
 
 			// determine width in pixels of a string in this font
-			float width(const std::string &text, int nchars) const;
+			float width(const std::string &text, size_t nchars) const;
 			float height() const { return font_->height(); }
 
 		private:
@@ -67,11 +67,11 @@ namespace narf {
 		class FontManager {
 		public:
 			FontManager() {}
-			Font* getFont(const std::string &fontname, size_t size);
+			Font* getFont(const std::string &fontname, uint32_t pixelSize);
 
 			void render();
 		private:
-			std::string getKey(const std::string& fontname, size_t size) const;
+			std::string getKey(const std::string& fontname, uint32_t pixelSize) const;
 			std::map<const std::string, Font*> fonts_;
 		};
 	}

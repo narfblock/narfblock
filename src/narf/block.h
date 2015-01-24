@@ -39,7 +39,7 @@
 namespace narf {
 
 // block coordinate within world
-typedef math::coord::Point3<uint32_t> BlockCoord;
+typedef Point3<uint32_t> BlockCoord;
 
 typedef uint8_t BlockTypeId;
 
@@ -76,10 +76,10 @@ public:
 	BlockTexCoord texCoords[6];
 
 	// added to block center to get center of AABB (0,0,0 if AABB is centered on block)
-	math::Vector3f aabbCenterOffset;
+	Vector3f aabbCenterOffset;
 
 	// dimensions of bounding box relative to center
-	math::Vector3f aabbHalfSize;
+	Vector3f aabbHalfSize;
 
 	BlockType(
 		unsigned texXPos, unsigned texXNeg,

@@ -65,9 +65,9 @@ narf::PlayerCommand::PlayerCommand(narf::ByteStreamReader& s) {
 		}
 		break;
 	case Type::TernaryAction:
-		position = math::Vector3f(s);
-		velocity = math::Vector3f(s);
-		orientation = math::Orientationf(s);
+		position = Vector3f(s);
+		velocity = Vector3f(s);
+		orientation = Orientationf(s);
 		break;
 	}
 }
@@ -112,7 +112,7 @@ void narf::PlayerCommand::exec(narf::World* world) {
 		narf::EntityRef ent(world, eid);
 		ent->position = position;
 		ent->prevPosition = position;
-		ent->velocity = velocity + narf::math::Vector3f(orientation).normalize() * 20.0f;
+		ent->velocity = velocity + Vector3f(orientation).normalize() * 20.0f;
 		ent->model = true;
 		ent->bouncy = false;
 		ent->explodey = true;

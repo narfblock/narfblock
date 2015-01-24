@@ -69,7 +69,7 @@
 class TextureAtlas {
 public:
 
-    TextureAtlas(size_t width, size_t height, uint32_t depth);
+    TextureAtlas(uint32_t width, uint32_t height, uint32_t depth);
     ~TextureAtlas();
 
     void upload();
@@ -77,63 +77,51 @@ public:
     struct Region {
         uint32_t x;
         uint32_t y;
-        size_t width;
-        size_t height;
+        uint32_t width;
+        uint32_t height;
     };
 
-    Region getRegion(size_t width, size_t height);
-    void setRegion(uint32_t x, uint32_t y, size_t width, size_t height, const void* data, size_t stride);
+    Region getRegion(uint32_t width, uint32_t height);
+    void setRegion(uint32_t x, uint32_t y, uint32_t width, uint32_t height, const void* data, ptrdiff_t stride);
 
     unsigned int id() const { return id_; }
 
-    size_t width() const { return width_; }
-    size_t height() const { return height_; }
+    uint32_t width() const { return width_; }
+    uint32_t height() const { return height_; }
     uint32_t depth() const { return depth_; }
 
 private:
 
-    int fit(size_t index, size_t width, size_t height);
+    static const uint32_t NoFit = UINT32_MAX;
+    uint32_t fit(size_t index, uint32_t width, uint32_t height);
+
     void merge();
 
     struct Node {
         uint32_t x;
         uint32_t y;
-        size_t width;
+        uint32_t width;
     };
 
-    /**
-     * Allocated nodes
-     */
+    // Allocated regions of the atlas
     std::vector<Node> nodes_;
 
-    /**
-     *  Width (in pixels) of the underlying texture
-     */
-    size_t width_;
+    // Width (in pixels) of the underlying texture
+    uint32_t width_;
 
-    /**
-     * Height (in pixels) of the underlying texture
-     */
-    size_t height_;
+    // Height (in pixels) of the underlying texture
+    uint32_t height_;
 
-    /**
-     * Depth (in bytes) of the underlying texture
-     */
+    // Depth (in bytes) of the underlying texture
     uint32_t depth_;
 
-    /**
-     * Allocated surface size
-     */
+    // Allocated surface size
     size_t used_;
 
-    /**
-     * Texture identity (OpenGL)
-     */
+    // OpenGL texture ID
     unsigned int id_;
 
-    /**
-     * Atlas data
-     */
+    // Atlas data
     unsigned char* data_;
 };
 

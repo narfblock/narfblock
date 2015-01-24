@@ -1,39 +1,20 @@
-// Borrowed from
-// https://randomascii.wordpress.com/2012/02/25/comparing-floating-point-numbers-2012-edition/
-
 #ifndef NARFBLOCK_MATH_FLOATS_H
 #define NARFBLOCK_MATH_FLOATS_H
 
-#include <float.h>
-#include <stdint.h>
 #include <math.h>
 
 namespace narf {
-	namespace math {
+	bool almostEqual(float a, float b);
+	bool almostEqualDiff(float a, float b, float maxDiff);
+	bool almostEqualUlps(float a, float b, int maxUlpsDiff);
+	bool almostEqualUlpsAndAbs(float a, float b, float maxDiff, int maxUlpsDiff);
+	bool almostEqualRelativeAndAbs(float a, float b, float maxDiff, float maxRelDiff);
 
-		union Float_t {
-			Float_t(float num = 0.0f) : f(num) {}
-			// Portable extraction of components.
-			bool Negative() const { return (i >> 31) != 0; }
-			int32_t RawMantissa() const { return i & ((1 << 23) - 1); }
-			int32_t RawExponent() const { return (i >> 23) & 0xFF; }
-
-			int32_t i;
-			float f;
-		};
-
-		bool AlmostEqual(float A, float B);
-		bool AlmostEqualDiff(float A, float B, float maxDiff);
-		bool AlmostEqualUlps(float A, float B, int maxUlpsDiff);
-		bool AlmostEqualUlpsAndAbs(float A, float B, float maxDiff, int maxUlpsDiff);
-		bool AlmostEqualRelativeAndAbs(float A, float B, float maxDiff, float maxRelDiff);
-
-		// single-precision overloads of double-precision function names
-		static inline float sin(float f) { return ::sinf(f); }
-		static inline float cos(float f) { return ::cosf(f); }
-		static inline float acos(float f) { return ::acosf(f); }
-		static inline float atan2(float y, float x) { return ::atan2f(y, x); }
-	}
+	// single-precision overloads of double-precision function names
+	static inline float sin(float f) { return ::sinf(f); }
+	static inline float cos(float f) { return ::cosf(f); }
+	static inline float acos(float f) { return ::acosf(f); }
+	static inline float atan2(float y, float x) { return ::atan2f(y, x); }
 }
 
 #endif

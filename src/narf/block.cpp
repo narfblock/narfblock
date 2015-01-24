@@ -27,12 +27,12 @@ narf::BlockType::BlockType(unsigned texXPos, unsigned texXNeg, unsigned texYPos,
 	calcTexCoord(&texCoords[narf::ZNeg], texZNeg);
 
 	// for now, all blocks have exactly 1x1x1 AABB
-	aabbCenterOffset = math::Vector3f(0.0f, 0.0f, 0.0f);
-	aabbHalfSize = math::Vector3f(0.5f, 0.5f, 0.5f);
+	aabbCenterOffset = Vector3f(0.0f, 0.0f, 0.0f);
+	aabbHalfSize = Vector3f(0.5f, 0.5f, 0.5f);
 }
 
 
 narf::AABB narf::BlockType::getAABB(const narf::BlockCoord& bc) const {
-	math::Vector3f blockCenter((float)bc.x + 0.5f, (float)bc.y + 0.5f, (float)bc.z + 0.5f);
+	Vector3f blockCenter((float)bc.x + 0.5f, (float)bc.y + 0.5f, (float)bc.z + 0.5f);
 	return AABB(blockCenter + aabbCenterOffset, aabbHalfSize);
 }

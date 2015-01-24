@@ -61,7 +61,7 @@ narf::time narf::time::now() {
 void narf::sleep(const narf::timediff& td) {
 #ifdef _WIN32
 	// MinGW-w64 doesn't have std::this_thread?
-	Sleep(td.us_ / 1000);
+	Sleep(static_cast<DWORD>(td.us_ / 1000));
 #else
 	auto sleepDuration = std::chrono::microseconds(td.us_);
 	std::this_thread::sleep_for(sleepDuration);

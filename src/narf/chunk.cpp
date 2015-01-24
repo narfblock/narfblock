@@ -44,7 +44,7 @@ void narf::Chunk::put_block(const Block *b, const BlockCoord& c) {
 
 
 void narf::Chunk::fillRectPrism(const BlockCoord& c1, const BlockCoord& c2, uint8_t block_id) {
-	math::coord::ZYXCoordIter<BlockCoord> iter(c1, c2);
+	ZYXCoordIter<BlockCoord> iter(c1, c2);
 	for (const auto& c : iter) {
 		narf::Block b;
 		b.id = block_id;

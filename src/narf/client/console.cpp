@@ -7,7 +7,7 @@
 narf::Console *narf::console;
 
 
-struct narf::client::ClientConsoleImpl {
+struct narf::ClientConsoleImpl {
 
 	ClientConsoleImpl() : editState() {}
 
@@ -21,22 +21,22 @@ struct narf::client::ClientConsoleImpl {
 	}
 
 	narf::font::Font *font;
-	int lineHeight;
-	int x;
-	int y;
-	size_t width;
-	size_t height;
-	int paddingLeft;
+	uint32_t lineHeight;
+	uint32_t x;
+	uint32_t y;
+	uint32_t width;
+	uint32_t height;
+	uint32_t paddingLeft;
 	narf::font::TextBuffer *textBuffer;
 	narf::font::TextBuffer *editBuffer;
 	std::vector<std::string> text;
 	narf::TextEditor editState;
 	bool editing;
-	narf::client::Console::CursorShape cursorShape;
+	narf::ClientConsole::CursorShape cursorShape;
 };
 
 
-narf::client::Console::Console() {
+narf::ClientConsole::ClientConsole() {
 	impl = new ClientConsoleImpl();
 	impl->font = nullptr;
 	impl->textBuffer = nullptr;
@@ -49,19 +49,19 @@ narf::client::Console::Console() {
 }
 
 
-narf::TextEditor &narf::client::Console::getTextEditor() {
+narf::TextEditor &narf::ClientConsole::getTextEditor() {
 	return impl->editState;
 }
 
 
-narf::font::Font* narf::client::Console::getFont() const {
+narf::font::Font* narf::ClientConsole::getFont() const {
 	return impl->font;
 }
 
 
-void narf::client::Console::setFont(narf::font::Font *font) {
+void narf::ClientConsole::setFont(narf::font::Font *font) {
 	impl->font = font;
-	impl->lineHeight = (int)font->height();
+	impl->lineHeight = (uint32_t)font->height();
 
 	if (impl->textBuffer) {
 		impl->textBuffer->setFont(font);
@@ -80,7 +80,7 @@ void narf::client::Console::setFont(narf::font::Font *font) {
 }
 
 
-void narf::client::Console::setLocation(int x, int y, size_t width, size_t height) {
+void narf::ClientConsole::setLocation(uint32_t x, uint32_t y, uint32_t width, uint32_t height) {
 	if (impl->x != x ||
 		impl->y != y ||
 		impl->width != width ||
@@ -94,7 +94,7 @@ void narf::client::Console::setLocation(int x, int y, size_t width, size_t heigh
 }
 
 
-void narf::client::Console::setEditState(bool editing) {
+void narf::ClientConsole::setEditState(bool editing) {
 	if (editing && !impl->editing) {
 		impl->editState.last_edited = std::chrono::system_clock::now();
 	}
@@ -103,20 +103,20 @@ void narf::client::Console::setEditState(bool editing) {
 }
 
 
-void narf::client::Console::setCursorShape(CursorShape shape) {
+void narf::ClientConsole::setCursorShape(CursorShape shape) {
 	impl->cursorShape = shape;
 }
 
 
-void narf::client::Console::update() {
+void narf::ClientConsole::update() {
 	auto textX = static_cast<float>(impl->x + impl->paddingLeft);
 
 	if (impl->textBuffer) {
 		impl->textBuffer->clear();
 
-		int y = impl->y + impl->lineHeight * 3 / 2;
+		uint32_t y = impl->y + impl->lineHeight * 3 / 2;
 		for (auto iter = impl->text.rbegin(); iter != impl->text.rend(); ++iter) {
-			if (static_cast<size_t>(y + impl->lineHeight) >= impl->height) {
+			if (y + impl->lineHeight >= impl->height) {
 				break;
 			}
 
@@ -137,14 +137,14 @@ void narf::client::Console::update() {
 }
 
 
-void narf::client::Console::render() {
+void narf::ClientConsole::render() {
 	if (impl->textBuffer) {
 
 		// draw console background
 		auto x1 = float(impl->x);
 		auto y1 = float(impl->y);
-		auto x2 = float(impl->x + static_cast<int>(impl->width));
-		auto y2 = float(impl->y + static_cast<int>(impl->height));
+		auto x2 = float(impl->x + impl->width);
+		auto y2 = float(impl->y + impl->height);
 
 		glPushAttrib(GL_ALL_ATTRIB_BITS);
 		glColor4f(0.5f, 0.5f, 0.5f, 0.7f);
@@ -206,12 +206,12 @@ void narf::client::Console::render() {
 }
 
 
-narf::client::Console::~Console() {
+narf::ClientConsole::~ClientConsole() {
 	delete impl;
 }
 
 
-void narf::client::Console::println(const std::string &s) {
+void narf::ClientConsole::println(const std::string &s) {
 	impl->text.push_back(s);
 	update();
 
@@ -220,6 +220,6 @@ void narf::client::Console::println(const std::string &s) {
 }
 
 
-std::string narf::client::Console::pollInput() {
+std::string narf::ClientConsole::pollInput() {
 	return impl->editState.getString();
 }

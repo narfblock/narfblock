@@ -59,9 +59,9 @@ public:
 
 	// TODO: these should be inferred from player location and orientation
 	BlockCoord wbc;
-	math::Vector3f position;
-	math::Vector3f velocity;
-	math::Orientationf orientation;
+	Vector3f position;
+	Vector3f velocity;
+	Orientationf orientation;
 
 protected:
 	Type type_;

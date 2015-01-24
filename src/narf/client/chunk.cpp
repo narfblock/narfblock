@@ -133,7 +133,7 @@ void narf::client::Chunk::build_vertex_buffers()
 	vbo_.clear();
 
 	// draw blocks
-	math::coord::ZYXCoordIter<BlockCoord> iter({0, 0, 0}, {size_x_, size_y_, size_z_});
+	ZYXCoordIter<BlockCoord> iter({0, 0, 0}, {size_x_, size_y_, size_z_});
 	for (const auto& c : iter) {
 		if (is_opaque(c)) {
 			const narf::Block *b = get_block(c);

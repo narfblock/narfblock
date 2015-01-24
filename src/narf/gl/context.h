@@ -45,7 +45,9 @@ public:
 
 	Context();
 
-	bool setDisplayMode(const char *title, int width, int height, bool fullscreen);
+	bool setDisplayMode(const char *title, uint32_t width, uint32_t height, bool fullscreen);
+
+	void updateViewport();
 
 	void swap() {
 		SDL_GL_SwapWindow(window_);
@@ -55,17 +57,8 @@ public:
 
 	void toggleFullscreen();
 
-	uint32_t width() const {
-		int w, h;
-		SDL_GetWindowSize(window_, &w, &h);
-		return static_cast<uint32_t>(w);
-	}
-
-	uint32_t height() const {
-		int w, h;
-		SDL_GetWindowSize(window_, &w, &h);
-		return static_cast<uint32_t>(h);
-	}
+	uint32_t width() const;
+	uint32_t height() const;
 
 private:
 	SDL_Window *window_;

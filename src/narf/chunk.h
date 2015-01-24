@@ -50,7 +50,7 @@ class Chunk {
 public:
 
 	// block coordinate within chunk
-	typedef math::coord::Point3<uint32_t> BlockCoord;
+	typedef Point3<uint32_t> BlockCoord;
 
 	Chunk(
 		World *world,

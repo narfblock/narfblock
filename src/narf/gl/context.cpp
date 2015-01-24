@@ -30,7 +30,7 @@ void narf::gl::Context::setVsync(bool enabled) {
 }
 
 
-bool narf::gl::Context::setDisplayMode(const char *title, int width, int height, bool fullscreen)
+bool narf::gl::Context::setDisplayMode(const char *title, uint32_t width, uint32_t height, bool fullscreen)
 {
 	Uint32 flags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE;
 	if (fullscreen) {
@@ -79,6 +79,27 @@ bool narf::gl::Context::setDisplayMode(const char *title, int width, int height,
 #endif
 
 	return true;
+}
+
+
+void narf::gl::Context::updateViewport() {
+	int w, h;
+	SDL_GL_GetDrawableSize(window_, &w, &h);
+	glViewport(0, 0, w, h);
+}
+
+
+uint32_t narf::gl::Context::width() const {
+	int w, h;
+	SDL_GetWindowSize(window_, &w, &h);
+	return static_cast<uint32_t>(w);
+}
+
+
+uint32_t narf::gl::Context::height() const {
+	int w, h;
+	SDL_GetWindowSize(window_, &w, &h);
+	return static_cast<uint32_t>(h);
 }
 
 

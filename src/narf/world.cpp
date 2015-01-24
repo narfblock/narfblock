@@ -33,6 +33,8 @@
 #include "narf/world.h"
 #include "narf/console.h"
 
+#include <float.h>
+
 
 narf::World::World(uint32_t size_x, uint32_t size_y, uint32_t size_z, uint32_t chunk_size_x, uint32_t chunk_size_y, uint32_t chunk_size_z) :
 	size_x_(size_x), size_y_(size_y), size_z_(size_z),
@@ -48,9 +50,9 @@ narf::World::World(uint32_t size_x, uint32_t size_y, uint32_t size_z, uint32_t c
 	mask_y_ = size_y_ - 1;
 
 	// chunk shifts to get chunk coords from world coords
-	chunk_shift_x_ = math::ilog2(chunk_size_x);
-	chunk_shift_y_ = math::ilog2(chunk_size_y);
-	chunk_shift_z_ = math::ilog2(chunk_size_z);
+	chunk_shift_x_ = ilog2(chunk_size_x);
+	chunk_shift_y_ = ilog2(chunk_size_y);
+	chunk_shift_z_ = ilog2(chunk_size_z);
 
 	// block masks to get block coords within chunk from world coords
 	block_mask_x_ = (1u << chunk_shift_x_) - 1;
@@ -247,8 +249,8 @@ const narf::BlockType *narf::World::getBlockType(narf::BlockTypeId id) const {
 	return &blockTypes_[id];
 }
 
-static narf::math::coord::Point3f nextBlockIntersect(const narf::math::coord::Point3f& base, const narf::math::Vector3f& direction, float xDir, float yDir, float zDir) {
-	const narf::math::Plane<float> planes[] = {
+static narf::Point3f nextBlockIntersect(const narf::Point3f& base, const narf::Vector3f& direction, float xDir, float yDir, float zDir) {
+	const narf::Plane<float> planes[] = {
 		{{xDir > 0 ? (float)floor(base.x + xDir) : (float)ceil(base.x + xDir), 0, 0}, {1,0,0}},
 		{{0, yDir > 0 ? (float)floor(base.y + yDir) : (float)ceil(base.y + yDir), 0}, {0,1,0}},
 		{{0, 0, zDir > 0 ? (float)floor(base.z + zDir) : (float)ceil(base.z + zDir)}, {0,0,1}}
@@ -268,8 +270,8 @@ static narf::math::coord::Point3f nextBlockIntersect(const narf::math::coord::Po
 	return finalPoint;
 }
 
-void narf::World::rayTrace(narf::math::coord::Point3f basePoint, narf::math::Vector3f direction, std::function<bool(const narf::math::coord::Point3f&, const BlockCoord&, const BlockFace&)> test) {
-	narf::math::coord::Point3f prevPoint = basePoint;
+void narf::World::rayTrace(narf::Point3f basePoint, narf::Vector3f direction, std::function<bool(const narf::Point3f&, const BlockCoord&, const BlockFace&)> test) {
+	Point3f prevPoint = basePoint;
 	BlockCoord prevBlockCoord(0, 0, 0);
 
 	float xDir = (direction.x > 0) ? 1.0f : -1.0f;
@@ -334,7 +336,7 @@ void narf::World::serialize(narf::ByteStreamWriter& s) {
 	// number of serialized chunks
 	s.writeLE(chunks_x_ * chunks_y_ * chunks_z_);
 
-	math::coord::ZYXCoordIter<ChunkCoord> iter({0, 0, 0}, {chunks_x_, chunks_y_, chunks_z_});
+	ZYXCoordIter<ChunkCoord> iter({0, 0, 0}, {chunks_x_, chunks_y_, chunks_z_});
 	for (const auto& wcc : iter) {
 		serializeChunk(s, wcc);
 	}

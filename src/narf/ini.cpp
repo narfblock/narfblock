@@ -294,6 +294,20 @@ int32_t narf::IniFile::getInt32(const std::string& key) const {
 }
 
 
+uint32_t narf::IniFile::getUInt32(const std::string& key) const {
+	auto raw = getString(key);
+	char* end;
+	errno = 0;
+	auto value = strtoul(raw.c_str(), &end, 0);
+	if (errno == 0 && *end == '\0' && value <= UINT32_MAX) {
+		return (uint32_t)value;
+	}
+	narf::console->println("bad uint32 '" + raw + "'");
+	// TODO: exception?
+	return 0;
+}
+
+
 void narf::IniFile::setBool(const std::string& key, bool value) {
 	setString(key, value ? "true" : "false");
 }
@@ -387,4 +401,8 @@ float narf::IniFile::getFloat(const std::string& key, float defaultValue) const 
 
 int32_t narf::IniFile::getInt32(const std::string& key, int32_t defaultValue) const {
 	return has(key) ? getInt32(key) : defaultValue;
+}
+
+uint32_t narf::IniFile::getUInt32(const std::string& key, uint32_t defaultValue) const {
+	return has(key) ? getUInt32(key) : defaultValue;
 }

@@ -39,10 +39,10 @@
 #include "narf/gl/gl.h"
 #include "narf/gl/textureatlas.h"
 
-TextureAtlas::TextureAtlas(size_t width, size_t height, uint32_t depth) :
+TextureAtlas::TextureAtlas(uint32_t width, uint32_t height, uint32_t depth) :
     width_(width), height_(height), depth_(depth),
     used_(0), id_(0) {
-    // We want a one pixel border around the whole atlas to avoid any artefact when
+    // We want a one pixel border around the whole atlas to avoid any artifacts when
     // sampling texture
     Node node = {1, 1, width - 2};
     nodes_.push_back(node);
@@ -67,46 +67,50 @@ TextureAtlas::~TextureAtlas() {
 }
 
 
-void TextureAtlas::setRegion(uint32_t x, uint32_t y, size_t regionWidth, size_t regionHeight, const void* newData, size_t stride) {
+void TextureAtlas::setRegion(uint32_t x, uint32_t y, uint32_t regionWidth, uint32_t regionHeight, const void* newData, ptrdiff_t srcStride) {
     auto srcData = static_cast<const uint8_t*>(newData);
+    auto dstData = data_;
+    auto dstStride = width_ * depth_;
+    auto regionStride = regionWidth * depth_;
 
     assert(x < width_ - 1);
     assert(x + regionWidth <= width_ - 1);
     assert(y < height_ - 1);
     assert(y + regionHeight <= height_ - 1);
 
-    for (size_t i = 0; i < regionHeight; i++) {
-        memcpy(data_ + ((y + i) * width_ + x) * depth_,
-               srcData + (i * stride), regionWidth * depth_);
+    dstData += y * dstStride + x;
+    for (uint32_t i = 0; i < regionHeight; i++) {
+        memcpy(dstData, srcData, regionStride);
+        dstData += dstStride;
+        srcData += srcStride;
     }
 }
 
 
-int TextureAtlas::fit(size_t index, size_t width, size_t height) {
+uint32_t TextureAtlas::fit(size_t index, uint32_t width, uint32_t height) {
     const auto& node = nodes_[index];
     auto x = node.x;
     auto y = node.y;
     auto widthLeft = width;
 
     if (x + width >= width_) {
-        return -1;
+        return NoFit;
     }
 
-    while (index < nodes_.size()) {
+    for ( ; index < nodes_.size(); index++) {
         const auto& node = nodes_[index];
         if (node.y > y) {
             y = node.y;
         }
         if (y + height > height_ - 1) {
-            return -1;
+            return NoFit;
         }
         if (node.width >= widthLeft) {
             break;
         }
         widthLeft -= node.width;
-        ++index;
     }
-    return static_cast<int>(y);
+    return y;
 }
 
 
@@ -123,31 +127,29 @@ void TextureAtlas::merge() {
 }
 
 
-TextureAtlas::Region TextureAtlas::getRegion(size_t regionWidth, size_t regionHeight) {
-    int fitted, best_index;
-    uint32_t y;
+TextureAtlas::Region TextureAtlas::getRegion(uint32_t regionWidth, uint32_t regionHeight) {
     Region region = {0, 0, regionWidth, regionHeight};
-    size_t bestWidth = UINT32_MAX;
-    size_t bestHeight = UINT32_MAX;
+    uint32_t bestWidth = UINT32_MAX;
+    uint32_t bestHeight = UINT32_MAX;
 
-    best_index  = -1;
+    size_t bestIndex = SIZE_MAX;
     for (size_t i = 0; i < nodes_.size(); i++) {
-        fitted = fit(i, regionWidth, regionHeight);
-        if (fitted >= 0) {
-            y = static_cast<uint32_t>(fitted);
+        uint32_t y = fit(i, regionWidth, regionHeight);
+        if (y != NoFit) {
             const auto& node = nodes_[i];
             if ((y + regionHeight < bestHeight) ||
                 ((y + regionHeight == bestHeight) && (node.width < bestWidth))) {
-                best_index = static_cast<int>(i);
+                bestIndex = i;
                 bestHeight = y + regionHeight;
                 bestWidth = node.width;
                 region.x = node.x;
-                region.y = static_cast<uint32_t>(y);
+                region.y = y;
             }
         }
     }
 
-    if (best_index == -1) {
+    if (bestIndex == SIZE_MAX) {
+        // TODO: throw
         region.width = 0;
         region.height = 0;
         return region;
@@ -155,16 +157,16 @@ TextureAtlas::Region TextureAtlas::getRegion(size_t regionWidth, size_t regionHe
 
     Node newNode;
     newNode.x = region.x;
-    newNode.y = region.y + static_cast<uint32_t>(regionHeight);
+    newNode.y = region.y + regionHeight;
     newNode.width = regionWidth;
-    nodes_.insert(nodes_.begin() + best_index, newNode);
+    nodes_.insert(nodes_.begin() + static_cast<long>(bestIndex), newNode);
 
-    for (size_t i = static_cast<size_t>(best_index) + 1; i < nodes_.size(); ++i) {
+    for (size_t i = bestIndex + 1; i < nodes_.size(); ++i) {
         auto& node = nodes_[i];
         auto& prev = nodes_[i - 1];
 
         if (node.x < prev.x + prev.width) {
-            uint32_t shrink = prev.x + static_cast<uint32_t>(prev.width) - node.x;
+            uint32_t shrink = prev.x + prev.width - node.x;
             if (shrink >= node.width) {
                 nodes_.erase(nodes_.begin() + static_cast<long>(i));
                 --i;

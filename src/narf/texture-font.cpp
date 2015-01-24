@@ -55,7 +55,7 @@ const struct {
 } FT_Errors[] =
 #include FT_ERRORS_H
 
-FT_Error TextureFont::setSize(unsigned pixelSize) {
+FT_Error TextureFont::setSize(uint32_t pixelSize) {
     FT_Error error;
 
     error = FT_Select_Charmap(face_, FT_ENCODING_UNICODE);
@@ -128,7 +128,7 @@ void TextureFont::printError(FT_Error error) {
 }
 
 
-TextureFont::TextureFont(TextureAtlas* atlas, unsigned pixelSize, const void* memoryBase, size_t memorySize) :
+TextureFont::TextureFont(TextureAtlas* atlas, uint32_t pixelSize, const void* memoryBase, size_t memorySize) :
     atlas_(atlas), pixelSize_(pixelSize) {
     assert(memoryBase);
     assert(memorySize);
@@ -188,8 +188,8 @@ TextureFont::Glyph* TextureFont::loadGlyph(uint32_t charcode) {
         return nullptr;
     }
 
-    size_t w = static_cast<size_t>(face_->glyph->bitmap.width);
-    size_t h = static_cast<size_t>(face_->glyph->bitmap.rows);
+    auto w = static_cast<uint32_t>(face_->glyph->bitmap.width);
+    auto h = static_cast<uint32_t>(face_->glyph->bitmap.rows);
 
     // We want each glyph to be separated by at least one black pixel
     auto region = atlas_->getRegion(w + 1, h + 1);
@@ -199,9 +199,10 @@ TextureFont::Glyph* TextureFont::loadGlyph(uint32_t charcode) {
         return nullptr;
     }
 
-    uint32_t x = region.x;
-    uint32_t y = region.y;
-    atlas_->setRegion(x, y, w, h, face_->glyph->bitmap.buffer, static_cast<size_t>(face_->glyph->bitmap.pitch));
+    auto x = region.x;
+    auto y = region.y;
+    auto pitch = face_->glyph->bitmap.pitch;
+    atlas_->setRegion(x, y, w, h, face_->glyph->bitmap.buffer, face_->glyph->bitmap.pitch);
 
     Glyph glyph;
     glyph.charcode = charcode;
