@@ -36,38 +36,30 @@
 #include <float.h>
 
 
-narf::World::World(uint32_t size_x, uint32_t size_y, uint32_t size_z, uint32_t chunk_size_x, uint32_t chunk_size_y, uint32_t chunk_size_z) :
-	size_x_(size_x), size_y_(size_y), size_z_(size_z),
-	chunk_size_x_(chunk_size_x), chunk_size_y_(chunk_size_y), chunk_size_z_(chunk_size_z),
+narf::World::World(int32_t sizeX, int32_t sizeY, int32_t sizeZ, int32_t chunkSizeX, int32_t chunkSizeY, int32_t chunkSizeZ) :
+	sizeX_(sizeX), sizeY_(sizeY), sizeZ_(sizeZ),
+	chunkSizeX_(chunkSizeX), chunkSizeY_(chunkSizeY), chunkSizeZ_(chunkSizeZ),
 	entityRefs_(0),
 	numBlockTypes_(0)
 {
 	// TODO: verify size is a multiple of chunk_size and a power of 2
 
-	// world coordinate masks for wraparound
-	// z does not wrap around
-	mask_x_ = size_x_ - 1;
-	mask_y_ = size_y_ - 1;
-
 	// chunk shifts to get chunk coords from world coords
-	chunk_shift_x_ = ilog2(chunk_size_x);
-	chunk_shift_y_ = ilog2(chunk_size_y);
-	chunk_shift_z_ = ilog2(chunk_size_z);
+	chunkShiftX_ = ilog2(chunkSizeX);
+	chunkShiftY_ = ilog2(chunkSizeY);
+	chunkShiftZ_ = ilog2(chunkSizeZ);
 
 	// block masks to get block coords within chunk from world coords
-	block_mask_x_ = (1u << chunk_shift_x_) - 1;
-	block_mask_y_ = (1u << chunk_shift_y_) - 1;
-	block_mask_z_ = (1u << chunk_shift_z_) - 1;
+	blockMaskX_ = (1u << chunkShiftX_) - 1;
+	blockMaskY_ = (1u << chunkShiftY_) - 1;
+	blockMaskZ_ = (1u << chunkShiftZ_) - 1;
 
 	// calculate size of world in chunks
-	chunks_x_ = size_x_ / chunk_size_x;
-	chunks_y_ = size_y_ / chunk_size_y;
-	chunks_z_ = size_z_ / chunk_size_z;
+	chunksX_ = sizeX_ / chunkSizeX;
+	chunksY_ = sizeY_ / chunkSizeY;
+	chunksZ_ = sizeZ_ / chunkSizeZ;
 
-	chunk_mask_x_ = chunks_x_ - 1;
-	chunk_mask_y_ = chunks_y_ - 1;
-
-	chunks_ = (Chunk**)calloc(chunks_x_ * chunks_y_ * chunks_z_, sizeof(Chunk*));
+	chunks_ = (Chunk**)calloc(chunksX_ * chunksY_ * chunksZ_, sizeof(Chunk*));
 
 	// initialize block types
 	// TODO: put this in a config file
@@ -90,7 +82,7 @@ narf::World::World(uint32_t size_x, uint32_t size_y, uint32_t size_z, uint32_t c
 
 
 narf::World::~World() {
-	for (uint32_t i = 0; i < chunks_x_ * chunks_y_ * chunks_z_; i++) {
+	for (int32_t i = 0; i < chunksX_ * chunksY_ * chunksZ_; i++) {
 		if (chunks_[i]) {
 			delete chunks_[i];
 		}
@@ -99,78 +91,105 @@ narf::World::~World() {
 }
 
 
-const narf::Block *narf::World::get_block(const narf::BlockCoord& wbc) {
-	ChunkCoord cc;
-	narf::Chunk::BlockCoord cbc;
-	calcChunkCoords(wbc, cc, cbc);
-	Chunk *chunk = get_chunk(cc);
-	return chunk->get_block(cbc);
+bool narf::World::validCoords(const narf::BlockCoord& wbc) const {
+	return
+		wbc.x >= 0 &&
+		wbc.y >= 0 &&
+		wbc.z >= 0 &&
+		wbc.x < sizeX_ &&
+		wbc.y < sizeY_ &&
+		wbc.z < sizeZ_;
 }
 
 
-void narf::World::put_block(const narf::Block *b, const narf::BlockCoord& wbc) {
+const narf::Block* narf::World::getBlockUnchecked(const narf::BlockCoord& wbc) {
 	ChunkCoord cc;
 	narf::Chunk::BlockCoord cbc;
 	calcChunkCoords(wbc, cc, cbc);
-	Chunk *chunk = get_chunk(cc);
-	chunk->put_block(b, cbc);
+	Chunk* chunk = getChunk(cc);
+	return chunk->getBlock(cbc);
 }
 
 
-bool narf::World::is_opaque(const narf::BlockCoord& wbc) {
-	ChunkCoord cc;
-	narf::Chunk::BlockCoord cbc;
-	calcChunkCoords(wbc, cc, cbc);
-	Chunk *chunk = get_chunk(cc);
-	return chunk->is_opaque(cbc);
-}
-
-
-void narf::World::calcChunkCoords(
-	const narf::BlockCoord& wbc,
-	ChunkCoord& cc,
-	narf::Chunk::BlockCoord& cbc) const {
-
-	// wrap around
-	auto x = wbc.x & mask_x_;
-	auto y = wbc.y & mask_y_;
-	auto z = wbc.z;
-
-	// clamp z to world height
-	// TODO
-	if (z >= size_z_) {
-		z = size_z_ - 1;
+const narf::Block* narf::World::getBlock(const narf::BlockCoord& wbc) {
+	if (validCoords(wbc)) {
+		return getBlockUnchecked(wbc);
 	}
-
-	cc.x = x >> chunk_shift_x_;
-	cc.y = y >> chunk_shift_y_;
-	cc.z = z >> chunk_shift_z_;
-
-	cbc.x = x & block_mask_x_;
-	cbc.y = y & block_mask_y_;
-	cbc.z = z & block_mask_z_;
+	return nullptr;
 }
 
 
-narf::Chunk *narf::World::new_chunk(uint32_t chunk_x, uint32_t chunk_y, uint32_t chunk_z) {
+void narf::World::putBlockUnchecked(const narf::Block *b, const narf::BlockCoord& wbc) {
+	ChunkCoord cc;
+	narf::Chunk::BlockCoord cbc;
+	calcChunkCoords(wbc, cc, cbc);
+	Chunk* chunk = getChunk(cc);
+	chunk->putBlock(b, cbc);
+}
+
+
+void narf::World::putBlock(const narf::Block *b, const narf::BlockCoord& wbc) {
+	if (validCoords(wbc)) {
+		putBlockUnchecked(b, wbc);
+	}
+}
+
+
+bool narf::World::isOpaqueUnchecked(const narf::BlockCoord& wbc) {
+	ChunkCoord cc;
+	narf::Chunk::BlockCoord cbc;
+	calcChunkCoords(wbc, cc, cbc);
+	Chunk *chunk = getChunk(cc);
+	return chunk->isOpaque(cbc);
+}
+
+
+bool narf::World::isOpaque(const narf::BlockCoord& wbc) {
+	if (validCoords(wbc)) {
+		return isOpaqueUnchecked(wbc);
+	}
+	return false;
+}
+
+
+void narf::World::calcChunkCoords(const narf::BlockCoord& wbc, ChunkCoord& cc, narf::Chunk::BlockCoord& cbc) const {
+	assert(wbc.x >= 0);
+	assert(wbc.y >= 0);
+	if (wbc.z < 0) { // TODO REMOVEME
+		assert(wbc.z >= 0);
+	}
+	assert(wbc.x < sizeX_);
+	assert(wbc.y < sizeY_);
+	assert(wbc.z < sizeZ_);
+
+	cc.x = wbc.x >> chunkShiftX_;
+	cc.y = wbc.y >> chunkShiftY_;
+	cc.z = wbc.z >> chunkShiftZ_;
+
+	cbc.x = wbc.x & blockMaskX_;
+	cbc.y = wbc.y & blockMaskY_;
+	cbc.z = wbc.z & blockMaskZ_;
+}
+
+
+narf::Chunk *narf::World::newChunk(uint32_t chunk_x, uint32_t chunk_y, uint32_t chunk_z) {
 	return new Chunk(
 		this,
-		chunk_size_x_, chunk_size_y_, chunk_size_z_,
-		chunk_x * chunk_size_x_, chunk_y * chunk_size_y_, chunk_z * chunk_size_z_);
+		chunkSizeX_, chunkSizeY_, chunkSizeZ_,
+		chunk_x * chunkSizeX_, chunk_y * chunkSizeY_, chunk_z * chunkSizeZ_);
 }
 
 
-narf::Chunk *narf::World::get_chunk(const narf::World::ChunkCoord& wcc) {
-	auto chunk_x = wcc.x & chunk_mask_x_;
-	auto chunk_y = wcc.y & chunk_mask_y_;
-	auto chunk_z = wcc.z;
-	assert(chunk_z < chunks_z_);
-	Chunk *chunk = chunks_[((chunk_z * chunks_y_) + chunk_y) * chunks_x_ + chunk_x];
+narf::Chunk *narf::World::getChunk(const narf::World::ChunkCoord& wcc) {
+	assert(wcc.x < chunksX_);
+	assert(wcc.y < chunksY_);
+	assert(wcc.z < chunksZ_);
+	Chunk *chunk = chunks_[((wcc.z * chunksY_) + wcc.y) * chunksX_ + wcc.x];
 	if (!chunk) {
 		// get from backing store, or allocate if it doesn't exist yet
 		// for now, no backing store, so just always allocate a new chunk
-		chunk = chunks_[((chunk_z * chunks_y_) + chunk_y) * chunks_x_ + chunk_x] =
-			new_chunk(chunk_x, chunk_y, chunk_z);
+		chunk = chunks_[((wcc.z * chunksY_) + wcc.y) * chunksX_ + wcc.x] =
+			newChunk(wcc.x, wcc.y, wcc.z);
 		chunk->generate();
 	}
 	return chunk;
@@ -282,9 +301,9 @@ void narf::World::rayTrace(narf::Point3f basePoint, narf::Vector3f direction, st
 		auto point = nextBlockIntersect(prevPoint, direction, xDir, yDir, zDir);
 
 		BlockCoord blockCoord(0, 0, 0);
-		blockCoord.x = (uint32_t)floor(point.x - xDir * 0.000000000001);
-		blockCoord.y = (uint32_t)floor(point.y - yDir * 0.000000000001);
-		blockCoord.z = (uint32_t)floor(point.z - zDir * 0.000000000001);
+		blockCoord.x = (int32_t)floor(point.x - xDir * 0.000000000001);
+		blockCoord.y = (int32_t)floor(point.y - yDir * 0.000000000001);
+		blockCoord.z = (int32_t)floor(point.z - zDir * 0.000000000001);
 
 		BlockFace face = narf::BlockFace::Invalid;
 		if (blockCoord.x != prevBlockCoord.x) {
@@ -321,22 +340,22 @@ void narf::World::serializeChunk(ByteStreamWriter& s, const ChunkCoord& wcc) {
 	s.writeLE(wcc.x);
 	s.writeLE(wcc.y);
 	s.writeLE(wcc.z);
-	get_chunk(wcc)->serialize(s);
+	getChunk(wcc)->serialize(s);
 }
 
 
 void narf::World::serialize(narf::ByteStreamWriter& s) {
-	s.writeLE(size_x_);
-	s.writeLE(size_y_);
-	s.writeLE(size_z_);
-	s.writeLE(chunk_size_x_);
-	s.writeLE(chunk_size_y_);
-	s.writeLE(chunk_size_z_);
+	s.writeLE(sizeX_);
+	s.writeLE(sizeY_);
+	s.writeLE(sizeZ_);
+	s.writeLE(chunkSizeX_);
+	s.writeLE(chunkSizeY_);
+	s.writeLE(chunkSizeZ_);
 
 	// number of serialized chunks
-	s.writeLE(chunks_x_ * chunks_y_ * chunks_z_);
+	s.writeLE(chunksX_ * chunksY_ * chunksZ_);
 
-	ZYXCoordIter<ChunkCoord> iter({0, 0, 0}, {chunks_x_, chunks_y_, chunks_z_});
+	ZYXCoordIter<ChunkCoord> iter({0, 0, 0}, {chunksX_, chunksY_, chunksZ_});
 	for (const auto& wcc : iter) {
 		serializeChunk(s, wcc);
 	}
@@ -354,24 +373,24 @@ void narf::World::deserializeChunk(ByteStreamReader& s, narf::World::ChunkCoord&
 
 	// TODO: sanity check pos
 
-	get_chunk(wcc)->deserialize(s);
-	get_chunk(wcc)->markDirty();
+	getChunk(wcc)->deserialize(s);
+	getChunk(wcc)->markDirty();
  }
 
 
 void narf::World::deserialize(narf::ByteStreamReader& s) {
-	if (!s.readLE(&size_x_) ||
-	    !s.readLE(&size_y_) ||
-	    !s.readLE(&size_z_) ||
-	    !s.readLE(&chunk_size_x_) ||
-	    !s.readLE(&chunk_size_y_) ||
-	    !s.readLE(&chunk_size_z_)) {
+	if (!s.readLE(&sizeX_) ||
+	    !s.readLE(&sizeY_) ||
+	    !s.readLE(&sizeZ_) ||
+	    !s.readLE(&chunkSizeX_) ||
+	    !s.readLE(&chunkSizeY_) ||
+	    !s.readLE(&chunkSizeZ_)) {
 		// TODO: world invalid
 		assert(0);
 		return;
 	}
 
-	narf::console->println("World::deserialize: size=" + std::to_string(size_x_) + "x" + std::to_string(size_y_) + "x" + std::to_string(size_z_));
+	narf::console->println("World::deserialize: size=" + std::to_string(sizeX_) + "x" + std::to_string(sizeY_) + "x" + std::to_string(sizeZ_));
 
 	// TODO: do other setup from ctor here
 

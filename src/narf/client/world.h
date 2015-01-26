@@ -52,8 +52,8 @@ namespace client {
 class World : public narf::World {
 public:
 
-	World(uint32_t size_x, uint32_t size_y, uint32_t size_z, uint32_t chunk_size_x, uint32_t chunk_size_y, uint32_t chunk_size_z) :
-		narf::World(size_x, size_y, size_z, chunk_size_x, chunk_size_y, chunk_size_z), renderDistance(1)
+	World(uint32_t sizeX, uint32_t sizeY, uint32_t sizeZ, uint32_t chunkSizeX, uint32_t chunkSizeY, uint32_t chunkSizeZ) :
+		narf::World(sizeX, sizeY, sizeZ, chunkSizeX, chunkSizeY, chunkSizeZ), renderDistance(1)
 	{
 	}
 
@@ -61,22 +61,20 @@ public:
 
 	void render(narf::gl::Texture *tiles_tex, const narf::Camera *cam, float stateBlend);
 
-	void put_block(const Block *b, const BlockCoord& wbc) override;
+	void putBlockUnchecked(const Block *b, const BlockCoord& wbc) override;
 
 	int32_t renderDistance; // radius in chunks
 
 protected:
-	Chunk *new_chunk(uint32_t chunk_x, uint32_t chunk_y, uint32_t chunk_z) override {
+	Chunk *newChunk(uint32_t chunk_x, uint32_t chunk_y, uint32_t chunk_z) override {
 		return new narf::client::Chunk(this,
-		                 chunk_size_x_, chunk_size_y_, chunk_size_z_,
-		                 chunk_x * chunk_size_x_, chunk_y * chunk_size_y_, chunk_z * chunk_size_z_);
+		                 chunkSizeX_, chunkSizeY_, chunkSizeZ_,
+		                 chunk_x * chunkSizeX_, chunk_y * chunkSizeY_, chunk_z * chunkSizeZ_);
 	}
 
-	Chunk *get_chunk(const narf::World::ChunkCoord& wcc) {
-		return static_cast<narf::client::Chunk*>(narf::World::get_chunk(wcc));
+	Chunk *getChunk(const narf::World::ChunkCoord& wcc) {
+		return static_cast<narf::client::Chunk*>(narf::World::getChunk(wcc));
 	}
-
-	void renderSlice(narf::gl::Texture *tiles_tex, uint32_t cx_min, uint32_t cx_max, uint32_t cy_min, uint32_t cy_max, float stateBlend);
 };
 
 } // namespace client

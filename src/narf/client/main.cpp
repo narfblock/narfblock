@@ -143,8 +143,8 @@ void configEvent(const std::string& key) {
 		display->setVsync(vsync);
 		narf::console->println("Setting vsync to " + std::to_string(vsync));
 	} else if (key == "foo.gravity") {
-		world->set_gravity(config.getFloat(key));
-		narf::console->println("Setting gravity to " + std::to_string(world->get_gravity()));
+		world->setGravity(config.getFloat(key));
+		narf::console->println("Setting gravity to " + std::to_string(world->getGravity()));
 	} else if (key == "misc.tickRate") {
 		auto tickRate = config.getDouble(key);
 		narf::console->println("Setting tickRate to " + std::to_string(tickRate));
@@ -615,15 +615,15 @@ void sim_frame(const narf::Input &input, narf::timediff dt)
 	bool traceHitBlock = false;
 	world->rayTrace(pos, cam.orientation,
 		[&](const narf::Point3f& point, const narf::BlockCoord& blockCoord, const narf::BlockFace& face){
-			// TODO: stop the trace if it runs off the edge of the world vertically
 			if (point.distanceTo(pos) >= maxInteractDistance) {
 				return true; // ran out of distance
 			}
 
-			auto block = world->get_block(blockCoord);
-			if (block->id != 0) {
+			// TODO: stop the trace if it runs off the edge of the world
+			auto block = world->getBlock(blockCoord);
+			if (block && block->id != 0) {
 				// found a solid block
-				selectedBlockFace = {block, (int32_t)blockCoord.x, (int32_t)blockCoord.y, (int32_t)blockCoord.z, face};
+				selectedBlockFace = {block, blockCoord.x, blockCoord.y, blockCoord.z, face};
 				traceHitBlock = true;
 				return true; // stop the trace
 			}
@@ -826,11 +826,11 @@ void fillRectPrism(const narf::BlockCoord& c1, const narf::BlockCoord& c2, uint8
 	for (const auto& c : iter) {
 		narf::Block b;
 		b.id = block_id;
-		world->put_block(&b, c);
+		world->putBlock(&b, c);
 	}
 }
 
-void fill_plane(uint32_t z, uint8_t block_id) {
+void fillPlane(int32_t z, uint8_t block_id) {
 	fillRectPrism({0, 0, z}, {WORLD_X_MAX, WORLD_Y_MAX, z + 1}, block_id);
 }
 
@@ -848,7 +848,7 @@ void newWorld()
 
 	uint8_t stone2 = 7; // TODO HAX
 
-	for (uint32_t z = 16; z < 23; z++) {
+	for (int z = 16; z < 23; z++) {
 		//fillRectPrism(30 + z, 35 + (z - 16), 30 + z, 35 + (z - 16), z, z + 1, stone2);
 		auto size = (23 - 16) - (z - 16);
 		fillRectPrism(
@@ -859,23 +859,23 @@ void newWorld()
 
 	// generate some random blocks above the ground
 	for (int i = 0; i < 1000; i++) {
-		uint32_t x = static_cast<uint32_t>(randi(0, WORLD_X_MAX - 1));
-		uint32_t y = static_cast<uint32_t>(randi(0, WORLD_Y_MAX - 1));
-		uint32_t z = static_cast<uint32_t>(randi(16, 23));
+		int32_t x = randi(0, WORLD_X_MAX - 1);
+		int32_t y = randi(0, WORLD_Y_MAX - 1);
+		int32_t z = randi(16, 23);
 		narf::Block b;
 		b.id = (uint8_t)randi(2, 3);
-		world->put_block(&b, {x, y, z});
+		world->putBlock(&b, {x, y, z});
 	}
 
-	for (uint32_t i = 0; i < 10; i++) {
+	for (int i = 0; i < 10; i++) {
 		narf::Block b;
 		b.id = stone2;
-		world->put_block(&b, {5 + i, 5, 16});
-		world->put_block(&b, {5, 5 + i, 16});
-		world->put_block(&b, {5 + i, 15, 16});
+		world->putBlock(&b, {5 + i, 5, 16});
+		world->putBlock(&b, {5, 5 + i, 16});
+		world->putBlock(&b, {5 + i, 15, 16});
 	}
 
-	world->set_gravity(-24.0f);
+	world->setGravity(-24.0f);
 }
 
 

@@ -59,6 +59,11 @@ void narf::ByteStreamWriter::writeLE(uint32_t v) {
 }
 
 
+void narf::ByteStreamWriter::writeLE(int32_t v) {
+	writeLE(static_cast<uint32_t>(v));
+}
+
+
 void narf::ByteStreamWriter::writeLE(float v) {
 	// TODO: total hax
 	writeLE(*reinterpret_cast<uint32_t*>(&v));
@@ -117,6 +122,11 @@ bool narf::ByteStreamReader::readLE(uint32_t* v) {
 	iter_ += 4;
 	bytesLeft_ -= 4;
 	return true;
+}
+
+
+bool narf::ByteStreamReader::readLE(int32_t* v) {
+	return readLE(reinterpret_cast<uint32_t*>(v));
 }
 
 

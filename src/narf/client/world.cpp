@@ -39,22 +39,22 @@
 void draw_cube(float x, float y, float z, uint8_t type, unsigned draw_face_mask);
 
 
-void narf::client::World::put_block(const narf::Block *b, const narf::BlockCoord& wbc) {
+void narf::client::World::putBlockUnchecked(const narf::Block *b, const narf::BlockCoord& wbc) {
 	ChunkCoord cc;
 	narf::Chunk::BlockCoord cbc;
 	calcChunkCoords(wbc, cc, cbc);
-	Chunk *chunk = get_chunk(cc);
-	chunk->put_block(b, cbc);
+	Chunk *chunk = getChunk(cc);
+	chunk->putBlock(b, cbc);
 	chunk->markDirty();;
 
 	// update neighboring chunk meshes since they may have holes exposed by removing this block
 	// or extra faces that are obstructed by adding this block
-	if (cbc.x == 0) get_chunk({(cc.x - 1) & mask_x_, cc.y, cc.z})->markDirty();
-	if (cbc.y == 0) get_chunk({cc.x, (cc.y - 1) & mask_y_, cc.z})->markDirty();
-	if (cbc.z == 0 && cc.z > 0) get_chunk({cc.x, cc.y, cc.z - 1})->markDirty();
-	if (cbc.x == chunk_size_x_ - 1) get_chunk({(cc.x + 1) & mask_x_, cc.y, cc.z})->markDirty();
-	if (cbc.y == chunk_size_y_ - 1) get_chunk({cc.x, (cc.y + 1) & mask_y_, cc.z})->markDirty();
-	if (cbc.z == chunk_size_z_ - 1 && cc.z < chunks_z_ - 1) get_chunk({cc.x, cc.y, cc.z + 1})->markDirty();
+	if (cbc.x == 0 && cc.x > 0) getChunk({cc.x - 1, cc.y, cc.z})->markDirty();
+	if (cbc.y == 0 && cc.y > 0) getChunk({cc.x, cc.y - 1, cc.z})->markDirty();
+	if (cbc.z == 0 && cc.z > 0) getChunk({cc.x, cc.y, cc.z - 1})->markDirty();
+	if (cbc.x == chunkSizeX_ - 1 && cc.x < chunksX_ - 1) getChunk({cc.x + 1, cc.y, cc.z})->markDirty();
+	if (cbc.y == chunkSizeY_ - 1 && cc.y < chunksY_ - 1) getChunk({cc.x, cc.y + 1, cc.z})->markDirty();
+	if (cbc.z == chunkSizeZ_ - 1 && cc.z < chunksZ_ - 1) getChunk({cc.x, cc.y, cc.z + 1})->markDirty();
 }
 
 
@@ -62,35 +62,73 @@ void narf::client::World::deserializeChunk(narf::ByteStreamReader& s, narf::Worl
 	narf::World::deserializeChunk(s, cc);
 	// update neighboring chunk meshes since they may have holes exposed by updating this chunk
 	// or extra faces that are obstructed by updating this chunk
-	get_chunk({ (cc.x - 1) & mask_x_, cc.y, cc.z })->markDirty();
-	get_chunk({ cc.x, (cc.y - 1) & mask_y_, cc.z })->markDirty();
-	if (cc.z > 0) get_chunk({ cc.x, cc.y, cc.z - 1 })->markDirty();
-	get_chunk({ (cc.x + 1) & mask_x_, cc.y, cc.z })->markDirty();
-	get_chunk({ cc.x, (cc.y + 1) & mask_y_, cc.z })->markDirty();
-	if (cc.z < chunks_z_ - 1) get_chunk({ cc.x, cc.y, cc.z + 1 })->markDirty();
+	if (cc.x > 0) getChunk({cc.x - 1, cc.y, cc.z})->markDirty();
+	if (cc.y > 0) getChunk({cc.x, cc.y - 1, cc.z})->markDirty();
+	if (cc.z > 0) getChunk({cc.x, cc.y, cc.z - 1})->markDirty();
+	if (cc.x < chunksX_ - 1) getChunk({cc.x + 1, cc.y, cc.z})->markDirty();
+	if (cc.y < chunksY_ - 1) getChunk({cc.x, cc.y + 1, cc.z})->markDirty();
+	if (cc.z < chunksZ_ - 1) getChunk({cc.x, cc.y, cc.z + 1})->markDirty();
 }
 
 
-void narf::client::World::renderSlice(narf::gl::Texture *tiles_tex, uint32_t cx_min, uint32_t cx_max, uint32_t cy_min, uint32_t cy_max, float stateBlend) {
-	assert(cx_min <= cx_max);
-	assert(cy_min <= cy_max);
-	assert(cx_max <= chunks_x_);
-	assert(cy_max <= chunks_y_);
+static int32_t clampi(int32_t v, int32_t min, int32_t max) {
+	if (v < min) {
+		return min;
+	}
+	if (v > max) {
+		return max;
+	}
+	return v;
+}
+
+
+void narf::client::World::render(narf::gl::Texture *tiles_tex, const narf::Camera *cam, float stateBlend) {
+	// camera
+	glLoadIdentity();
+	glRotatef(-(cam->orientation.pitch.toDeg() + 90.0f), 1.0f, 0.0f, 0.0f);
+	glRotatef(90.0f - cam->orientation.yaw.toDeg(), 0.0f, 0.0f, 1.0f);
+	glTranslatef(-cam->position.x, -cam->position.y, -cam->position.z);
+
+	// get chunk coordinates for the chunk containing the camera
+	int32_t cxCam = (int32_t)(cam->position.x / (float)chunkSizeX_);
+	int32_t cyCam = (int32_t)(cam->position.y / (float)chunkSizeY_);
+
+	// calculate range of chunks to draw
+	int32_t cxMin = cxCam - renderDistance;
+	int32_t cxMax = cxCam + renderDistance;
+
+	int32_t cyMin = cyCam - renderDistance;
+	int32_t cyMax = cyCam + renderDistance;
+
+	// clip chunk draw range to world size
+	cxMin = clampi(cxMin, 0, (int32_t)chunksX_);
+	cxMax = clampi(cxMax, 0, (int32_t)chunksX_);
+
+	cyMin = clampi(cyMin, 0, (int32_t)chunksY_);
+	cyMax = clampi(cyMax, 0, (int32_t)chunksY_);
 
 	// draw chunks
 	glBindTexture(narf::gl::TEXTURE_2D, tiles_tex);
-	for (uint32_t cy = cy_min; cy < cy_max; cy++) {
-		for (uint32_t cx = cx_min; cx < cx_max; cx++) {
-			// TODO: clip any chunks that are completely out of the camera's view before calling Chunk::render()
-			// TODO: clip in a sphere around the camera
-			for (uint32_t cz = 0; cz < chunks_z_; cz++) {
-				ChunkCoord cc(cx, cy, cz);
-				get_chunk(cc)->render();
+
+	if (cxMin < cxMax && cyMin < cyMax) {
+		for (int32_t cy = cyMin; cy < cyMax; cy++) {
+			for (int32_t cx = cxMin; cx < cxMax; cx++) {
+				assert(cx >= 0);
+				assert(cy >= 0);
+				assert(cx < chunksX_);
+				assert(cy < chunksY_);
+				// TODO: clip any chunks that are completely out of the camera's view before calling Chunk::render()
+				// TODO: clip in a sphere around the camera
+				for (int32_t cz = 0; cz < chunksZ_; cz++) {
+					ChunkCoord cc(cx, cy, cz);
+					getChunk(cc)->render();
+				}
 			}
 		}
 	}
 
-	// TODO: only render entities in this slice
+	// render entities
+	// TODO: move this out of world
 	for (auto& ent : entities_) {
 		// TODO: move this code to an Entity method
 		if (ent.model) {
@@ -105,116 +143,5 @@ void narf::client::World::renderSlice(narf::gl::Texture *tiles_tex, uint32_t cx_
 			// x, y is the center of the entity; assume all entities are 1x1x1 for now
 			::draw_cube(x - 0.5f, y - 0.5f, z, 1, 0xFF);
 		}
-	}
-}
-
-
-void narf::client::World::render(narf::gl::Texture *tiles_tex, const narf::Camera *cam, float stateBlend) {
-	// camera
-	glLoadIdentity();
-	glRotatef(-(cam->orientation.pitch.toDeg() + 90.0f), 1.0f, 0.0f, 0.0f);
-	glRotatef(90.0f - cam->orientation.yaw.toDeg(), 0.0f, 0.0f, 1.0f);
-	glTranslatef(-cam->position.x, -cam->position.y, -cam->position.z);
-
-	int32_t cx = (int32_t)(cam->position.x / (float)chunk_size_x_);
-	int32_t cy = (int32_t)(cam->position.y / (float)chunk_size_y_);
-
-	/*
-	 * Render up to 9 slices around the camera
-	 *
-	 *   D  |  C  |  B
-	 * -----------------
-	 *   E  | mid |  A
-	 * -----------------
-	 *   F  |  G  |  H
-	 */
-
-	int32_t cx_min = cx - std::min(renderDistance, (int32_t)chunks_x_ - 1);
-	int32_t cx_max = cx + std::min(renderDistance, (int32_t)chunks_x_ - 1) + 1;
-
-	int32_t cy_min = cy - std::min(renderDistance, (int32_t)chunks_y_ - 1);
-	int32_t cy_max = cy + std::min(renderDistance, (int32_t)chunks_y_ - 1) + 1;
-
-	assert(cx_max >= 0);
-	assert(cy_max >= 0);
-
-	uint32_t mid_cx_min = static_cast<uint32_t>(std::max(0, cx_min));
-	uint32_t mid_cy_min = static_cast<uint32_t>(std::max(0, cy_min));
-
-	uint32_t mid_cx_max = static_cast<uint32_t>(std::min((int32_t)chunks_x_, cx_max));
-	uint32_t mid_cy_max = static_cast<uint32_t>(std::min((int32_t)chunks_y_, cy_max));
-
-	renderSlice(tiles_tex, mid_cx_min, mid_cx_max, mid_cy_min, mid_cy_max, stateBlend);
-
-	if ((uint32_t)cx_max > chunks_x_) {
-		uint32_t a_cx_min = 0;
-		uint32_t a_cx_max = static_cast<uint32_t>(cx_max) - chunks_x_;
-		glPushMatrix();
-		glTranslatef((float)size_x_, 0.0f, 0.0f);
-		renderSlice(tiles_tex, a_cx_min, a_cx_max, mid_cy_min, mid_cy_max, stateBlend);
-		glPopMatrix();
-
-		if ((uint32_t)cy_max > chunks_y_) {
-			uint32_t b_cy_min = 0;
-			uint32_t b_cy_max = static_cast<uint32_t>(cy_max) - chunks_y_;
-			glPushMatrix();
-			glTranslatef((float)size_x_, (float)size_y_, 0.0f);
-			renderSlice(tiles_tex, a_cx_min, a_cx_max, b_cy_min, b_cy_max, stateBlend);
-			glPopMatrix();
-		}
-
-		if (cy_min < 0) {
-			uint32_t h_cy_min = static_cast<uint32_t>(cy_min) + chunks_y_;
-			uint32_t h_cy_max = chunks_y_;
-			glPushMatrix();
-			glTranslatef((float)size_x_, -(float)size_y_, 0.0f);
-			renderSlice(tiles_tex, a_cx_min, a_cx_max, h_cy_min, h_cy_max, stateBlend);
-			glPopMatrix();
-		}
-	}
-
-	if (cx_min < 0) {
-		uint32_t e_cx_min = static_cast<uint32_t>(cx_min) + chunks_x_;
-		uint32_t e_cx_max = chunks_x_;
-		glPushMatrix();
-		glTranslatef(-(float)size_x_, 0.0f, 0.0f);
-		renderSlice(tiles_tex, e_cx_min, e_cx_max, mid_cy_min, mid_cy_max, stateBlend);
-		glPopMatrix();
-
-		if ((uint32_t)cy_max > chunks_y_) {
-			uint32_t d_cy_min = 0;
-			uint32_t d_cy_max = static_cast<uint32_t>(cy_max) - chunks_y_;
-			glPushMatrix();
-			glTranslatef(-(float)size_x_, (float)size_y_, 0.0f);
-			renderSlice(tiles_tex, e_cx_min, e_cx_max, d_cy_min, d_cy_max, stateBlend);
-			glPopMatrix();
-		}
-
-		if (cy_min < 0) {
-			uint32_t f_cy_min = static_cast<uint32_t>(cy_min) + chunks_y_;
-			uint32_t f_cy_max = chunks_y_;
-			glPushMatrix();
-			glTranslatef(-(float)size_x_, -(float)size_y_, 0.0f);
-			renderSlice(tiles_tex, e_cx_min, e_cx_max, f_cy_min, f_cy_max, stateBlend);
-			glPopMatrix();
-		}
-	}
-
-	if ((uint32_t)cy_max > chunks_y_) {
-		uint32_t c_cy_min = 0;
-		uint32_t c_cy_max = static_cast<uint32_t>(cy_max) - chunks_y_;
-		glPushMatrix();
-		glTranslatef(0.0f, (float)size_y_, 0.0f);
-		renderSlice(tiles_tex, mid_cx_min, mid_cx_max, c_cy_min, c_cy_max, stateBlend);
-		glPopMatrix();
-	}
-
-	if (cy_min < 0) {
-		uint32_t g_cy_min = static_cast<uint32_t>(cy_min) + chunks_y_;
-		uint32_t g_cy_max = chunks_y_;
-		glPushMatrix();
-		glTranslatef(0.0f, -(float)size_y_, 0.0f);
-		renderSlice(tiles_tex, mid_cx_min, mid_cx_max, g_cy_min, g_cy_max, stateBlend);
-		glPopMatrix();
 	}
 }

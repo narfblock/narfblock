@@ -45,24 +45,24 @@ narf::EntityRef::~EntityRef() {
 
 
 // TODO: move this to a subclass of entity
-void explode(narf::World *world, const narf::BlockCoord& bc, uint32_t radius) {
+void explode(narf::World *world, const narf::BlockCoord& bc, int32_t radius) {
 	narf::Block air;
 	air.id = 0;
 
 	auto radiusSquared = radius * radius;
 
-	for (uint32_t x = 0; x < radius; x++) {
-		for (uint32_t y = 0; y < radius; y++) {
-			for (uint32_t z = 0; z < radius; z++) {
+	for (int32_t x = 0; x < radius; x++) {
+		for (int32_t y = 0; y < radius; y++) {
+			for (int32_t z = 0; z < radius; z++) {
 				if (x * x + y * y + z * z < radiusSquared) {
-					world->put_block(&air, {bc.x + x, bc.y + y, bc.z + z});
-					world->put_block(&air, {bc.x - x, bc.y + y, bc.z + z});
-					world->put_block(&air, {bc.x + x, bc.y - y, bc.z + z});
-					world->put_block(&air, {bc.x - x, bc.y - y, bc.z + z});
-					world->put_block(&air, {bc.x + x, bc.y + y, bc.z - z});
-					world->put_block(&air, {bc.x - x, bc.y + y, bc.z - z});
-					world->put_block(&air, {bc.x + x, bc.y - y, bc.z - z});
-					world->put_block(&air, {bc.x - x, bc.y - y, bc.z - z});
+					world->putBlock(&air, {bc.x + x, bc.y + y, bc.z + z});
+					world->putBlock(&air, {bc.x - x, bc.y + y, bc.z + z});
+					world->putBlock(&air, {bc.x + x, bc.y - y, bc.z + z});
+					world->putBlock(&air, {bc.x - x, bc.y - y, bc.z + z});
+					world->putBlock(&air, {bc.x + x, bc.y + y, bc.z - z});
+					world->putBlock(&air, {bc.x - x, bc.y + y, bc.z - z});
+					world->putBlock(&air, {bc.x + x, bc.y - y, bc.z - z});
+					world->putBlock(&air, {bc.x - x, bc.y - y, bc.z - z});
 				}
 			}
 		}
@@ -77,25 +77,11 @@ bool narf::Entity::update(narf::timediff dt)
 
 	bool alive = true;
 	// cheesy Euler integration
-	auto acceleration = Vector3f(0.0f, 0.0f, antigrav ? 0.0f : world_->get_gravity());
+	auto acceleration = Vector3f(0.0f, 0.0f, antigrav ? 0.0f : world_->getGravity());
 
 	// TODO: once coords are converted to integers, get rid of casts of dt to double
 	velocity += acceleration * (float)dt;
 	position += velocity * (float)dt;
-
-	// wrap around
-	// TODO: ensure position can't go beyond one extra world size with extreme velocity
-	if (position.x < 0) {
-		position.x = (float)world_->size_x() + position.x;
-	} else if (position.x > world_->size_x()) {
-		position.x = position.x - (float)world_->size_x();
-	}
-
-	if (position.y < 0) {
-		position.y = (float)world_->size_y() + position.y;
-	} else if (position.y > world_->size_y()) {
-		position.y = position.y - (float)world_->size_y();
-	}
 
 	// TODO: entity AABB should be determined based on its model
 	// for now, make everything 0.75x0.75x0.75
@@ -105,16 +91,16 @@ bool narf::Entity::update(narf::timediff dt)
 
 	// check against all blocks that could potentially intersect
 	BlockCoord c(
-			(uint32_t)(position.x - halfSize.x),
-			(uint32_t)(position.y - halfSize.y),
-			(uint32_t)(position.z - halfSize.z));
+			(int32_t)(position.x - halfSize.x),
+			(int32_t)(position.y - halfSize.y),
+			(int32_t)(position.z - halfSize.z));
 
 	// size of entity aabb
 	// + 1 to round up
 	// + 1 since CoordIter iterates up to but not including
-	uint32_t sx = 2u + (uint32_t)(halfSize.x * 2.0f);
-	uint32_t sy = 2u + (uint32_t)(halfSize.y * 2.0f);
-	uint32_t sz = 2u + (uint32_t)(halfSize.z * 2.0f);
+	int32_t sx = 2u + (int32_t)(halfSize.x * 2.0f);
+	int32_t sy = 2u + (int32_t)(halfSize.y * 2.0f);
+	int32_t sz = 2u + (int32_t)(halfSize.z * 2.0f);
 
 	ZYXCoordIter<BlockCoord> iter(
 		{c.x, c.y, c.z},
@@ -123,10 +109,13 @@ bool narf::Entity::update(narf::timediff dt)
 	bool collided = false;
 	bool bounced = false;
 	for (const auto& bc : iter) {
-		auto block = world_->get_block(bc);
+		auto block = world_->getBlock(bc);
+		if (!block) {
+			continue;
+		}
 		AABB blockAABB(world_->getBlockType(block->id)->getAABB(bc));
 
-		if (world_->get_block(bc)->id != 0 && blockAABB.intersect(entAABB)) {
+		if (world_->getBlock(bc)->id != 0 && blockAABB.intersect(entAABB)) {
 			if (explodey) {
 				explode(world_, bc, 5);
 				alive = false;

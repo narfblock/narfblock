@@ -39,7 +39,7 @@
 namespace narf {
 
 // block coordinate within world
-typedef Point3<uint32_t> BlockCoord;
+typedef Point3<int32_t> BlockCoord;
 
 typedef uint8_t BlockTypeId;
 

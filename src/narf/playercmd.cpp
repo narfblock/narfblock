@@ -99,11 +99,11 @@ void narf::PlayerCommand::exec(narf::World* world) {
 		if (type_ == Type::PrimaryAction) {
 			Block b;
 			b.id = 0;
-			world->put_block(&b, wbc);
+			world->putBlock(&b, wbc);
 		} else {
 			Block b;
 			b.id = 5;
-			world->put_block(&b, wbc);
+			world->putBlock(&b, wbc);
 		}
 		break;
 	case Type::TernaryAction:

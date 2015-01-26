@@ -47,6 +47,7 @@ public:
 
 	void writeLE(uint16_t v);
 	void writeLE(uint32_t v);
+	void writeLE(int32_t v);
 	void writeLE(float v);
 
 	void* data() { return data_.data(); }
@@ -72,6 +73,7 @@ public:
 
 	bool readLE(uint16_t* v);
 	bool readLE(uint32_t* v);
+	bool readLE(int32_t* v);
 	bool readLE(float* v);
 
 private:

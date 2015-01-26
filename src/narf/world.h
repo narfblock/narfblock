@@ -52,9 +52,9 @@ class World {
 friend class EntityRef;
 public:
 	// chunk coordinate (in units of chunks) within world
-	typedef Point3<uint32_t> ChunkCoord;
+	typedef Point3<int32_t> ChunkCoord;
 
-	World(uint32_t size_x, uint32_t size_y, uint32_t size_z, uint32_t chunk_size_x, uint32_t chunk_size_y, uint32_t chunk_size_z);
+	World(int32_t sizeX, int32_t sizeY, int32_t sizeZ, int32_t chunkSizeX, int32_t chunkSizeY, int32_t chunkSizeZ);
 
 	virtual ~World();
 
@@ -65,21 +65,27 @@ public:
 	void serializeChunk(ByteStreamWriter& s, const ChunkCoord& wcc);
 	virtual void deserializeChunk(ByteStreamReader& s, ChunkCoord& wcc);
 
-	const Block *get_block(const BlockCoord& c);
-	virtual void put_block(const Block *b, const BlockCoord& c);
+	bool validCoords(const BlockCoord& wbc) const;
 
-	bool is_opaque(const BlockCoord& c);
+	const Block* getBlockUnchecked(const BlockCoord& c);
+	const Block* getBlock(const BlockCoord& c);
 
-	uint32_t size_x() const { return size_x_; }
-	uint32_t size_y() const { return size_y_; }
-	uint32_t size_z() const { return size_z_; }
+	virtual void putBlockUnchecked(const Block* b, const BlockCoord& c);
+	void putBlock(const Block* b, const BlockCoord& c);
 
-	uint32_t chunks_x() const { return chunks_x_; }
-	uint32_t chunks_y() const { return chunks_y_; }
-	uint32_t chunks_z() const { return chunks_z_; }
+	bool isOpaqueUnchecked(const BlockCoord& c);
+	bool isOpaque(const BlockCoord& c);
 
-	void set_gravity(float g) { gravity_ = g; }
-	float get_gravity() { return gravity_; }
+	int32_t sizeX() const { return sizeX_; }
+	int32_t sizeY() const { return sizeY_; }
+	int32_t sizeZ() const { return sizeZ_; }
+
+	int32_t chunksX() const { return chunksX_; }
+	int32_t chunksY() const { return chunksY_; }
+	int32_t chunksZ() const { return chunksZ_; }
+
+	void setGravity(float g) { gravity_ = g; }
+	float getGravity() { return gravity_; }
 
 	static void rayTrace(Point3f basePoint, Vector3f direction,
 		std::function<bool(const Point3f&, const BlockCoord&, const BlockFace&)> test);
@@ -94,28 +100,25 @@ public:
 	const BlockType *getBlockType(BlockTypeId id) const;
 
 	// TODO: make this private again
-	Chunk *get_chunk(const ChunkCoord& cc);
+	Chunk *getChunk(const ChunkCoord& cc);
 
 protected:
 
 	Chunk **chunks_;
 
-	uint32_t size_x_, size_y_, size_z_; // size of the world in blocks
-	uint32_t mask_x_, mask_y_;
+	int32_t sizeX_, sizeY_, sizeZ_; // size of the world in blocks
 
-	uint32_t chunk_size_x_, chunk_size_y_, chunk_size_z_;
+	int32_t chunkSizeX_, chunkSizeY_, chunkSizeZ_;
 
-	uint32_t chunks_x_, chunks_y_, chunks_z_; // size of the world in chunks
-	uint32_t chunk_mask_x_, chunk_mask_y_;
-	uint32_t chunk_shift_x_, chunk_shift_y_, chunk_shift_z_;
-	uint32_t block_mask_x_, block_mask_y_, block_mask_z_;
+	int32_t chunksX_, chunksY_, chunksZ_; // size of the world in chunks
+	uint32_t chunkShiftX_, chunkShiftY_, chunkShiftZ_;
+	uint32_t blockMaskX_, blockMaskY_, blockMaskZ_;
 
 	float gravity_;
 
 	Entity::ID freeEntityID_;
 	uint32_t entityRefs_;
 	std::vector<narf::Entity> entities_;
-
 
 	Entity* getEntityRef(Entity::ID id);
 	void releaseEntityRef(Entity::ID id);
@@ -127,12 +130,9 @@ protected:
 	BlockTypeId numBlockTypes_;
 	std::vector<BlockType> blockTypes_;
 
-	void calcChunkCoords(
-		const BlockCoord& wbc,
-		ChunkCoord& cc,
-		Chunk::BlockCoord& cbc) const;
+	void calcChunkCoords(const BlockCoord& wbc, ChunkCoord& cc, Chunk::BlockCoord& cbc) const;
 
-	virtual Chunk *new_chunk(uint32_t chunk_x, uint32_t chunk_y, uint32_t chunk_z);
+	virtual Chunk *newChunk(uint32_t chunkX, uint32_t chunkY, uint32_t chunkZ);
 
 };
 

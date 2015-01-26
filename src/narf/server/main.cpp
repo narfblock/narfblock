@@ -61,7 +61,7 @@ narf::World *world;
 // TODO: this is copied from client
 void genWorld() {
 	world = new narf::World(WORLD_X_MAX, WORLD_Y_MAX, WORLD_Z_MAX, 16, 16, 16);
-	world->set_gravity(-24.0f);
+	world->setGravity(-24.0f);
 }
 
 
@@ -102,7 +102,7 @@ void tellAll(const Client* from, const std::string& text) {
 
 
 void sendChunkUpdate(const Client* to, const narf::World::ChunkCoord& wcc, bool dirtyOnly) {
-	auto chunk = world->get_chunk(wcc);
+	auto chunk = world->getChunk(wcc);
 	if (!dirtyOnly || chunk->dirty()) {
 		narf::ByteStreamWriter bs;
 		world->serializeChunk(bs, wcc);
@@ -113,9 +113,9 @@ void sendChunkUpdate(const Client* to, const narf::World::ChunkCoord& wcc, bool 
 
 
 void markChunksClean() {
-	narf::ZYXCoordIter<narf::World::ChunkCoord> iter({ 0, 0, 0 }, { world->chunks_x(), world->chunks_y(), world->chunks_z() });
+	narf::ZYXCoordIter<narf::World::ChunkCoord> iter({ 0, 0, 0 }, { world->chunksX(), world->chunksY(), world->chunksZ() });
 	for (const auto& wcc : iter) {
-		world->get_chunk(wcc)->markClean();
+		world->getChunk(wcc)->markClean();
 	}
 }
 
@@ -180,7 +180,7 @@ void ServerGameLoop::processConnect(ENetEvent& evt) {
 	tellAll(nullptr, "Client connected from " + narf::net::to_string(evt.peer->address));
 
 	// send all chunks (!!)
-	narf::ZYXCoordIter<narf::World::ChunkCoord> iter({ 0, 0, 0 }, { world->chunks_x(), world->chunks_y(), world->chunks_z() });
+	narf::ZYXCoordIter<narf::World::ChunkCoord> iter({ 0, 0, 0 }, { world->chunksX(), world->chunksY(), world->chunksZ() });
 	for (const auto& wcc : iter) {
 		sendChunkUpdate(client, wcc, false);
 	}
@@ -283,7 +283,7 @@ void ServerGameLoop::tick(narf::timediff dt) {
 	for (size_t i = 0; i < maxClients; i++) {
 		auto client = &clients[i];
 		if (client->peer) {
-			narf::ZYXCoordIter<narf::World::ChunkCoord> iter({ 0, 0, 0 }, { world->chunks_x(), world->chunks_y(), world->chunks_z() });
+			narf::ZYXCoordIter<narf::World::ChunkCoord> iter({ 0, 0, 0 }, { world->chunksX(), world->chunksY(), world->chunksZ() });
 			for (const auto& wcc : iter) {
 				sendChunkUpdate(client, wcc, true);
 			}

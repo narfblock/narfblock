@@ -50,18 +50,18 @@ class Chunk {
 public:
 
 	// block coordinate within chunk
-	typedef Point3<uint32_t> BlockCoord;
+	typedef Point3<int32_t> BlockCoord;
 
 	Chunk(
 		World *world,
-		uint32_t size_x, uint32_t size_y, uint32_t size_z,
+		uint32_t sizeX, uint32_t sizeY, uint32_t sizeZ,
 		uint32_t pos_x, uint32_t pos_y, uint32_t pos_z) :
 		world_(world),
-		size_x_(size_x), size_y_(size_y), size_z_(size_z),
+		sizeX_(sizeX), sizeY_(sizeY), sizeZ_(sizeZ),
 		pos_x_(pos_x), pos_y_(pos_y), pos_z_(pos_z),
 		dirty_(false)
 	{
-		blocks_ = (Block*)calloc(size_x_ * size_y_ * size_z_, sizeof(Block));
+		blocks_ = (Block*)calloc(sizeX_ * sizeY_ * sizeZ_, sizeof(Block));
 	}
 
 	virtual ~Chunk()
@@ -75,18 +75,23 @@ public:
 	void generate(); // generate terrain for a fresh chunk
 
 	// coordinates are relative to chunk
-	const Block *get_block(const BlockCoord& c) const
+	const Block *getBlock(const BlockCoord& c) const
 	{
-		assert(c.x < size_x_ && c.y < size_y_ && c.z < size_z_);
+		assert(c.x >= 0);
+		assert(c.y >= 0);
+		assert(c.z >= 0);
+		assert(c.x < sizeX_);
+		assert(c.y < sizeY_);
+		assert(c.z < sizeZ_);
 
-		return &blocks_[((c.z * size_y_) + c.y) * size_x_ + c.x];
+		return &blocks_[((c.z * sizeY_) + c.y) * sizeX_ + c.x];
 	}
 
-	void put_block(const Block *b, const BlockCoord& c);
+	void putBlock(const Block *b, const BlockCoord& c);
 
-	bool is_opaque(const BlockCoord& c) const
+	bool isOpaque(const BlockCoord& c) const
 	{
-		return get_block(c)->id != 0;
+		return getBlock(c)->id != 0;
 	}
 
 	bool dirty() const { return dirty_; }
@@ -95,10 +100,10 @@ public:
 
 protected:
 	World *world_;
-	Block *blocks_; // size_x_ by size_y_ by size_z_ 3D array of blocks in this chunk
+	Block *blocks_; // sizeX_ by sizeY_ by sizeZ_ 3D array of blocks in this chunk
 
-	uint32_t size_x_, size_y_, size_z_; // size of this chunk in blocks
-	uint32_t pos_x_, pos_y_, pos_z_; // position within the world of this chunk in blocks
+	int32_t sizeX_, sizeY_, sizeZ_; // size of this chunk in blocks
+	int32_t pos_x_, pos_y_, pos_z_; // position within the world of this chunk in blocks
 
 	bool dirty_;
 
