@@ -60,8 +60,8 @@ public:
 
 	Chunk(
 		narf::World *world,
-		uint32_t sizeX, uint32_t sizeY, uint32_t sizeZ,
-		uint32_t pos_x, uint32_t pos_y, uint32_t pos_z) : narf::Chunk(world, sizeX, sizeY, sizeZ, pos_x, pos_y, pos_z),
+		int32_t sizeX, int32_t sizeY, int32_t sizeZ,
+		int32_t pos_x, int32_t pos_y, int32_t pos_z) : narf::Chunk(world, sizeX, sizeY, sizeZ, pos_x, pos_y, pos_z),
 		vbo_(GL_ARRAY_BUFFER, GL_STATIC_DRAW)
 	{
 	}

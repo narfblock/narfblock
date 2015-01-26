@@ -54,14 +54,14 @@ public:
 
 	Chunk(
 		World *world,
-		uint32_t sizeX, uint32_t sizeY, uint32_t sizeZ,
-		uint32_t pos_x, uint32_t pos_y, uint32_t pos_z) :
+		int32_t sizeX, int32_t sizeY, int32_t sizeZ,
+		int32_t pos_x, int32_t pos_y, int32_t pos_z) :
 		world_(world),
 		sizeX_(sizeX), sizeY_(sizeY), sizeZ_(sizeZ),
 		pos_x_(pos_x), pos_y_(pos_y), pos_z_(pos_z),
 		dirty_(false)
 	{
-		blocks_ = (Block*)calloc(sizeX_ * sizeY_ * sizeZ_, sizeof(Block));
+		blocks_ = (Block*)calloc(static_cast<size_t>(sizeX_ * sizeY_ * sizeZ_), sizeof(Block));
 	}
 
 	virtual ~Chunk()
@@ -108,7 +108,7 @@ protected:
 	bool dirty_;
 
 	void fillRectPrism(const BlockCoord& c1, const BlockCoord& c2, uint8_t block_id);
-	void fillXYPlane(uint32_t z, uint8_t block_id);
+	void fillXYPlane(int32_t z, uint8_t block_id);
 };
 
 } // namespace narf

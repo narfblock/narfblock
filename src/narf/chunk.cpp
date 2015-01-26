@@ -52,7 +52,7 @@ void narf::Chunk::fillRectPrism(const BlockCoord& c1, const BlockCoord& c2, uint
 	}
 }
 
-void narf::Chunk::fillXYPlane(uint32_t z, uint8_t block_id) {
+void narf::Chunk::fillXYPlane(int32_t z, uint8_t block_id) {
 	BlockCoord c1(0, 0, z);
 	BlockCoord c2(sizeX_, sizeY_, z + 1);
 	fillRectPrism(c1, c2, block_id);
@@ -69,8 +69,8 @@ void narf::Chunk::generate() {
 
 void narf::Chunk::serialize(narf::ByteStreamWriter& s) {
 	// TODO: use a CoordIter
-	size_t numBlocks = sizeX_ * sizeY_ * sizeZ_;
-	for (size_t i = 0; i < numBlocks; i++) {
+	int32_t numBlocks = sizeX_ * sizeY_ * sizeZ_;
+	for (int32_t i = 0; i < numBlocks; i++) {
 		uint16_t tmp16 = blocks_[i].id;
 		s.writeLE(tmp16);
 	}
@@ -79,8 +79,8 @@ void narf::Chunk::serialize(narf::ByteStreamWriter& s) {
 
 void narf::Chunk::deserialize(narf::ByteStreamReader& s) {
 	// TODO: add optimized array read
-	size_t numBlocks = sizeX_ * sizeY_ * sizeZ_;
-	for (size_t i = 0; i < numBlocks; i++) {
+	int32_t numBlocks = sizeX_ * sizeY_ * sizeZ_;
+	for (int32_t i = 0; i < numBlocks; i++) {
 		uint16_t id;
 		if (!s.readLE(&id)) {
 			// TODO: chunk invalid

@@ -110,7 +110,7 @@ int main(int argc, char **argv)
 		printf("%u,%u,%u\n", c.x, c.y, c.z);
 	}
 
-#define TEST_ILOG2(n) printf("ilog2(%u) = %u (%s)\n", n, narf::ilog2(n), narf::ilog2(n) == (uint32_t)(log((double)n) / log(2.0)) ? "OK" : "FAIL")
+#define TEST_ILOG2(n) printf("ilog2(%u) = %u (%s)\n", n, narf::ilog2(n), narf::ilog2(n) == (int32_t)(log((double)n) / log(2.0)) ? "OK" : "FAIL")
 
 	TEST_ILOG2(0);
 	TEST_ILOG2(1);

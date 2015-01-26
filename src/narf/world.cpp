@@ -50,16 +50,16 @@ narf::World::World(int32_t sizeX, int32_t sizeY, int32_t sizeZ, int32_t chunkSiz
 	chunkShiftZ_ = ilog2(chunkSizeZ);
 
 	// block masks to get block coords within chunk from world coords
-	blockMaskX_ = (1u << chunkShiftX_) - 1;
-	blockMaskY_ = (1u << chunkShiftY_) - 1;
-	blockMaskZ_ = (1u << chunkShiftZ_) - 1;
+	blockMaskX_ = (1 << chunkShiftX_) - 1;
+	blockMaskY_ = (1 << chunkShiftY_) - 1;
+	blockMaskZ_ = (1 << chunkShiftZ_) - 1;
 
 	// calculate size of world in chunks
 	chunksX_ = sizeX_ / chunkSizeX;
 	chunksY_ = sizeY_ / chunkSizeY;
 	chunksZ_ = sizeZ_ / chunkSizeZ;
 
-	chunks_ = (Chunk**)calloc(chunksX_ * chunksY_ * chunksZ_, sizeof(Chunk*));
+	chunks_ = (Chunk**)calloc(static_cast<size_t>(chunksX_ * chunksY_ * chunksZ_), sizeof(Chunk*));
 
 	// initialize block types
 	// TODO: put this in a config file
@@ -172,7 +172,7 @@ void narf::World::calcChunkCoords(const narf::BlockCoord& wbc, ChunkCoord& cc, n
 }
 
 
-narf::Chunk *narf::World::newChunk(uint32_t chunk_x, uint32_t chunk_y, uint32_t chunk_z) {
+narf::Chunk *narf::World::newChunk(int32_t chunk_x, int32_t chunk_y, int32_t chunk_z) {
 	return new Chunk(
 		this,
 		chunkSizeX_, chunkSizeY_, chunkSizeZ_,

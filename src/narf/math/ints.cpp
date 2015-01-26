@@ -9,3 +9,8 @@ uint32_t narf::ilog2(uint32_t v) {
 	}
 	return msb;
 }
+
+
+int32_t narf::ilog2(int32_t v) {
+	return (int32_t)ilog2((uint32_t)v);
+}

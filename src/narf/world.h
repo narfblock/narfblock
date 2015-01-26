@@ -111,8 +111,8 @@ protected:
 	int32_t chunkSizeX_, chunkSizeY_, chunkSizeZ_;
 
 	int32_t chunksX_, chunksY_, chunksZ_; // size of the world in chunks
-	uint32_t chunkShiftX_, chunkShiftY_, chunkShiftZ_;
-	uint32_t blockMaskX_, blockMaskY_, blockMaskZ_;
+	int32_t chunkShiftX_, chunkShiftY_, chunkShiftZ_;
+	int32_t blockMaskX_, blockMaskY_, blockMaskZ_;
 
 	float gravity_;
 
@@ -132,7 +132,7 @@ protected:
 
 	void calcChunkCoords(const BlockCoord& wbc, ChunkCoord& cc, Chunk::BlockCoord& cbc) const;
 
-	virtual Chunk *newChunk(uint32_t chunkX, uint32_t chunkY, uint32_t chunkZ);
+	virtual Chunk *newChunk(int32_t chunkX, int32_t chunkY, int32_t chunkZ);
 
 };
 

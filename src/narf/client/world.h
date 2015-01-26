@@ -52,7 +52,7 @@ namespace client {
 class World : public narf::World {
 public:
 
-	World(uint32_t sizeX, uint32_t sizeY, uint32_t sizeZ, uint32_t chunkSizeX, uint32_t chunkSizeY, uint32_t chunkSizeZ) :
+	World(int32_t sizeX, int32_t sizeY, int32_t sizeZ, int32_t chunkSizeX, int32_t chunkSizeY, int32_t chunkSizeZ) :
 		narf::World(sizeX, sizeY, sizeZ, chunkSizeX, chunkSizeY, chunkSizeZ), renderDistance(1)
 	{
 	}
@@ -66,7 +66,7 @@ public:
 	int32_t renderDistance; // radius in chunks
 
 protected:
-	Chunk *newChunk(uint32_t chunk_x, uint32_t chunk_y, uint32_t chunk_z) override {
+	Chunk *newChunk(int32_t chunk_x, int32_t chunk_y, int32_t chunk_z) override {
 		return new narf::client::Chunk(this,
 		                 chunkSizeX_, chunkSizeY_, chunkSizeZ_,
 		                 chunk_x * chunkSizeX_, chunk_y * chunkSizeY_, chunk_z * chunkSizeZ_);

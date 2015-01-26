@@ -98,9 +98,9 @@ bool narf::Entity::update(narf::timediff dt)
 	// size of entity aabb
 	// + 1 to round up
 	// + 1 since CoordIter iterates up to but not including
-	int32_t sx = 2u + (int32_t)(halfSize.x * 2.0f);
-	int32_t sy = 2u + (int32_t)(halfSize.y * 2.0f);
-	int32_t sz = 2u + (int32_t)(halfSize.z * 2.0f);
+	int32_t sx = 2 + (int32_t)(halfSize.x * 2.0f);
+	int32_t sy = 2 + (int32_t)(halfSize.y * 2.0f);
+	int32_t sz = 2 + (int32_t)(halfSize.z * 2.0f);
 
 	ZYXCoordIter<BlockCoord> iter(
 		{c.x, c.y, c.z},

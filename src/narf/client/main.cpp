@@ -632,7 +632,7 @@ void sim_frame(const narf::Input &input, narf::timediff dt)
 
 	if (traceHitBlock) {
 		if (input.actionPrimaryBegin() || input.actionSecondaryBegin()) {
-			narf::BlockCoord wbc(static_cast<uint32_t>(selectedBlockFace.x), static_cast<uint32_t>(selectedBlockFace.y), static_cast<uint32_t>(selectedBlockFace.z));
+			narf::BlockCoord wbc(selectedBlockFace.x, selectedBlockFace.y, selectedBlockFace.z);
 			if (input.actionPrimaryBegin()) {
 				// remove block at cursor
 				narf::PlayerCommand cmd(narf::PlayerCommand::Type::PrimaryAction);
