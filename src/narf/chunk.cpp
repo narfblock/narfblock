@@ -34,11 +34,28 @@
 #include "narf/world.h"
 #include "narf/console.h"
 
+
+narf::Chunk::Chunk(World* world, const Vector3<int32_t>& size, const ChunkCoord& pos) :
+	world_(world), size_(size), pos_(pos) {
+	blocks_ = (Block*)calloc(static_cast<size_t>(size_.x * size_.y * size_.z), sizeof(Block));
+	posBlocks_.x = pos_.x * world->chunkSizeX();
+	posBlocks_.y = pos_.y * world->chunkSizeY();
+	posBlocks_.z = pos_.z * world->chunkSizeZ();
+}
+
+
+narf::Chunk::~Chunk() {
+	free(blocks_);
+}
+
+
 void narf::Chunk::putBlock(const Block *b, const BlockCoord& c) {
-	Block *to_replace = &blocks_[c.z * sizeX_ * sizeY_ + c.y * sizeX_ + c.x];
+	Block *to_replace = &blocks_[c.z * size_.x * size_.y + c.y * size_.x + c.x];
 	if (!world_->getBlockType(to_replace->id)->indestructible) {
 		*to_replace = *b;
-		markDirty();
+		if (world_->blockUpdate) {
+			world_->blockUpdate(c + posBlocks_);
+		}
 	}
 }
 
@@ -54,22 +71,22 @@ void narf::Chunk::fillRectPrism(const BlockCoord& c1, const BlockCoord& c2, uint
 
 void narf::Chunk::fillXYPlane(int32_t z, uint8_t block_id) {
 	BlockCoord c1(0, 0, z);
-	BlockCoord c2(sizeX_, sizeY_, z + 1);
+	BlockCoord c2(size_.x, size_.y, z + 1);
 	fillRectPrism(c1, c2, block_id);
 }
 
 void narf::Chunk::generate() {
-	if (pos_z_ == 0) {
+	if (pos_.z == 0) {
 		fillXYPlane(0, 1); // adminium
-		fillRectPrism({0, 0, 1}, {sizeX_, sizeY_, sizeZ_ - 1}, 2); // dirt
-		fillXYPlane(sizeZ_ - 1, 3); // dirt with grass
+		fillRectPrism({0, 0, 1}, {size_.x, size_.y, size_.z - 1}, 2); // dirt
+		fillXYPlane(size_.z - 1, 3); // dirt with grass
 	}
 }
 
 
 void narf::Chunk::serialize(narf::ByteStreamWriter& s) {
 	// TODO: use a CoordIter
-	int32_t numBlocks = sizeX_ * sizeY_ * sizeZ_;
+	int32_t numBlocks = size_.x * size_.y * size_.z;
 	for (int32_t i = 0; i < numBlocks; i++) {
 		uint16_t tmp16 = blocks_[i].id;
 		s.writeLE(tmp16);
@@ -79,7 +96,7 @@ void narf::Chunk::serialize(narf::ByteStreamWriter& s) {
 
 void narf::Chunk::deserialize(narf::ByteStreamReader& s) {
 	// TODO: add optimized array read
-	int32_t numBlocks = sizeX_ * sizeY_ * sizeZ_;
+	int32_t numBlocks = size_.x * size_.y * size_.z;
 	for (int32_t i = 0; i < numBlocks; i++) {
 		uint16_t id;
 		if (!s.readLE(&id)) {
@@ -90,5 +107,7 @@ void narf::Chunk::deserialize(narf::ByteStreamReader& s) {
 		}
 		blocks_[i].id = static_cast<narf::BlockTypeId>(id);
 	}
-	markDirty();
+	if (world_->chunkUpdate) {
+		world_->chunkUpdate(pos_);
+	}
 }

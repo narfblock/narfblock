@@ -1,5 +1,6 @@
 #include "narf/version.h"
 #include "narf/bytestream.h"
+#include "narf/chunkcache.h"
 #include "narf/cursesconsole.h"
 #include "narf/gameloop.h"
 #include "narf/playercmd.h"
@@ -58,10 +59,47 @@ narf::World *world;
 #define WORLD_Z_MAX 64
 
 
+// server chunk state
+// TODO: track which clients have received which chunks
+class ChunkState {
+public:
+	ChunkState() : dirty(true) {}
+	~ChunkState() {}
+
+	bool dirty;
+};
+
+narf::ChunkCache<narf::ChunkCoord, ChunkState> chunkCache;
+
+
+void chunkUpdate(const narf::ChunkCoord& cc) {
+	// TODO: total hax
+	auto chunkState = chunkCache.get(cc);
+	if (!chunkState) {
+		chunkCache.put(cc, ChunkState());
+		chunkState = chunkCache.get(cc);
+	}
+	if (chunkState) {
+		chunkState->dirty = true;
+	}
+}
+
+
+void blockUpdate(const narf::BlockCoord& wbc) {
+	narf::ChunkCoord cc;
+	narf::Chunk::BlockCoord cbc;
+	world->calcChunkCoords(wbc, cc, cbc);
+	chunkUpdate(cc);
+}
+
+
 // TODO: this is copied from client
 void genWorld() {
 	world = new narf::World(WORLD_X_MAX, WORLD_Y_MAX, WORLD_Z_MAX, 16, 16, 16);
 	world->setGravity(-24.0f);
+
+	world->chunkUpdate = chunkUpdate;
+	world->blockUpdate = blockUpdate;
 }
 
 
@@ -101,9 +139,26 @@ void tellAll(const Client* from, const std::string& text) {
 }
 
 
-void sendChunkUpdate(const Client* to, const narf::World::ChunkCoord& wcc, bool dirtyOnly) {
+bool clientChunkDirty(const Client* client, const narf::ChunkCoord& cc) {
+	auto chunkState = chunkCache.get(cc);
+	if (chunkState) {
+		return chunkState->dirty;
+	}
+	return false;
+}
+
+
+void markClientChunkClean(const Client* client, const narf::ChunkCoord& cc) {
+	auto chunkState = chunkCache.get(cc);
+	if (chunkState && chunkState->dirty) {
+		chunkState->dirty = false;
+	}
+}
+
+
+void sendChunkUpdate(const Client* to, const narf::ChunkCoord& wcc, bool dirtyOnly) {
 	auto chunk = world->getChunk(wcc);
-	if (!dirtyOnly || chunk->dirty()) {
+	if (!dirtyOnly || clientChunkDirty(to, wcc)) {
 		narf::ByteStreamWriter bs;
 		world->serializeChunk(bs, wcc);
 		auto packet = enet_packet_create(bs.data(), bs.size(), ENET_PACKET_FLAG_RELIABLE);
@@ -113,9 +168,14 @@ void sendChunkUpdate(const Client* to, const narf::World::ChunkCoord& wcc, bool 
 
 
 void markChunksClean() {
-	narf::ZYXCoordIter<narf::World::ChunkCoord> iter({ 0, 0, 0 }, { world->chunksX(), world->chunksY(), world->chunksZ() });
+	narf::ZYXCoordIter<narf::ChunkCoord> iter({ 0, 0, 0 }, { world->chunksX(), world->chunksY(), world->chunksZ() });
 	for (const auto& wcc : iter) {
-		world->getChunk(wcc)->markClean();
+		for (size_t i = 0; i < game->maxClients; i++) {
+			auto client = &game->clients[i];
+			if (client->peer) {
+				markClientChunkClean(client, wcc);
+			}
+		}
 	}
 }
 
@@ -180,7 +240,7 @@ void ServerGameLoop::processConnect(ENetEvent& evt) {
 	tellAll(nullptr, "Client connected from " + narf::net::to_string(evt.peer->address));
 
 	// send all chunks (!!)
-	narf::ZYXCoordIter<narf::World::ChunkCoord> iter({ 0, 0, 0 }, { world->chunksX(), world->chunksY(), world->chunksZ() });
+	narf::ZYXCoordIter<narf::ChunkCoord> iter({ 0, 0, 0 }, { world->chunksX(), world->chunksY(), world->chunksZ() });
 	for (const auto& wcc : iter) {
 		sendChunkUpdate(client, wcc, false);
 	}
@@ -283,7 +343,7 @@ void ServerGameLoop::tick(narf::timediff dt) {
 	for (size_t i = 0; i < maxClients; i++) {
 		auto client = &clients[i];
 		if (client->peer) {
-			narf::ZYXCoordIter<narf::World::ChunkCoord> iter({ 0, 0, 0 }, { world->chunksX(), world->chunksY(), world->chunksZ() });
+			narf::ZYXCoordIter<narf::ChunkCoord> iter({ 0, 0, 0 }, { world->chunksX(), world->chunksY(), world->chunksZ() });
 			for (const auto& wcc : iter) {
 				sendChunkUpdate(client, wcc, true);
 			}

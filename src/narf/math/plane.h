@@ -44,7 +44,7 @@ namespace narf {
 		}
 
 		bool containsPoint(const Point3<T>& p) const {
-			return almostEqual(distanceTo(p), 0);
+			return almostEqual(distanceTo(p), 0.0f);
 		}
 
 		// find nearest point on plane to another point

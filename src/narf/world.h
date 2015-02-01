@@ -51,26 +51,23 @@ namespace narf {
 class World {
 friend class EntityRef;
 public:
-	// chunk coordinate (in units of chunks) within world
-	typedef Point3<int32_t> ChunkCoord;
-
 	World(int32_t sizeX, int32_t sizeY, int32_t sizeZ, int32_t chunkSizeX, int32_t chunkSizeY, int32_t chunkSizeZ);
 
-	virtual ~World();
+	~World();
 
 	void serialize(ByteStreamWriter& s);
 	void deserialize(ByteStreamReader& s);
 
 	// TODO: make these private
 	void serializeChunk(ByteStreamWriter& s, const ChunkCoord& wcc);
-	virtual void deserializeChunk(ByteStreamReader& s, ChunkCoord& wcc);
+	void deserializeChunk(ByteStreamReader& s, ChunkCoord& wcc);
 
 	bool validCoords(const BlockCoord& wbc) const;
 
 	const Block* getBlockUnchecked(const BlockCoord& c);
 	const Block* getBlock(const BlockCoord& c);
 
-	virtual void putBlockUnchecked(const Block* b, const BlockCoord& c);
+	void putBlockUnchecked(const Block* b, const BlockCoord& c);
 	void putBlock(const Block* b, const BlockCoord& c);
 
 	bool isOpaqueUnchecked(const BlockCoord& c);
@@ -83,6 +80,10 @@ public:
 	int32_t chunksX() const { return chunksX_; }
 	int32_t chunksY() const { return chunksY_; }
 	int32_t chunksZ() const { return chunksZ_; }
+
+	int32_t chunkSizeX() const { return chunkSizeX_; }
+	int32_t chunkSizeY() const { return chunkSizeY_; }
+	int32_t chunkSizeZ() const { return chunkSizeZ_; }
 
 	void setGravity(float g) { gravity_ = g; }
 	float getGravity() { return gravity_; }
@@ -101,6 +102,15 @@ public:
 
 	// TODO: make this private again
 	Chunk *getChunk(const ChunkCoord& cc);
+
+	void calcChunkCoords(const BlockCoord& wbc, ChunkCoord& cc, Chunk::BlockCoord& cbc) const;
+	BlockCoord calcBlockCoords(const ChunkCoord& cc) const;
+
+	// TODO
+	const std::vector<Entity>& getEntities() const { return entities_; }
+
+	std::function<void(const BlockCoord&)> blockUpdate;
+	std::function<void(const ChunkCoord&)> chunkUpdate;
 
 protected:
 
@@ -130,10 +140,8 @@ protected:
 	BlockTypeId numBlockTypes_;
 	std::vector<BlockType> blockTypes_;
 
-	void calcChunkCoords(const BlockCoord& wbc, ChunkCoord& cc, Chunk::BlockCoord& cbc) const;
 
-	virtual Chunk *newChunk(int32_t chunkX, int32_t chunkY, int32_t chunkZ);
-
+	Chunk *newChunk(int32_t chunkX, int32_t chunkY, int32_t chunkZ);
 };
 
 } // namespace narf

@@ -1,7 +1,7 @@
 /*
- * NarfBlock client world class
+ * NarfBlock chunk cache
  *
- * Copyright (c) 2013 Daniel Verkamp
+ * Copyright (c) 2015 Daniel Verkamp
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,54 +30,51 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef NARF_CLIENT_WORLD_H
-#define NARF_CLIENT_WORLD_H
+#ifndef NARF_CHUNK_CACHE_H
+#define NARF_CHUNK_CACHE_H
 
 #include <stdint.h>
 #include <stdlib.h>
 #include <assert.h>
-#include <math.h> // TODO: for log; remove later
 
-#include "narf/world.h"
+#include <unordered_map>
+#include <vector>
 
-#include "narf/client/chunk.h"
-#include "narf/camera.h"
-#include "narf/math/math.h"
-
-#include "narf/gl/gl.h"
+#include "narf/math/coord3D.h"
 
 namespace narf {
-namespace client {
 
-class World : public narf::World {
+/*
+ * ChunkCache is a data structure for storing items indexed by coordinate.
+ */
+template<typename CoordType, typename StoredType>
+class ChunkCache {
 public:
+	ChunkCache() {}
+	~ChunkCache() {}
 
-	World(int32_t sizeX, int32_t sizeY, int32_t sizeZ, int32_t chunkSizeX, int32_t chunkSizeY, int32_t chunkSizeZ) :
-		narf::World(sizeX, sizeY, sizeZ, chunkSizeX, chunkSizeY, chunkSizeZ), renderDistance(1)
-	{
+	StoredType* get(const CoordType& c) {
+		auto p = storage_.find(c);
+		if (p == storage_.end()) {
+			return nullptr;
+		}
+		return &p->second;
 	}
 
-	void deserializeChunk(ByteStreamReader& s, ChunkCoord& wcc) override;
-
-	void render(narf::gl::Texture *tiles_tex, const narf::Camera *cam, float stateBlend);
-
-	void putBlockUnchecked(const Block *b, const BlockCoord& wbc) override;
-
-	int32_t renderDistance; // radius in chunks
-
-protected:
-	Chunk *newChunk(int32_t chunk_x, int32_t chunk_y, int32_t chunk_z) override {
-		return new narf::client::Chunk(this,
-		                 chunkSizeX_, chunkSizeY_, chunkSizeZ_,
-		                 chunk_x * chunkSizeX_, chunk_y * chunkSizeY_, chunk_z * chunkSizeZ_);
+	void put(const CoordType& c, StoredType&& value) {
+		storage_.emplace(c, value);
 	}
 
-	Chunk *getChunk(const narf::World::ChunkCoord& wcc) {
-		return static_cast<narf::client::Chunk*>(narf::World::getChunk(wcc));
+	void setSize(size_t numElements) {
+		// TODO: drop LRU stuff if shrinking
+		storage_.reserve(numElements);
 	}
+
+private:
+	std::unordered_map<CoordType, StoredType> storage_;
+	// TODO: keep track of LRU
 };
 
-} // namespace client
 } // namespace narf
 
-#endif // NARF_CLIENT_WORLD_H
+#endif // NARF_CHUNK_CACHE_H

@@ -6,6 +6,7 @@
 #include <math.h>
 #include <assert.h>
 #include "narf/math/floats.h"
+#include "narf/math/ints.h"
 #include "narf/math/orientation.h"
 
 namespace narf {
@@ -171,6 +172,23 @@ namespace narf {
 			}
 
 			return n;
+		}
+	};
+}
+
+
+namespace std {
+	template<typename T>
+	struct hash<narf::Point3<T> > {
+		typedef narf::Point3<T> argument_type;
+		typedef size_t result_type;
+
+		result_type operator()(const argument_type& p) const {
+			const auto h1(hash<T>()(p.x));
+			const auto h2(hash<T>()(p.y));
+			const auto h3(hash<T>()(p.z));
+			// TODO: maybe use a better method to mix these hashes
+			return h1 ^ (h2 << 1) ^ (h3 << 2);
 		}
 	};
 }

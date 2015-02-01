@@ -46,28 +46,17 @@ namespace narf {
 
 class World;
 
+// chunk coordinate (in units of chunks) within world
+typedef Point3<int32_t> ChunkCoord;
+
 class Chunk {
 public:
 
 	// block coordinate within chunk
 	typedef Point3<int32_t> BlockCoord;
 
-	Chunk(
-		World *world,
-		int32_t sizeX, int32_t sizeY, int32_t sizeZ,
-		int32_t pos_x, int32_t pos_y, int32_t pos_z) :
-		world_(world),
-		sizeX_(sizeX), sizeY_(sizeY), sizeZ_(sizeZ),
-		pos_x_(pos_x), pos_y_(pos_y), pos_z_(pos_z),
-		dirty_(false)
-	{
-		blocks_ = (Block*)calloc(static_cast<size_t>(sizeX_ * sizeY_ * sizeZ_), sizeof(Block));
-	}
-
-	virtual ~Chunk()
-	{
-		free(blocks_);
-	}
+	Chunk(World *world, const Vector3<int32_t>& size, const ChunkCoord& pos);
+	~Chunk();
 
 	void serialize(ByteStreamWriter& s);
 	void deserialize(ByteStreamReader& s);
@@ -80,11 +69,11 @@ public:
 		assert(c.x >= 0);
 		assert(c.y >= 0);
 		assert(c.z >= 0);
-		assert(c.x < sizeX_);
-		assert(c.y < sizeY_);
-		assert(c.z < sizeZ_);
+		assert(c.x < size_.x);
+		assert(c.y < size_.y);
+		assert(c.z < size_.z);
 
-		return &blocks_[((c.z * sizeY_) + c.y) * sizeX_ + c.x];
+		return &blocks_[((c.z * size_.y) + c.y) * size_.x + c.x];
 	}
 
 	void putBlock(const Block *b, const BlockCoord& c);
@@ -94,18 +83,13 @@ public:
 		return getBlock(c)->id != 0;
 	}
 
-	bool dirty() const { return dirty_; }
-	void markDirty() { dirty_ = true; }
-	void markClean() { dirty_ = false; }
-
 protected:
 	World *world_;
-	Block *blocks_; // sizeX_ by sizeY_ by sizeZ_ 3D array of blocks in this chunk
+	Block *blocks_; // size_.X by size_.Y by size_.Z 3D array of blocks in this chunk
 
-	int32_t sizeX_, sizeY_, sizeZ_; // size of this chunk in blocks
-	int32_t pos_x_, pos_y_, pos_z_; // position within the world of this chunk in blocks
-
-	bool dirty_;
+	Vector3<int32_t> size_; // size of this chunk in blocks
+	ChunkCoord pos_; // position within the world of this chunk in chunks
+	BlockCoord posBlocks_; // position within the world of this chunk in blocks
 
 	void fillRectPrism(const BlockCoord& c1, const BlockCoord& c2, uint8_t block_id);
 	void fillXYPlane(int32_t z, uint8_t block_id);

@@ -152,9 +152,8 @@ if (CLIENT)
 		narf/texture-font.cpp
 
 		narf/client/main.cpp
-		narf/client/chunk.cpp
 		narf/client/console.cpp
-		narf/client/world.cpp
+		narf/client/renderer.cpp
 		)
 
 	if (WIN32)

@@ -35,8 +35,7 @@
 #include "narf/util/tokenize.h"
 
 #include "narf/client/console.h"
-#include "narf/client/world.h"
-#include "narf/client/chunk.h"
+#include "narf/client/renderer.h"
 
 #include "narf/gl/gl.h"
 
@@ -55,7 +54,8 @@ narf::Camera cam;
 
 const float movespeed = 25.0f;
 
-narf::client::World *world = nullptr;
+narf::World* world = nullptr;
+narf::Renderer* renderer = nullptr;
 
 #define WORLD_X_MAX 64
 #define WORLD_Y_MAX 64
@@ -133,8 +133,8 @@ void configEvent(const std::string& key) {
 	// TODO: this could be done better...
 	narf::console->println("onPropertyChanged(" + key + ")");
 	if (key == "video.renderDistance") {
-		world->renderDistance = config.getInt32(key);
-		narf::console->println("Setting renderDistance to " + std::to_string(world->renderDistance));
+		renderer->setRenderDistance(config.getInt32(key));
+		narf::console->println("Setting renderDistance to " + std::to_string(renderer->getRenderDistance()));
 	} else if (key == "video.consoleCursorShape") {
 		auto shapeStr = config.getString(key);
 		clientConsole->setCursorShape(narf::ClientConsole::cursorShapeFromString(shapeStr));
@@ -313,7 +313,7 @@ void draw3d(float stateBlend) {
 	if (fog) {
 		glFogi(GL_FOG_MODE, GL_LINEAR);
 		glHint(GL_FOG_HINT, GL_DONT_CARE);
-		auto renderDistance = float(world->renderDistance - 1) * 16.0f; // TODO - don't hardcode chunk size
+		auto renderDistance = float(renderer->getRenderDistance() - 1) * 16.0f; // TODO - don't hardcode chunk size
 		auto fogStart = std::max(renderDistance - 48.0f, 8.0f);
 		auto fogEnd = std::max(renderDistance, 16.0f);
 		glFogf(GL_FOG_START, fogStart);
@@ -325,7 +325,7 @@ void draw3d(float stateBlend) {
 
 	glEnable(GL_TEXTURE_2D);
 
-	world->render(tilesTex, &cam, stateBlend);
+	renderer->render(cam, stateBlend);
 
 	if (selectedBlockFace.block) {
 		// draw a selection rectangle
@@ -699,6 +699,10 @@ void processConnect(ENetEvent& evt) {
 
 	// reset the world
 	newWorld();
+
+	// TODO: put this somewhere common
+	delete renderer;
+	renderer = new narf::Renderer(world, tilesTex);
 }
 
 
@@ -720,7 +724,7 @@ void processChat(ENetEvent& evt) {
 
 void processChunk(ENetEvent& evt) {
 	narf::ByteStreamReader bs(evt.packet->data, evt.packet->dataLength);
-	narf::World::ChunkCoord wcc;
+	narf::ChunkCoord wcc;
 	world->deserializeChunk(bs, wcc);
 }
 
@@ -844,8 +848,25 @@ void newWorld()
 	playerEID = narf::Entity::InvalidID;
 	bouncyBlockEID = narf::Entity::InvalidID;
 
-	world = new narf::client::World(WORLD_X_MAX, WORLD_Y_MAX, WORLD_Z_MAX, 16, 16, 16);
+	world = new narf::World(WORLD_X_MAX, WORLD_Y_MAX, WORLD_Z_MAX, 16, 16, 16);
 
+	world->chunkUpdate = [](const narf::ChunkCoord& cc) {
+		if (renderer) {
+			renderer->chunkUpdate(cc);
+		}
+	};
+
+	world->blockUpdate = [](const narf::BlockCoord& wbc) {
+		if (renderer) {
+			renderer->blockUpdate(wbc);
+		}
+	};
+	world->setGravity(-24.0f);
+}
+
+
+// TODO: move this to shared code
+void genWorld() {
 	uint8_t stone2 = 7; // TODO HAX
 
 	for (int z = 16; z < 23; z++) {
@@ -874,8 +895,6 @@ void newWorld()
 		world->putBlock(&b, {5, 5 + i, 16});
 		world->putBlock(&b, {5 + i, 15, 16});
 	}
-
-	world->setGravity(-24.0f);
 }
 
 
@@ -1110,8 +1129,6 @@ extern "C" int main(int argc, char **argv)
 	srand(0x1234);
 	newWorld();
 
-	config.initInt32("video.renderDistance", 5);
-
 	playerEID = world->newEntity();
 	{
 		narf::EntityRef player(world, playerEID);
@@ -1138,6 +1155,12 @@ extern "C" int main(int argc, char **argv)
 		fatalError("init_textures() failed");
 		return 1;
 	}
+
+	renderer = new narf::Renderer(world, tilesTex);
+
+	genWorld();
+
+	config.initInt32("video.renderDistance", 5);
 
 	fpsTextBuffer = new narf::font::TextBuffer(nullptr);
 	blockInfoBuffer = new narf::font::TextBuffer(nullptr);

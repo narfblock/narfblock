@@ -155,9 +155,7 @@ bool narf::World::isOpaque(const narf::BlockCoord& wbc) {
 void narf::World::calcChunkCoords(const narf::BlockCoord& wbc, ChunkCoord& cc, narf::Chunk::BlockCoord& cbc) const {
 	assert(wbc.x >= 0);
 	assert(wbc.y >= 0);
-	if (wbc.z < 0) { // TODO REMOVEME
-		assert(wbc.z >= 0);
-	}
+	assert(wbc.z >= 0);
 	assert(wbc.x < sizeX_);
 	assert(wbc.y < sizeY_);
 	assert(wbc.z < sizeZ_);
@@ -172,15 +170,30 @@ void narf::World::calcChunkCoords(const narf::BlockCoord& wbc, ChunkCoord& cc, n
 }
 
 
-narf::Chunk *narf::World::newChunk(int32_t chunk_x, int32_t chunk_y, int32_t chunk_z) {
-	return new Chunk(
-		this,
-		chunkSizeX_, chunkSizeY_, chunkSizeZ_,
-		chunk_x * chunkSizeX_, chunk_y * chunkSizeY_, chunk_z * chunkSizeZ_);
+narf::BlockCoord narf::World::calcBlockCoords(const ChunkCoord& cc) const {
+	assert(cc.x >= 0);
+	assert(cc.y >= 0);
+	assert(cc.z >= 0);
+	assert(cc.x < chunksX_);
+	assert(cc.y < chunksY_);
+	assert(cc.z < chunksZ_);
+
+	return BlockCoord{cc.x << chunkShiftX_, cc.y << chunkShiftY_, cc.z << chunkShiftZ_};
 }
 
 
-narf::Chunk *narf::World::getChunk(const narf::World::ChunkCoord& wcc) {
+narf::Chunk *narf::World::newChunk(int32_t chunk_x, int32_t chunk_y, int32_t chunk_z) {
+	return new Chunk(
+		this,
+		Vector3<int32_t>{chunkSizeX_, chunkSizeY_, chunkSizeZ_},
+		ChunkCoord{chunk_x, chunk_y, chunk_z});
+}
+
+
+narf::Chunk *narf::World::getChunk(const narf::ChunkCoord& wcc) {
+	assert(wcc.x >= 0);
+	assert(wcc.y >= 0);
+	assert(wcc.z >= 0);
 	assert(wcc.x < chunksX_);
 	assert(wcc.y < chunksY_);
 	assert(wcc.z < chunksZ_);
@@ -361,7 +374,7 @@ void narf::World::serialize(narf::ByteStreamWriter& s) {
 	}
 }
 
-void narf::World::deserializeChunk(ByteStreamReader& s, narf::World::ChunkCoord& wcc) {
+void narf::World::deserializeChunk(ByteStreamReader& s, narf::ChunkCoord& wcc) {
 	if (!s.readLE(&wcc.x) ||
 		!s.readLE(&wcc.y) ||
 		!s.readLE(&wcc.z)) {
@@ -374,7 +387,6 @@ void narf::World::deserializeChunk(ByteStreamReader& s, narf::World::ChunkCoord&
 	// TODO: sanity check pos
 
 	getChunk(wcc)->deserialize(s);
-	getChunk(wcc)->markDirty();
  }
 
 
@@ -401,7 +413,7 @@ void narf::World::deserialize(narf::ByteStreamReader& s) {
 	}
 
 	while (numChunks--) {
-		narf::World::ChunkCoord wcc;
+		narf::ChunkCoord wcc;
 		deserializeChunk(s, wcc);
 	}
 }

@@ -1,7 +1,7 @@
 /*
- * NarfBlock client chunk class
+ * NarfBlock world renderer
  *
- * Copyright (c) 2013 Daniel Verkamp
+ * Copyright (c) 2013-2015 Daniel Verkamp
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,24 +30,19 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef NARF_CLIENT_CHUNK_H
-#define NARF_CLIENT_CHUNK_H
+#ifndef NARF_CLIENT_RENDERER_H
+#define NARF_CLIENT_RENDERER_H
 
-#include <stdint.h>
-#include <stdlib.h>
-#include <assert.h>
-
+#include "narf/chunkcache.h"
 #include "narf/world.h"
 
-#include "narf/block.h"
-#include "narf/chunk.h"
-#include "narf/math/vector.h"
 #include "narf/gl/gl.h"
 
-namespace narf {
-namespace client {
+#include <stdint.h>
 
-class World;
+namespace narf {
+
+class Camera;
 
 struct BlockVertex {
 	GLfloat vertex[3];
@@ -55,32 +50,48 @@ struct BlockVertex {
 	GLfloat texcoord[2];
 };
 
-class Chunk : public narf::Chunk {
+class ChunkVBO {
 public:
+	ChunkVBO(const ChunkCoord& cc);
+	~ChunkVBO();
 
-	Chunk(
-		narf::World *world,
-		int32_t sizeX, int32_t sizeY, int32_t sizeZ,
-		int32_t pos_x, int32_t pos_y, int32_t pos_z) : narf::Chunk(world, sizeX, sizeY, sizeZ, pos_x, pos_y, pos_z),
-		vbo_(GL_ARRAY_BUFFER, GL_STATIC_DRAW)
-	{
-	}
-
-	~Chunk()
-	{
-	}
-
-	void render();
+	void render(World* world);
+	void markDirty();
 
 private:
-	narf::gl::Buffer<BlockVertex> vbo_;
+	gl::Buffer<BlockVertex> vbo_;
+	ChunkCoord cc_;
+	bool dirty_;
 
-	// internal rendering functions
-	void build_vertex_buffers();
-	void draw_quad(narf::gl::Buffer<BlockVertex> &vbo, const BlockTexCoord &texCoord, const float *quad);
+	void drawQuad(const BlockTexCoord& texCoord, const float* quad, float light);
+	void buildVBO(World* world);
 };
 
-} // namespace client
+
+class Renderer {
+public:
+	Renderer(World* world, gl::Texture* tilesTex /*TODO*/);
+
+	void setRenderDistance(int32_t numChunks);
+	int32_t getRenderDistance() const;
+
+	void render(const Camera& cam, float stateBlend);
+
+	void chunkUpdate(const ChunkCoord& cc);
+	void blockUpdate(const BlockCoord& wbc);
+
+private:
+	World* world_;
+	int32_t renderDistance_; // radius in chunks
+	gl::Texture* tilesTex_;
+	ChunkCache<ChunkCoord, ChunkVBO> vboCache_;
+
+	void renderChunk(const ChunkCoord& cc);
+	ChunkVBO* getChunkVBO(const ChunkCoord& cc);
+
+	void markChunkDirty(const ChunkCoord& cc);
+};
+
 } // namespace narf
 
-#endif // NARF_CLIENT_CHUNK_H
+#endif // NARF_CLIENT_RENDERER_H
