@@ -26,6 +26,10 @@ void narf::Input::processNormalEvent(const SDL_Event *event) {
 		break;
 
 	case SDL_KEYDOWN:
+		if (event->key.repeat) {
+			return;
+		}
+
 		switch (event->key.keysym.sym) {
 		case SDLK_RETURN:
 			if (event->key.keysym.mod & KMOD_ALT) {
