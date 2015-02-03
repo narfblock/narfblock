@@ -66,6 +66,9 @@ void narf::Input::processNormalEvent(const SDL_Event *event) {
 		case SDLK_SPACE:
 			jump_ = true;
 			break;
+		case SDLK_LSHIFT:
+			run_ = true;
+			break;
 		case SDLK_F1:
 			toggleWireframe_ = true;
 			break;
@@ -98,6 +101,9 @@ void narf::Input::processNormalEvent(const SDL_Event *event) {
 		case SDLK_q:
 			actionTernary_ = false;
 			actionTernaryEnd_ = true;
+			break;
+		case SDLK_LSHIFT:
+			run_ = false;
 			break;
 		}
 		break;

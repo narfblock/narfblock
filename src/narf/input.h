@@ -28,6 +28,7 @@ public:
 		strafeRight_(false),
 		lastStrafe_(LastStrafeNeither),
 		jump_(false),
+		run_(false),
 		exit_(false),
 		actionPrimary_(false),
 		actionPrimaryBegin_(false),
@@ -55,6 +56,7 @@ public:
 	bool moveBackward() const { return moveBackward_ && (lastMove_ == LastMoveBackward || !moveForward_); }
 
 	bool jump() const { return jump_; }
+	bool run() const { return run_; }
 	bool exit() const { return exit_; }
 
 	bool actionPrimary() const { return actionPrimary_; }
@@ -102,7 +104,7 @@ private:
 	enum { LastStrafeNeither, LastStrafeLeft, LastStrafeRight } lastStrafe_;
 
 	bool jump_;
-
+	bool run_;
 	bool exit_;
 
 	bool actionPrimary_; // left click

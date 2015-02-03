@@ -54,6 +54,7 @@ narf::IniFile config;
 narf::Camera cam;
 
 const float movespeed = 25.0f;
+const float runspeed = 500.0f;
 
 narf::World* world = nullptr;
 narf::Renderer* renderer = nullptr;
@@ -581,7 +582,7 @@ void sim_frame(const narf::Input &input, narf::timediff dt)
 		}
 
 		// normalize so that diagonal movement is not faster than cardinal directions
-		vel_rel = vel_rel.normalize() * movespeed;
+		vel_rel = vel_rel.normalize() * (input.run() ? runspeed : movespeed);
 
 		if (input.jump()) {
 			if (player->onGround) {
