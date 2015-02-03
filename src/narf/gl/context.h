@@ -45,7 +45,7 @@ public:
 
 	Context();
 
-	bool setDisplayMode(const char *title, uint32_t width, uint32_t height, bool fullscreen);
+	bool setDisplayMode(const char *title, int32_t width, int32_t height, bool fullscreen);
 
 	void updateViewport();
 
@@ -57,8 +57,8 @@ public:
 
 	void toggleFullscreen();
 
-	uint32_t width() const;
-	uint32_t height() const;
+	int32_t width() const;
+	int32_t height() const;
 
 private:
 	SDL_Window *window_;

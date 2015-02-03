@@ -196,7 +196,7 @@ float clampf(float val, float min, float max)
 }
 
 
-bool initVideo(uint32_t w, uint32_t h, bool fullscreen)
+bool initVideo(int32_t w, int32_t h, bool fullscreen)
 {
 	display = new narf::gl::Context();
 	if (!display->setDisplayMode("NarfBlock", w, h, fullscreen)) {
@@ -1102,8 +1102,8 @@ extern "C" int main(int argc, char **argv)
 		return 1;
 	}
 
-	auto w = static_cast<uint32_t>(mode.w);
-	auto h = static_cast<uint32_t>(mode.h);
+	auto w = mode.w;
+	auto h = mode.h;
 
 	narf::console->println("Current video mode is " + std::to_string(w) + "x" + std::to_string(h));
 
@@ -1113,14 +1113,14 @@ extern "C" int main(int argc, char **argv)
 	float height_cfg = config.getFloat("video.height", 0.6f);
 	if (!fullscreen) {
 		if (width_cfg > 1) {
-			w = (uint32_t)width_cfg;
+			w = (int32_t)width_cfg;
 		} else {
-			w = (uint32_t)((float)w * width_cfg);
+			w = (int32_t)((float)w * width_cfg);
 		}
 		if (height_cfg > 1) {
-			h = (uint32_t)height_cfg;
+			h = (int32_t)height_cfg;
 		} else {
-			h = (uint32_t)((float)h * height_cfg);
+			h = (int32_t)((float)h * height_cfg);
 		}
 		narf::console->println("Setting video to windowed " + std::to_string(w) + "x" + std::to_string(h));
 	} else {
