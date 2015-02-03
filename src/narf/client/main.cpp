@@ -19,6 +19,7 @@
 
 #include "narf/camera.h"
 #include "narf/color.h"
+#include "narf/embed.h"
 #include "narf/entity.h"
 #include "narf/file.h"
 #include "narf/font.h"
@@ -209,21 +210,29 @@ bool initVideo(uint32_t w, uint32_t h, bool fullscreen)
 }
 
 
+DECLARE_EMBED(terrain_png);
+
 bool init_textures()
 {
 	const std::string terrain_file = config.getString("misc.terrain", "terrain.png");
 	auto terrainFilePath = narf::util::appendPath(narf::util::dataDir(), terrain_file);
 
+	const void* tilesData;
+	size_t tilesSize;
+
 	narf::MemoryFile tilesFile;
-	if (!tilesFile.read(terrainFilePath)) {
-		narf::console->println("read of file " + terrainFilePath + " failed");
-		SDL_Quit();
-		return false;
+	if (tilesFile.read(terrainFilePath)) {
+		tilesData = tilesFile.data;
+		tilesSize = tilesFile.size;
+	} else {
+		narf::console->println("read of file " + terrainFilePath + " failed; falling back to embedded texture");
+		tilesData = EMBED_DATA(terrain_png);
+		tilesSize = EMBED_SIZE(terrain_png);
 	}
-	auto tilesImage = narf::loadPNG(tilesFile.data, tilesFile.size);
+	auto tilesImage = narf::loadPNG(tilesData, tilesSize);
 
 	if (!tilesImage) {
-		narf::console->println("loadPNG(" + terrainFilePath + ") failed");
+		narf::console->println("loading terrain texture failed");
 		SDL_Quit();
 		return false;
 	}

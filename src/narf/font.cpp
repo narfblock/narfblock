@@ -1,4 +1,7 @@
 #include "narf/font.h"
+
+#include "narf/console.h"
+#include "narf/embed.h"
 #include "narf/file.h"
 #include "narf/utf.h"
 #include "narf/util/path.h"
@@ -16,12 +19,17 @@ narf::font::Font::~Font() {
 }
 
 
+bool narf::font::Font::load(const void* data, size_t size, uint32_t pixelSize) {
+	font_ = new TextureFont(atlas_, pixelSize, data, size);
+	return font_ != nullptr && font_->height() != 0.0f;
+}
+
+
 bool narf::font::Font::load(const std::string &filename, uint32_t pixelSize) {
 	if (!file_.read(filename)) {
 		return false;
 	}
-	font_ = new TextureFont(atlas_, pixelSize, file_.data, file_.size);
-	return font_ != nullptr && font_->height() != 0.0f;
+	return load(file_.data, file_.size, pixelSize);
 }
 
 
@@ -134,18 +142,42 @@ void narf::font::TextBuffer::clear() {
 }
 
 
+narf::font::EmbeddedFont::EmbeddedFont(const void* data, size_t size) :
+	data_(data), size_(size) {
+}
+
+
+DECLARE_EMBED(DroidSansMono_ttf);
+
+narf::font::FontManager::FontManager() {
+#define ADD_EMBEDDED_FONT(name, ext) \
+	embeddedFonts_.emplace(#name, EmbeddedFont{EMBED_DATA(name##_##ext), EMBED_SIZE(name##_##ext)})
+
+	ADD_EMBEDDED_FONT(DroidSansMono, ttf);
+}
+
+
 narf::font::Font* narf::font::FontManager::getFont(const std::string &fontname, uint32_t pixelSize) {
 	auto key = getKey(fontname, pixelSize);
 	if (fonts_.count(key) > 0) {
 		return fonts_[key];
 	}
 
-	auto basename = narf::util::appendPath(narf::util::dataDir(), fontname);
 	auto f = new Font();
-	if (!f->load(basename + ".otf", pixelSize)) {
-		if (!f->load(basename + ".ttf", pixelSize)) {
+	if (embeddedFonts_.count(fontname) > 0) {
+		const auto& embed = embeddedFonts_[fontname];
+		console->println("Loading embedded font " + fontname);
+		if (!f->load(embed.data(), embed.size(), pixelSize)) {
 			delete f;
 			return nullptr;
+		}
+	} else {
+		auto basename = narf::util::appendPath(narf::util::dataDir(), fontname);
+		if (!f->load(basename + ".otf", pixelSize)) {
+			if (!f->load(basename + ".ttf", pixelSize)) {
+				delete f;
+				return nullptr;
+			}
 		}
 	}
 

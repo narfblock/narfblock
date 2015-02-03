@@ -118,6 +118,24 @@ configure_file (
 	"${PROJECT_BINARY_DIR}/narf/version.h"
 	)
 
+# generate C source file from binary to embed
+FUNCTION(EMBED out_var in_f)
+	SET(result)
+	FILE(RELATIVE_PATH src_f_full ${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/${in_f})
+	get_filename_component(src_f ${src_f_full} NAME)
+	get_filename_component(src_dir ${src_f_full} DIRECTORY)
+	SET(out_f "${PROJECT_BINARY_DIR}/${src_f}.c")
+	ADD_CUSTOM_COMMAND(OUTPUT ${out_f}
+		COMMAND xxd -i ${src_f} > ${out_f}
+		DEPENDS ${in_f}
+		WORKING_DIRECTORY ${src_dir}
+		COMMENT "Embedding ${src_f}"
+		VERBATIM
+		)
+	SET(${out_var} "${out_f}" PARENT_SCOPE)
+ENDFUNCTION()
+
+
 # source files used by both client and server
 set (NARFBLOCK_COMMON_SOURCE_FILES
 	narf/aabb.cpp
@@ -141,7 +159,11 @@ set (NARFBLOCK_COMMON_SOURCE_FILES
 	narf/net/addr.cpp
 	)
 
+
 if (CLIENT)
+	EMBED(embed_DroidSansMono_ttf ../data/DroidSansMono.ttf)
+	EMBED(embed_terrain_png ../data/terrain.png)
+
 	SET(NARFBLOCK_CLIENT_SOURCE_FILES
 		narf/input.cpp
 		narf/gl/context.cpp
@@ -154,6 +176,9 @@ if (CLIENT)
 		narf/client/main.cpp
 		narf/client/console.cpp
 		narf/client/renderer.cpp
+
+		${embed_DroidSansMono_ttf}
+		${embed_terrain_png}
 		)
 
 	if (WIN32)

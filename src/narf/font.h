@@ -30,6 +30,7 @@ namespace narf {
 			Font();
 			~Font();
 
+			bool load(const void* data, size_t size, uint32_t pixelSize);
 			bool load(const std::string &filename, uint32_t pixelSize);
 
 			// determine width in pixels of a string in this font
@@ -63,16 +64,30 @@ namespace narf {
 			narf::gl::Buffer<FontVertex> buffer_;
 		};
 
+		class EmbeddedFont {
+		public:
+			EmbeddedFont() {}
+			EmbeddedFont(const void* data, size_t size);
+
+			const void* data() const { return data_; }
+			size_t size() const { return size_; }
+
+		private:
+			const void* data_;
+			size_t size_;
+		};
+
 
 		class FontManager {
 		public:
-			FontManager() {}
+			FontManager();
 			Font* getFont(const std::string &fontname, uint32_t pixelSize);
 
 			void render();
 		private:
 			std::string getKey(const std::string& fontname, uint32_t pixelSize) const;
 			std::map<const std::string, Font*> fonts_;
+			std::map<std::string, EmbeddedFont> embeddedFonts_;
 		};
 	}
 }
