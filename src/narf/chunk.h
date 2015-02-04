@@ -40,7 +40,7 @@
 
 #include "narf/block.h"
 #include "narf/bytestream.h"
-#include "narf/math/coord3D.h"
+#include "narf/math/vector.h"
 
 namespace narf {
 

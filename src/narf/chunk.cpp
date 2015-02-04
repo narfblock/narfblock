@@ -33,6 +33,7 @@
 #include "narf/chunk.h"
 #include "narf/world.h"
 #include "narf/console.h"
+#include "narf/math/coorditer.h"
 
 
 narf::Chunk::Chunk(World* world, const Vector3<int32_t>& size, const ChunkCoord& pos) :

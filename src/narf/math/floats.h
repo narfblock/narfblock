@@ -15,6 +15,7 @@ namespace narf {
 	static inline float cos(float f) { return ::cosf(f); }
 	static inline float acos(float f) { return ::acosf(f); }
 	static inline float atan2(float y, float x) { return ::atan2f(y, x); }
+	static inline float sqrt(float f) { return ::sqrtf(f); }
 }
 
 #endif

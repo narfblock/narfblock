@@ -34,7 +34,7 @@
 #define NARF_BLOCK_H
 
 #include "narf/aabb.h"
-#include "narf/math/math.h"
+#include "narf/math/vector.h"
 
 namespace narf {
 

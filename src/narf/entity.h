@@ -50,10 +50,10 @@ public:
 
 	ID id;
 
-	Vector3f position;
+	Point3f position;
 	Vector3f velocity;
 
-	Vector3f prevPosition; // TODO: put all state into prev and cur structs
+	Point3f prevPosition; // TODO: put all state into prev and cur structs
 
 	// temp hack stuff
 	bool bouncy;

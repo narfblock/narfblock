@@ -1,7 +1,6 @@
 #ifndef NARF_MATH_PLANE_H
 #define NARF_MATH_PLANE_H
 
-#include "narf/math/coord3D.h"
 #include "narf/math/floats.h"
 #include "narf/math/vector.h"
 
@@ -50,10 +49,6 @@ namespace narf {
 		// find nearest point on plane to another point
 		Point3<T> nearestPoint(const Point3<T>& p) const {
 			return Vector3<T>(p) - normal() * distanceTo(p);
-		}
-
-		Point3<T> intersect(const Point3<T>& p1, const Point3<T>& p2) const {
-			return intersect(p1, Vector3<T>(p2 - p1).normalize());
 		}
 
 		Point3<T> intersect(const Ray<T>& ray) const {

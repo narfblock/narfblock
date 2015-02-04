@@ -50,7 +50,7 @@ int main(int argc, char **argv)
 	printf("Test plane 4: Intercept (%f, %f, %f)\n", interpoint.x, interpoint.y, interpoint.z);
 
 	auto testray = narf::Ray<float>(narf::Point3f(0, 0, 0), narf::Vector3f(1, 1, 1));
-	printf("Test ray: point (%f, %f, %f) direction (%f, %f)\n", testray.initialPoint().x, testray.initialPoint().y, testray.initialPoint().z, testray.direction().yaw.toDeg(), testray.direction().pitch.toDeg());
+	printf("Test ray: point (%f, %f, %f) direction (%f, %f, %f)\n", testray.initialPoint().x, testray.initialPoint().y, testray.initialPoint().z, testray.direction().x, testray.direction().y, testray.direction().z);
 	testRayAtDistance(testray, 0);
 	testRayAtDistance(testray, 0.5);
 	testRayAtDistance(testray, 1);

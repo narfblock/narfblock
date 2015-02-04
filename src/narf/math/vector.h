@@ -1,18 +1,13 @@
 #ifndef NARFBLOCK_VECTOR_H
 #define NARFBLOCK_VECTOR_H
 
-#include <math.h>
-
 #include "narf/bytestream.h"
-#include "narf/math/coord3D.h"
+
+#include "narf/math/floats.h"
+#include "narf/math/ints.h"
+#include "narf/math/orientation.h"
 
 namespace narf {
-
-	template<class T>
-	class Point3;
-
-	template<class T>
-	class Orientation;
 
 	template<class T>
 	class Vector2 {
@@ -75,7 +70,6 @@ namespace narf {
 
 		Vector3() : x(0), y(0), z(0) { }
 		Vector3(T x, T y, T z) : x(x), y(y), z(z) { }
-		Vector3(Point3<T> p) : x(p.x), y(p.y), z(p.z) { }
 
 		Vector3(ByteStreamReader& s) {
 			s.readLE(&x);
@@ -89,16 +83,31 @@ namespace narf {
 			s.writeLE(z);
 		};
 
-		operator Point3<T>() const {
-			return Point3<T>(x, y, z);
+		bool operator==(const Vector3<T>& rhs) const {
+			return almostEqual(x, rhs.x) && almostEqual(y, rhs.y) && almostEqual(z, rhs.z);
 		}
 
-		operator Orientation<T>() const {
-			return Point3<T>(x, y, z);
+		bool operator!=(const Vector3<T>& rhs) const {
+			return !(*this == rhs);
+		}
+
+		bool operator<=(const Vector3<T>& rhs) const {
+			return x <= rhs.x && y <= rhs.y && z <= rhs.z;
+		}
+
+		T lengthSquared() const {
+			return x * x + y * y + z * z;
 		}
 
 		T length() const {
-			return sqrtf(x * x + y * y + z * z);
+			return sqrt(lengthSquared());
+		}
+
+		operator Orientation<T>() const {
+			auto a = Vector3<T>(x, y, z);
+			auto b = Vector3<T>(x, y, 0);
+			auto c = Vector3<T>(0, 1, 0);
+			return Orientation<T>(b.angleTo(a), (x < 0 ? -1 : 1) * c.angleTo(b));
 		}
 
 		const Vector3<T> normalize() const {
@@ -136,6 +145,10 @@ namespace narf {
 			return Vector3<T>(x * v, y * v, z * v);
 		}
 
+		Vector3<T> operator*(Vector3<T> vec) const {
+			return Vector3<T>(x * vec.x, y * vec.y, z * vec.z);
+		}
+
 		T dot(Vector3<T> vec) const {
 			return x * vec.x + y * vec.y + z * vec.z;
 		}
@@ -150,11 +163,68 @@ namespace narf {
 		T angleTo(Vector3<T> vec) const {
 			return acos(dot(vec) / (length() * vec.length()));
 		}
+
+		// point to point distance squared
+		T distanceSquaredTo(const Vector3<T>& p) const {
+			T a = p.x - x;
+			T b = p.y - y;
+			T c = p.z - z;
+			return a * a + b * b + c * c;
+		}
+
+		// point to point distance
+		T distanceTo(const Vector3<T>& p) const {
+			return sqrt(distanceSquaredTo(p));
+		}
+
+		T minComponent() const {
+			return std::min(x, std::min(y, z));
+		}
+
+		T maxComponent() const {
+			return std::max(x, std::max(y, z));
+		}
+
+		const Vector3<T> abs() const {
+			return Vector3<T>(fabsf(x), fabsf(y), fabsf(z));
+		}
+
 	};
+
+	template<class T>
+	static inline Vector3<T> min(const Vector3<T>& v1, const Vector3<T>& v2) {
+		return Vector3<T>(std::min(v1.x, v2.x), std::min(v1.y, v2.y), std::min(v1.z, v2.z));
+	}
+
+	template<class T>
+	static inline Vector3<T> max(const Vector3<T>& v1, const Vector3<T>& v2) {
+		return Vector3<T>(std::max(v1.x, v2.x), std::max(v1.y, v2.y), std::max(v1.z, v2.z));
+	}
 
 	typedef Vector2<float> Vector2f;
 	typedef Vector3<float> Vector3f;
 
+#define Point2 Vector2
+#define Point3 Vector3
+	typedef Point2<float> Point2f;
+	typedef Point3<float> Point3f;
+
 } // namespace narf
+
+
+namespace std {
+	template<typename T>
+	struct hash<narf::Vector3<T> > {
+		typedef narf::Vector3<T> argument_type;
+		typedef size_t result_type;
+		result_type operator()(const argument_type& p) const {
+			const auto h1(hash<T>()(p.x));
+			const auto h2(hash<T>()(p.y));
+			const auto h3(hash<T>()(p.z));
+			// TODO: maybe use a better method to mix these hashes
+			return h1 ^ (h2 << 1) ^ (h3 << 2);
+		}
+	};
+} // namespace std
 
 #endif // NARFBLOCK_VECTOR_H

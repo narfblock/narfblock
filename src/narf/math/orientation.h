@@ -3,7 +3,6 @@
 
 #include "narf/bytestream.h"
 #include "narf/math/angle.h"
-#include "narf/math/vector.h"
 
 namespace narf {
 	template<class T>

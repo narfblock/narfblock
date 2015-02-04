@@ -40,7 +40,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "narf/math/coord3D.h"
+#include "narf/math/coorditer.h"
 
 namespace narf {
 
