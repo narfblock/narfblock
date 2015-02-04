@@ -32,15 +32,31 @@
 
 #include "narf/aabb.h"
 
+#include <algorithm>
+
 bool narf::AABB::intersect(const AABB& o) const {
-	auto d = this->center - o.center;
-	d.x = fabsf(d.x);
-	d.y = fabsf(d.y);
-	d.z = fabsf(d.z);
-
+	auto d = (this->center - o.center).abs();
 	auto s = this->halfSize + o.halfSize;
+	return d <= s;
+}
 
-	return d.x <= s.x &&
-	       d.y <= s.y &&
-	       d.z <= s.z;
+
+bool narf::AABB::intersect(const Ray<float>& ray, Point3f& p) const {
+	// http://tavianator.com/2011/05/fast-branchless-raybounding-box-intersections/
+	auto minP = center - halfSize;
+	auto maxP = center + halfSize;
+	auto rP = ray.initialPoint();
+	auto rInvN = ray.inverseDirection();
+
+	Vector3f t1((minP - rP) * rInvN);
+	Vector3f t2((maxP - rP) * rInvN);
+
+	float tMin = min(t1, t2).maxComponent();
+	float tMax = max(t1, t2).minComponent();
+
+	if (tMax >= 0.0f && tMax >= tMin) {
+		p = rP + ray.direction() * tMax;
+		return true;
+	}
+	return false;
 }

@@ -33,6 +33,7 @@
 #ifndef NARF_AABB_H
 #define NARF_AABB_H
 
+#include "narf/math/ray.h"
 #include "narf/math/vector.h"
 
 namespace narf {
@@ -48,6 +49,9 @@ public:
 
 	// determine whether two AABBs intersect
 	bool intersect(const AABB& o) const;
+
+	// determine whether ray intersects AABB
+	bool intersect(const Ray<float>& ray, Point3f& p) const;
 };
 
 } // namespace narf
