@@ -226,6 +226,7 @@ void ChunkVBO::render(World* world) {
 
 
 Renderer::Renderer(World* world, gl::Texture* tilesTex) :
+	wireframe(false), backfaceCulling(true), fog(true),
 	world_(world), tilesTex_(tilesTex) {
 }
 
@@ -316,7 +317,49 @@ int32_t Renderer::getRenderDistance() const {
 }
 
 
-void Renderer::render(const Camera& cam, float stateBlend) {
+void Renderer::render(gl::Context& context, const Camera& cam, float stateBlend) {
+
+	// draw 3d world and objects
+
+	// viewer projection
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+
+	//float fovx = 90.0f; // degrees
+	float fovy = 60.0f; // degrees
+	float aspect = (float)context.width() / (float)context.height(); // TODO: include fovx in calculation
+	gluPerspective(fovy, aspect, 0.1, 1000.0f);
+
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+
+	glEnable(GL_DEPTH_TEST);
+
+	if (backfaceCulling) {
+		glEnable(GL_CULL_FACE);
+	}
+
+	if (wireframe) {
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	} else {
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	}
+
+	if (fog) {
+		glFogi(GL_FOG_MODE, GL_LINEAR);
+		glHint(GL_FOG_HINT, GL_DONT_CARE);
+		auto renderDistanceBlocks = float(getRenderDistance() - 1) * 16.0f; // TODO - don't hardcore chunk size
+		auto fogStart = std::max(renderDistanceBlocks - 48.0f, 8.0f);
+		auto fogEnd = std::max(renderDistanceBlocks, 16.0f);
+		glFogf(GL_FOG_START, fogStart);
+		glFogf(GL_FOG_END, fogEnd);
+		glEnable(GL_FOG);
+	} else {
+		glDisable(GL_FOG);
+	}
+
+	glEnable(GL_TEXTURE_2D);
+
 	// camera
 	glLoadIdentity();
 	glRotatef(-(cam.orientation.pitch.toDeg() + 90.0f), 1.0f, 0.0f, 0.0f);

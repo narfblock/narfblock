@@ -75,10 +75,17 @@ public:
 	void setRenderDistance(int32_t numChunks);
 	int32_t getRenderDistance() const;
 
-	void render(const Camera& cam, float stateBlend);
+	void render(gl::Context& context, const Camera& cam, float stateBlend);
 
 	void chunkUpdate(const ChunkCoord& cc);
 	void blockUpdate(const BlockCoord& wbc);
+
+	// debug options
+	bool wireframe;
+	bool backfaceCulling;
+	bool fog;
+
+	BlockWrapper selectedBlockFace;
 
 private:
 	World* world_;

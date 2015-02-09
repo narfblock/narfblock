@@ -91,12 +91,8 @@ const narf::timediff connectTimeout(5.0);
 std::queue<narf::PlayerCommand> playerCommandQueue;
 
 // debug options
-bool wireframe = false;
-bool backfaceCulling = true;
-bool fog = true;
 bool screenshot = false;
 
-GLfloat fogColor[4] = {0.5f, 0.5f, 0.5f, 1.0f};
 
 class ClientGameLoop : public narf::GameLoop {
 public:
@@ -294,48 +290,7 @@ void drawCubeHighlight(const narf::BlockWrapper &blockFace)
 
 
 void draw3d(float stateBlend) {
-	// draw 3d world and objects
-
-	// viewer projection
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-
-	//float fovx = 90.0f; // degrees
-	float fovy = 60.0f; // degrees
-	float aspect = (float)display->width() / (float)display->height() ; // TODO: include fovx in calculation
-	gluPerspective(fovy, aspect, 0.1, 1000.0f);
-
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-
-	glEnable(GL_DEPTH_TEST);
-
-	if (backfaceCulling) {
-		glEnable(GL_CULL_FACE);
-	}
-
-	if (wireframe) {
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	} else {
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	}
-
-	if (fog) {
-		glFogi(GL_FOG_MODE, GL_LINEAR);
-		glHint(GL_FOG_HINT, GL_DONT_CARE);
-		auto renderDistance = float(renderer->getRenderDistance() - 1) * 16.0f; // TODO - don't hardcode chunk size
-		auto fogStart = std::max(renderDistance - 48.0f, 8.0f);
-		auto fogEnd = std::max(renderDistance, 16.0f);
-		glFogf(GL_FOG_START, fogStart);
-		glFogf(GL_FOG_END, fogEnd);
-		glEnable(GL_FOG);
-	} else {
-		glDisable(GL_FOG);
-	}
-
-	glEnable(GL_TEXTURE_2D);
-
-	renderer->render(cam, stateBlend);
+	renderer->render(*display, cam, stateBlend);
 
 	if (selectedBlockFace.block) {
 		// draw a selection rectangle
@@ -680,15 +635,15 @@ void sim_frame(const narf::Input &input, narf::timediff dt)
 	}
 
 	if (input.toggleWireframe()) {
-		wireframe = !wireframe;
+		renderer->wireframe = !renderer->wireframe;
 	}
 
 	if (input.toggleBackfaceCulling()) {
-		backfaceCulling = !backfaceCulling;
+		renderer->backfaceCulling = !renderer->backfaceCulling;
 	}
 
 	if (input.toggleFog()) {
-		fog = !fog;
+		renderer->fog = !renderer->fog;
 	}
 
 	if (input.toggleFullscreen()) {
