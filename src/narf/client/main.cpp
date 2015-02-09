@@ -59,9 +59,9 @@ const float runspeed = 500.0f;
 narf::World* world = nullptr;
 narf::Renderer* renderer = nullptr;
 
-#define WORLD_X_MAX 64
-#define WORLD_Y_MAX 64
-#define WORLD_Z_MAX 64
+#define WORLD_X_MAX 1024
+#define WORLD_Y_MAX 1024
+#define WORLD_Z_MAX 128
 
 narf::gl::Context *display;
 narf::gl::Texture *tilesTex;
@@ -825,30 +825,6 @@ void ClientGameLoop::draw(float stateBlend) {
 }
 
 
-float randf(float min, float max)
-{
-	return ((float)rand() / (float)RAND_MAX) * (max - min + 1.0f) + min;
-}
-
-int randi(int min, int max)
-{
-	return (int)randf((float)min, (float)max); // HAX
-}
-
-void fillRectPrism(const narf::BlockCoord& c1, const narf::BlockCoord& c2, uint8_t block_id) {
-	narf::ZYXCoordIter<narf::BlockCoord> iter(c1, c2);
-	for (const auto& c : iter) {
-		narf::Block b;
-		b.id = block_id;
-		world->putBlock(&b, c);
-	}
-}
-
-void fillPlane(int32_t z, uint8_t block_id) {
-	fillRectPrism({0, 0, z}, {WORLD_X_MAX, WORLD_Y_MAX, z + 1}, block_id);
-}
-
-
 void newWorld()
 {
 	if (world) {
@@ -872,39 +848,6 @@ void newWorld()
 		}
 	};
 	world->setGravity(-24.0f);
-}
-
-
-// TODO: move this to shared code
-void genWorld() {
-	uint8_t stone2 = 7; // TODO HAX
-
-	for (int z = 16; z < 23; z++) {
-		//fillRectPrism(30 + z, 35 + (z - 16), 30 + z, 35 + (z - 16), z, z + 1, stone2);
-		auto size = (23 - 16) - (z - 16);
-		fillRectPrism(
-			{30 + z, 30 + z, z},
-			{30 + z + size * 2 - 1, 30 + z + size * 2 - 1, z + 1},
-			stone2);
-	}
-
-	// generate some random blocks above the ground
-	for (int i = 0; i < 1000; i++) {
-		int32_t x = randi(0, WORLD_X_MAX - 1);
-		int32_t y = randi(0, WORLD_Y_MAX - 1);
-		int32_t z = randi(16, 23);
-		narf::Block b;
-		b.id = (uint8_t)randi(2, 3);
-		world->putBlock(&b, {x, y, z});
-	}
-
-	for (int i = 0; i < 10; i++) {
-		narf::Block b;
-		b.id = stone2;
-		world->putBlock(&b, {5 + i, 5, 16});
-		world->putBlock(&b, {5, 5 + i, 16});
-		world->putBlock(&b, {5 + i, 15, 16});
-	}
 }
 
 
@@ -1136,7 +1079,6 @@ extern "C" int main(int argc, char **argv)
 
 	config.initBool("video.vsync", false);
 
-	srand(0x1234);
 	newWorld();
 
 	playerEID = world->newEntity();
@@ -1144,7 +1086,7 @@ extern "C" int main(int argc, char **argv)
 		narf::EntityRef player(world, playerEID);
 
 		// initial player position
-		player->position = narf::Vector3f(15.0f, 10.0f, 16.0f);
+		player->position = narf::Vector3f(15.0f, 10.0f, 3.0f * 16.0f);
 		player->prevPosition = player->position;
 	}
 
@@ -1167,8 +1109,6 @@ extern "C" int main(int argc, char **argv)
 	}
 
 	renderer = new narf::Renderer(world, tilesTex);
-
-	genWorld();
 
 	config.initInt32("video.renderDistance", 5);
 

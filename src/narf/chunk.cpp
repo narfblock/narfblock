@@ -77,10 +77,76 @@ void narf::Chunk::fillXYPlane(int32_t z, uint8_t block_id) {
 }
 
 void narf::Chunk::generate() {
-	if (pos_.z == 0) {
-		fillXYPlane(0, 1); // adminium
-		fillRectPrism({0, 0, 1}, {size_.x, size_.y, size_.z - 1}, 2); // dirt
+
+	if (pos_ == ChunkCoord{0, 0, 3}) {
+		for (int i = 0; i < 10; i++) {
+			Block b;
+			b.id = 7;
+			putBlock(&b, {5 + i, 5, 0});
+			putBlock(&b, {5, 5 + i, 0});
+			putBlock(&b, {5 + i, 15, 0});
+		}
+	} else if (pos_ == ChunkCoord{1, 1, 3}) {
+		// generate 3D "checkerboard" pattern
+		for (int z = 0; z < 8; z++) {
+			for (int y = 0; y < 8; y++) {
+				for (int x = (y + z) & 1; x < 8; x += 2) {
+					BlockCoord bc{x, y, z};
+					Block b;
+					b.id = 6;
+					putBlock(&b, bc);
+				}
+			}
+		}
+	} else if (pos_ == ChunkCoord{2, 2, 3}) {
+		// generate pyramid
+		for (int z = 0; z < 7; z++) {
+			auto size = 7 - z;
+			fillRectPrism({z, z, z}, {z + size * 2 - 1, z + size * 2 - 1, z + 1}, 7);
+		}
+	} else if (pos_ == ChunkCoord{3, 3, 3}) {
+		// generate some terrain from a heightmap
+		static const char heightmap[16][16] = {
+			{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+			{0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0},
+			{0, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1, 0},
+			{1, 1, 2, 2, 2, 2, 2, 2, 2, 1, 2, 3, 1, 1, 0},
+			{1, 1, 1, 2, 2, 3, 3, 3, 2, 2, 2, 3, 2, 1, 0},
+			{1, 1, 1, 1, 2, 3, 4, 4, 3, 3, 3, 3, 1, 1, 1},
+			{1, 1, 1, 2, 2, 3, 4, 3, 3, 3, 2, 2, 1, 1, 1},
+			{0, 1, 1, 2, 2, 3, 4, 4, 3, 3, 2, 1, 1, 0, 0},
+			{0, 1, 1, 1, 2, 2, 3, 3, 3, 2, 2, 2, 1, 0, 0},
+			{0, 1, 1, 1, 2, 3, 4, 4, 4, 3, 2, 1, 1, 0, 0},
+			{0, 1, 1, 2, 2, 2, 3, 3, 3, 2, 2, 1, 1, 0, 0},
+			{1, 1, 2, 2, 2, 3, 4, 3, 3, 2, 2, 2, 2, 1, 0},
+			{1, 2, 2, 2, 2, 3, 3, 3, 2, 2, 1, 2, 2, 1, 0},
+			{1, 1, 2, 2, 1, 2, 2, 2, 1, 1, 1, 1, 1, 1, 0},
+			{0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0},
+			{0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0}};
+		for (int z = 0; z < 16; z++) {
+			for (int y = 0; y < 16; y++) {
+				for (int x = 0; x < 16; x++) {
+					int h = heightmap[y][x];
+					Block b;
+					if (z < h - 1) {
+						b.id = 2; // dirt
+					} else if (z == h - 1) {
+						b.id = 3; // dirt with grass
+					} else {
+						b.id = 0; // air
+					}
+					putBlock(&b, {x, y, z});
+				}
+			}
+		}
+	} else if (pos_.z == 2) {
+		fillRectPrism({0, 0, 0}, {size_.x, size_.y, size_.z - 1}, 2); // dirt
 		fillXYPlane(size_.z - 1, 3); // dirt with grass
+	} else if (pos_.z == 0) {
+		fillXYPlane(0, 1); // adminium
+		fillRectPrism({0, 0, 1}, {size_.x, size_.y, size_.z}, 2); // dirt
+	} else if (pos_.z < 2) {
+		fillRectPrism({0, 0, 0}, {size_.x, size_.y, size_.z}, 2); // dirt
 	}
 }
 
