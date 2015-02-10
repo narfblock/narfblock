@@ -22,5 +22,6 @@
 #include "narf/gl/texture.h"
 #include "narf/gl/context.h"
 #include "narf/gl/buffer.h"
+#include "narf/gl/shader.h"
 
 #endif // NARF_GL_GL_H
