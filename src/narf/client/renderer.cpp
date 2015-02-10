@@ -429,4 +429,6 @@ void Renderer::render(gl::Context& context, const Camera& cam, float stateBlend)
 			drawCube(center, halfSize, 1);
 		}
 	}
+
+	glDisable(GL_TEXTURE_2D);
 }

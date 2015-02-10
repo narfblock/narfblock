@@ -116,6 +116,7 @@ void narf::font::TextBuffer::render() {
 
 	buffer_.bind();
 
+	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, font_->atlas_->id());
 
 	// TODO: move this stuff into Buffer class
@@ -132,6 +133,7 @@ void narf::font::TextBuffer::render() {
 	glDisableClientState(GL_COLOR_ARRAY);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 	glDisableClientState(GL_VERTEX_ARRAY);
+	glDisable(GL_TEXTURE_2D);
 
 	buffer_.unbind();
 }
