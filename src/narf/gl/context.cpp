@@ -52,6 +52,11 @@ bool narf::gl::Context::setDisplayMode(const char *title, int32_t width, int32_t
 		return false;
 	}
 
+	auto glVersion = std::string(reinterpret_cast<const char*>(glGetString(GL_VERSION)));
+	auto glslVersion = std::string(reinterpret_cast<const char*>(glGetString(GL_SHADING_LANGUAGE_VERSION)));
+	console->println("OpenGL version " + glVersion);
+	console->println("GLSL version " + glslVersion);
+
 	GLenum glew_err = glewInit();
 	if (glew_err != GLEW_OK) {
 		console->println("Error initializing GLEW: " + std::string((const char *)glewGetErrorString(glew_err)));
