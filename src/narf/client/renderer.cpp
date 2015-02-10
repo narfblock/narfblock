@@ -318,20 +318,7 @@ int32_t Renderer::getRenderDistance() const {
 
 
 void Renderer::render(gl::Context& context, const Camera& cam, float stateBlend) {
-
 	// draw 3d world and objects
-
-	// viewer projection
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-
-	//float fovx = 90.0f; // degrees
-	float fovy = 60.0f; // degrees
-	float aspect = (float)context.width() / (float)context.height(); // TODO: include fovx in calculation
-	gluPerspective(fovy, aspect, 0.1, 1000.0f);
-
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
 
 	glEnable(GL_DEPTH_TEST);
 
@@ -360,7 +347,23 @@ void Renderer::render(gl::Context& context, const Camera& cam, float stateBlend)
 
 	glEnable(GL_TEXTURE_2D);
 
+	// viewer projection
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+
+	//float fovx = 90.0f; // degrees
+	float fovy = 60.0f; // degrees
+	float aspect = (float)context.width() / (float)context.height(); // TODO: include fovx in calculation
+	float zNear = 0.1f;
+	float zFar = 1000.0f;
+
+	float yMax = zNear * tanf(fovy * (float)M_PI / 360.0f);
+	float xMax = yMax * aspect;
+
+	glFrustum(-xMax, xMax, -yMax, yMax, zNear, zFar);
+
 	// camera
+	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	glRotatef(-(cam.orientation.pitch.toDeg() + 90.0f), 1.0f, 0.0f, 0.0f);
 	glRotatef(90.0f - cam.orientation.yaw.toDeg(), 0.0f, 0.0f, 1.0f);
