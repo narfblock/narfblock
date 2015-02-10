@@ -348,8 +348,6 @@ void Renderer::render(gl::Context& context, const Camera& cam, float stateBlend)
 	glEnable(GL_TEXTURE_2D);
 
 	// viewer projection
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
 
 	//float fovx = 90.0f; // degrees
 	float fovy = 60.0f; // degrees
@@ -360,14 +358,21 @@ void Renderer::render(gl::Context& context, const Camera& cam, float stateBlend)
 	float yMax = zNear * tanf(fovy * (float)M_PI / 360.0f);
 	float xMax = yMax * aspect;
 
-	glFrustum(-xMax, xMax, -yMax, yMax, zNear, zFar);
+	auto perspectiveMatrix = Matrix4f::frustum(-xMax, xMax, -yMax, yMax, zNear, zFar);
+
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glMultMatrixf(perspectiveMatrix.arr);
 
 	// camera
+	auto pitchMatrix = Matrix4f::rotate((cam.orientation.pitch + (float)M_PI / 2.0f), 1.0f, 0.0f, 0.0f);
+	auto yawMatrix = Matrix4f::rotate(cam.orientation.yaw - ((float)M_PI / 2.0f), 0.0f, 0.0f, 1.0f);
+	auto translateMatrix = Matrix4f::translate(-cam.position.x, -cam.position.y, -cam.position.z);
+	auto camMatrix = pitchMatrix * yawMatrix * translateMatrix;
+
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	glRotatef(-(cam.orientation.pitch.toDeg() + 90.0f), 1.0f, 0.0f, 0.0f);
-	glRotatef(90.0f - cam.orientation.yaw.toDeg(), 0.0f, 0.0f, 1.0f);
-	glTranslatef(-cam.position.x, -cam.position.y, -cam.position.z);
+	glMultMatrixf(camMatrix.arr);
 
 	// get chunk coordinates for the chunk containing the camera
 	int32_t cxCam = (int32_t)(cam.position.x / (float)world_->chunkSizeX());
