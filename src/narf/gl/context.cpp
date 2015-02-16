@@ -57,6 +57,12 @@ bool narf::gl::Context::setDisplayMode(const char *title, int32_t width, int32_t
 	console->println("OpenGL version " + glVersion);
 	console->println("GLSL version " + glslVersion);
 
+	int contextMajor, contextMinor;
+	if (SDL_GL_GetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, &contextMajor) == 0 &&
+	    SDL_GL_GetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, &contextMinor) == 0) {
+		console->println("GL context version " + std::to_string(contextMajor) + "." + std::to_string(contextMinor));
+	}
+
 	GLenum glew_err = glewInit();
 	if (glew_err != GLEW_OK) {
 		console->println("Error initializing GLEW: " + std::string((const char *)glewGetErrorString(glew_err)));
