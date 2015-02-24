@@ -4,10 +4,10 @@ compiler:
     - gcc
 
 script:
-    - cd build && cmake ../src
-    - grep FREETYPE build/CMakeCache.txt
-    - ls -lR /usr/include/freetype2
-    - cd build && make VERBOSE=1
+    - cd build
+    - cmake ../src
+    - grep FREETYPE CMakeCache.txt
+    - make VERBOSE=1
 
 before_install:
     - sudo add-apt-repository ppa:zoogie/sdl2-snapshots -y

@@ -74,7 +74,7 @@ find_path(FREETYPE_INCLUDE_DIR_ft2build ft2build.h
     ENV GTKMM_BASEPATH
     [HKEY_CURRENT_USER\\SOFTWARE\\gtkmm\\2.4;Path]
     [HKEY_LOCAL_MACHINE\\SOFTWARE\\gtkmm\\2.4;Path]
-  PATH_SUFFIXES include/freetype2 include
+  PATH_SUFFIXES include/freetype2 include/freetype2/freetype include
 )
 
 find_path(FREETYPE_INCLUDE_DIR_freetype2 freetype/config/ftheader.h
@@ -88,7 +88,7 @@ find_path(FREETYPE_INCLUDE_DIR_freetype2 freetype/config/ftheader.h
     ENV GTKMM_BASEPATH
     [HKEY_CURRENT_USER\\SOFTWARE\\gtkmm\\2.4;Path]
     [HKEY_LOCAL_MACHINE\\SOFTWARE\\gtkmm\\2.4;Path]
-  PATH_SUFFIXES include/freetype2 include
+  PATH_SUFFIXES include/freetype2 include/freetype2/freetype include
 )
 
 if(NOT FREETYPE_INCLUDE_DIR_freetype2)
@@ -100,7 +100,7 @@ if(NOT FREETYPE_INCLUDE_DIR_freetype2)
       /usr/local/X11R6
       /usr/local/X11
       /usr/freeware
-    PATH_SUFFIXES include/freetype2 include
+    PATH_SUFFIXES include/freetype2 include/freetype2/freetype include
   )
 endif()
 
