@@ -1,0 +1,7 @@
+language: cpp
+compiler:
+    - gcc
+    - clang
+script: cd build && cmake ../src && make
+before_install:
+    - sudo apt-get update && sudo apt-get install -y cmake libsdl2-dev libpng12-dev zlib1g-dev libglew-dev libfreetype6-dev libncurses5-dev libenet-dev
