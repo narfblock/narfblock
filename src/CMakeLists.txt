@@ -93,6 +93,11 @@ if (STATIC)
 endif ()
 
 if (CLIENT)
+
+	if (FREETYPE_INCLUDE_DIR_ft2build AND FREETYPE_INCLUDE_DIR_freetype2 AND NOT FREETYPE_INCLUDE_DIRS)
+		set (FREETYPE_INCLUDE_DIRS "${FREETYPE_INCLUDE_DIR_ft2build};${FREETYPE_INCLUDE_DIR_freetype2}")
+	endif()
+
 	include_directories (
 		"${SDL2_INCLUDE_DIR}"
 		"${FREETYPE_INCLUDE_DIRS}"
