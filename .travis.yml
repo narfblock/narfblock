@@ -10,6 +10,7 @@ before_install:
     - sudo apt-get install -y cmake libsdl2-dev libpng12-dev zlib1g-dev libglew-dev libfreetype6-dev libncurses5-dev libenet-dev
     - sudo apt-get install g++-4.8
     - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.8 90
+    - sudo ln -s /usr/include/freetype2 /usr/include/freetype
 
 notifications:
     irc:
