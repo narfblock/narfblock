@@ -3,10 +3,11 @@ language: cpp
 compiler:
     - gcc
 
-script: cd build && cmake ../src && grep FREETYPE CMakeCache.txt && make
-
-after_script:
-    - cat build/CMakeFiles/narfblock.dir/includes_CXX.rsp
+script:
+    - cd build && cmake ../src
+    - grep FREETYPE build/CMakeCache.txt
+    - ls -lR /usr/include/freetype2
+    - cd build && make VERBOSE=1
 
 before_install:
     - sudo add-apt-repository ppa:zoogie/sdl2-snapshots -y
