@@ -123,7 +123,7 @@ FUNCTION(EMBED out_var in_f)
 	SET(result)
 	FILE(RELATIVE_PATH src_f_full ${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/${in_f})
 	get_filename_component(src_f ${src_f_full} NAME)
-	get_filename_component(src_dir ${src_f_full} DIRECTORY)
+	get_filename_component(src_dir ${src_f_full} PATH)
 	SET(out_f "${PROJECT_BINARY_DIR}/${src_f}.c")
 	ADD_CUSTOM_COMMAND(OUTPUT ${out_f}
 		COMMAND xxd -i ${src_f} > ${out_f}
