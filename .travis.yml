@@ -2,7 +2,7 @@ language: cpp
 compiler:
     - gcc
     - clang
-script: cd build && cmake ../src && make
+script: cd build && cmake ../src && grep FREETYPE CMakeCache.txt && make
 before_install:
     - sudo add-apt-repository ppa:zoogie/sdl2-snapshots -y
     - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
