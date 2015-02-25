@@ -1,6 +1,8 @@
 Narfblock
 =========
 
+[![Build Status](https://travis-ci.org/narfblock/narfblock.svg?branch=master)](https://travis-ci.org/narfblock/narfblock)
+
 # Building
 
 ## Prerequisites
