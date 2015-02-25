@@ -79,7 +79,7 @@ void pngReadCallback(png_structp png, png_bytep data, png_size_t length) {
 // load PNG file into 8-bit RGBA bitmap (GL_RGBA8UI)
 narf::Image* narf::loadPNG(const void* data, size_t size) {
 	narf::console->println("size = " + std::to_string(size));
-	if (size < 8 || png_sig_cmp(static_cast<png_const_bytep>(data), 0, 8)) {
+	if (size < 8 || png_sig_cmp((png_bytep)data, 0, 8)) {
 		narf::console->println("loadPNG: signature does not match");
 		return nullptr;
 	}
