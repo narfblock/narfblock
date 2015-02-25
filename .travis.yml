@@ -5,8 +5,7 @@ compiler:
 
 script:
     - cd build
-    - cmake ../src
-    - grep FREETYPE CMakeCache.txt
+    - cmake ../src -DCMAKE_C_FLAGS="-I/usr/include/freetype2"
     - make VERBOSE=1
 
 before_install:
@@ -16,7 +15,6 @@ before_install:
     - sudo apt-get install -y cmake libsdl2-dev libpng12-dev zlib1g-dev libglew-dev libfreetype6-dev libncurses5-dev libenet-dev
     - sudo apt-get install g++-4.8
     - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.8 90
-    - sudo cp -R /usr/include/freetype2/freetype/* /usr/include/freetype2/
 
 notifications:
     irc:
