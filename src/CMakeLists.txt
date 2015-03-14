@@ -21,6 +21,11 @@ endif()
 
 execute_process(COMMAND ${GIT_COMMAND} describe --tags --always --dirty OUTPUT_VARIABLE VERSION_REV OUTPUT_STRIP_TRAILING_WHITESPACE)
 
+# generate list of authors separated by C newlines
+execute_process(COMMAND ${GIT_COMMAND} shortlog -sn OUTPUT_VARIABLE VERSION_AUTHORS OUTPUT_STRIP_TRAILING_WHITESPACE)
+string(REGEX REPLACE "[ ]+[0-9]+\t" "" VERSION_AUTHORS ${VERSION_AUTHORS})
+string(REGEX REPLACE "\nnarfblock" "" VERSION_AUTHORS ${VERSION_AUTHORS})
+string(REPLACE "\n" "\\n" VERSION_AUTHORS ${VERSION_AUTHORS})
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/../cmake/Modules/")
 set(NARFBLOCK_DATA_PATH "${CMAKE_SOURCE_DIR}/../data/")

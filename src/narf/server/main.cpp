@@ -115,6 +115,20 @@ void cmdStats(const std::string& args) {
 }
 
 
+void cmdAbout(const std::string& args) {
+	narf::console->println("");
+	narf::console->println("About NarfBlock");
+	narf::console->println("Version: " VERSION_STR);
+	narf::console->println("");
+	narf::console->println("Authors:");
+	narf::console->println(VERSION_AUTHORS);
+	narf::console->println("");
+	narf::console->println("Library versions:");
+	narf::console->println("ENet " + std::to_string(ENET_VERSION_MAJOR) + "." + std::to_string(ENET_VERSION_MINOR) + "." + std::to_string(ENET_VERSION_PATCH));
+	narf::console->println(cursesConsole->version()); // version() result includes name of library
+}
+
+
 std::string formatChat(const Client* from, const std::string& text) {
 	// TODO: use client nickname here
 	std::string fromName = from ? narf::net::to_string(from->peer->address) : "server";
@@ -368,7 +382,7 @@ int main(int argc, char **argv)
 	narf::console = cursesConsole;
 
 	narf::console->println("Hello, world - I'm a server.");
-	narf::console->println("Version: " + std::to_string(VERSION_MAJOR) + "." + std::to_string(VERSION_MINOR) + std::string(VERSION_RELEASE) + "+" VERSION_REV);
+	narf::console->println("Version: " VERSION_STR);
 
 	if (enet_initialize() != 0) {
 		narf::console->println("Error initializing ENet");
@@ -382,6 +396,7 @@ int main(int argc, char **argv)
 
 	narf::cmd::cmds["quit"] = cmdQuit;
 	narf::cmd::cmds["stats"] = cmdStats;
+	narf::cmd::cmds["about"] = cmdAbout;
 
 	genWorld();
 

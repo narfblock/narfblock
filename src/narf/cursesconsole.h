@@ -19,6 +19,7 @@ namespace narf {
 
 		void setStatus(const std::string& status);
 
+		std::string version() const;
 	private:
 		CursesConsoleImpl *impl;
 

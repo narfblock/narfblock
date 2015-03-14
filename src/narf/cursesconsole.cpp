@@ -185,3 +185,8 @@ void narf::CursesConsole::setStatus(const std::string& status) {
 	wrefresh(impl->statusWin);
 	refreshInput();
 }
+
+
+std::string narf::CursesConsole::version() const {
+	return curses_version();
+}

@@ -8,6 +8,9 @@
 
 #include <enet/enet.h>
 
+#include <zlib.h>
+#include <png.h>
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -930,6 +933,52 @@ void cmdStats(const std::string& args) {
 }
 
 
+void cmdAbout(const std::string& args) {
+	// TODO: replace this with a GUI window
+	narf::console->println("");
+	narf::console->println("About NarfBlock");
+	narf::console->println("Version: " VERSION_STR);
+	narf::console->println("");
+	narf::console->println("Authors:");
+	auto authors = narf::util::tokenize(VERSION_AUTHORS, '\n');
+	for (auto& a : authors) {
+		narf::console->println(a);
+	}
+
+	narf::console->println("");
+	narf::console->println("Library versions:");
+
+	narf::console->println("ENet " + std::to_string(ENET_VERSION_MAJOR) + "." + std::to_string(ENET_VERSION_MINOR) + "." + std::to_string(ENET_VERSION_PATCH));
+
+	SDL_version sdl;
+	SDL_GetVersion(&sdl);
+	narf::console->println("SDL " + std::to_string(sdl.major) + "." + std::to_string(sdl.minor) + "." + std::to_string(sdl.patch));
+
+	narf::console->println("GLEW " + std::string(reinterpret_cast<const char*>(glewGetString(GLEW_VERSION))));
+
+	narf::console->println("zlib " + std::string(zlibVersion()));
+
+	auto png = png_access_version_number();
+	auto pngMajor = png / 10000;
+	auto pngMinor = (png / 100) % 100;
+	auto pngRelease = png % 100;
+	narf::console->println("libpng " + std::to_string(pngMajor) + "." + std::to_string(pngMinor) + "." + std::to_string(pngRelease));
+
+	FT_Library ftlib;
+	FT_Init_FreeType(&ftlib);
+	FT_Int ftMajor, ftMinor, ftPatch;
+	FT_Library_Version(ftlib, &ftMajor, &ftMinor, &ftPatch);
+	FT_Done_FreeType(ftlib);
+	narf::console->println("FreeType " + std::to_string(ftMajor) + "." + std::to_string(ftMinor) + "." + std::to_string(ftPatch));
+
+	narf::console->println("");
+	narf::console->println("OpenGL information:");
+	narf::console->println("OpenGL version " + display->glVersion);
+	narf::console->println("GLSL version " + display->glslVersion);
+	narf::console->println("GL context version " + display->glContextVersion);
+}
+
+
 void fatalError(const std::string& msg) {
 	if (narf::console) {
 		narf::console->println(msg);
@@ -963,6 +1012,7 @@ extern "C" int main(int argc, char **argv)
 	narf::cmd::cmds["save"] = cmdSave;
 	narf::cmd::cmds["load"] = cmdLoad;
 	narf::cmd::cmds["stats"] = cmdStats;
+	narf::cmd::cmds["about"] = cmdAbout;
 
 	narf::MemoryFile iniMem;
 	auto configFile = narf::util::appendPath(narf::util::userConfigDir("narfblock"), "client.ini");

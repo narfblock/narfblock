@@ -35,6 +35,8 @@
 
 #include "narf/gl/gl.h"
 
+#include <string>
+
 namespace narf {
 namespace gl {
 
@@ -59,6 +61,10 @@ public:
 
 	int32_t width() const;
 	int32_t height() const;
+
+	std::string glVersion;
+	std::string glslVersion;
+	std::string glContextVersion;
 
 private:
 	SDL_Window *window_;
