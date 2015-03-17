@@ -184,7 +184,7 @@ void ChunkVBO::buildVBO(World* world) {
 				drawQuad(type->texCoords[BlockFace::ZPos], quad, light);
 			}
 
-			if (c.z != 0 || !world->isOpaque({c.x, c.y, c.z - 1})) {
+			if (c.z == 0 || !world->isOpaque({c.x, c.y, c.z - 1})) {
 				float quad[] = {fx+0,fy+1,fz+0, fx+1,fy+1,fz+0, fx+1,fy+0,fz+0, fx+0,fy+0,fz+0};
 				drawQuad(type->texCoords[BlockFace::ZNeg], quad, light);
 			}
