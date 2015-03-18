@@ -7,6 +7,21 @@ option(TEST "Build NarfBlock unit tests" ON)
 
 option(STATIC "Use static linking when building executables" OFF)
 
+option(PIE "Create position-independent executables" ON)
+
+if (PIE AND STATIC)
+	# PIE + STATIC will result in TEXTRELs unless all libraries have been
+	# built for PIC/PIE, so don't allow it
+	set(PIE OFF)
+endif()
+
+# -pie with MinGW-w64 breaks startup (incorrect entry point
+# is used), so don't allow PIE on Windows for now
+# http://sourceforge.net/p/mingw-w64/mailman/mingw-w64-public/thread/CAGFXeQKg0J%2Bax0Dj-cBXGGrwWT15K-aRsWWaBN6wWSDUtRHoLg@mail.gmail.com/
+if (PIE AND WIN32)
+	set(PIE OFF)
+endif()
+
 set (VERSION_MAJOR 0)
 set (VERSION_MINOR 1)
 set (VERSION_RELEASE "")
@@ -55,11 +70,20 @@ endif ()
 if (CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_CLANG)
 	SET(CMAKE_C_FLAGS
 		"${CMAKE_C_FLAGS} -Wpointer-arith -Wtype-limits -Wwrite-strings -Wuninitialized -Werror=redundant-decls -Wsign-compare -Wconversion -g -fno-ident")
-	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_C_FLAGS} -std=gnu++0x")
+
 	if (STATIC)
-		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static -static-libgcc -static-libstdc++")
+		SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -static -static-libgcc -static-libstdc++")
 	endif()
+
+	# position-independent executable
+	if (PIE)
+		SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIE")
+		SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pie -Wl,-z,relro,-z,now")
+	endif()
+
 	SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--as-needed")
+
+	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_C_FLAGS} -std=gnu++0x")
 endif ()
 
 if (MSVC)
