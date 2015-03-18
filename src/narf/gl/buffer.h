@@ -44,14 +44,14 @@ template <typename T>
 class Buffer {
 public:
 
-	Buffer(GLenum target, GLenum usage) : target_(target), usage_(usage)
+	Buffer(Context& gl, GLenum target, GLenum usage) : gl(gl), target_(target), usage_(usage)
 	{
-		glGenBuffers(1, &name_);
+		gl.GenBuffers(1, &name_);
 	}
 
 	~Buffer()
 	{
-		glDeleteBuffers(1, &name_);
+		gl.DeleteBuffers(1, &name_);
 	}
 
 	void clear()
@@ -66,18 +66,18 @@ public:
 
 	void bind()
 	{
-		glBindBuffer(target_, name_);
+		gl.BindBuffer(target_, name_);
 	}
 
 	void unbind()
 	{
-		glBindBuffer(target_, 0);
+		gl.BindBuffer(target_, 0);
 	}
 
 	void upload()
 	{
 		bind();
-		glBufferData(target_, data_.size() * sizeof(T), data_.data(), usage_);
+		gl.BufferData(target_, data_.size() * sizeof(T), data_.data(), usage_);
 		unbind();
 	}
 
@@ -96,6 +96,7 @@ public:
 	}
 
 private:
+	Context& gl;
 	GLenum target_;
 	GLenum usage_;
 	GLuint name_;

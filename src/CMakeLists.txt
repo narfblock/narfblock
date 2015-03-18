@@ -47,7 +47,6 @@ set(NARFBLOCK_DATA_PATH "${CMAKE_SOURCE_DIR}/../data/")
 
 if (CLIENT)
 	find_package (OpenGL REQUIRED)
-	find_package (GLEW REQUIRED)
 	find_package (SDL2 REQUIRED)
 	find_package (Freetype REQUIRED)
 	find_package (PNG REQUIRED)
@@ -117,15 +116,10 @@ if (CLIENT)
 	endif()
 endif ()
 
-if (STATIC)
-	add_definitions(-DGLEW_STATIC)
-endif ()
-
 if (CLIENT)
 	include_directories (
 		"${SDL2_INCLUDE_DIR}"
 		"${FREETYPE_INCLUDE_DIRS}"
-		"${GLEW_INCLUDE_DIR}"
 		)
 endif ()
 
@@ -230,7 +224,6 @@ if (CLIENT)
 	target_link_libraries (narfblock
 		${FREETYPE_LIBRARY}
 		${FREETYPE_GL_LIBRARY}
-		${GLEW_LIBRARY}
 		${OPENGL_LIBRARY}
 		${SDL2_LIBRARY}
 		${PNG_LIBRARY}

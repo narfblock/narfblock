@@ -11,7 +11,6 @@ Narfblock
 - libSDL 2.0 development libraries
 - libpng development libraries
 - zlib development libraries
-- GLEW development libraries
 - FreeType development libraries
 - ncurses (Linux) or pdcurses (Windows) development libraries
 - ENet 1.3 or newer development libraries

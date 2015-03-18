@@ -66,6 +66,29 @@ public:
 	std::string glslVersion;
 	std::string glContextVersion;
 
+	// dynamically loaded functions
+
+	// GL 1.5+
+	PFNGLGENBUFFERSPROC GenBuffers;
+	PFNGLDELETEBUFFERSPROC DeleteBuffers;
+	PFNGLBINDBUFFERPROC BindBuffer;
+	PFNGLBUFFERDATAPROC BufferData;
+
+	// GL 2.0+
+	PFNGLCREATESHADERPROC CreateShader;
+	PFNGLDELETESHADERPROC DeleteShader;
+	PFNGLSHADERSOURCEPROC ShaderSource;
+	PFNGLCOMPILESHADERPROC CompileShader;
+	PFNGLGETSHADERIVPROC GetShaderiv;
+	PFNGLGETSHADERINFOLOGPROC GetShaderInfoLog;
+	PFNGLCREATEPROGRAMPROC CreateProgram;
+	PFNGLLINKPROGRAMPROC LinkProgram;
+	PFNGLDELETEPROGRAMPROC DeleteProgram;
+	PFNGLGETPROGRAMIVPROC GetProgramiv;
+	PFNGLGETPROGRAMINFOLOGPROC GetProgramInfoLog;
+	PFNGLATTACHSHADERPROC AttachShader;
+	PFNGLDETACHSHADERPROC DetachShader;
+
 private:
 	SDL_Window *window_;
 	SDL_GLContext context_;

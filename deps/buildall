@@ -71,7 +71,6 @@ for host_triplet in ${hosts}; do
 	fi
 
 	[ $client = y ] && build freetype
-	[ $client = y ] && build glew
 
 	build cmake-toolchain
 done

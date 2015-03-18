@@ -22,30 +22,30 @@ class Shader {
 public:
 	GLuint id;
 
-	Shader(Context* context, ShaderType type) {
-		id = glCreateShader(static_cast<GLenum>(type));
+	Shader(Context& gl, ShaderType type) : gl(gl) {
+		id = gl.CreateShader(static_cast<GLenum>(type));
 	}
 
 	~Shader() {
-		glDeleteShader(id);
+		gl.DeleteShader(id);
 	}
 
 	bool compile(const void* data, size_t size) {
 		auto dataCharPtr = static_cast<const GLchar*>(data);
 		auto lengthInt = static_cast<GLint>(size);
-		glShaderSource(id, 1, &dataCharPtr, &lengthInt);
-		glCompileShader(id);
+		gl.ShaderSource(id, 1, &dataCharPtr, &lengthInt);
+		gl.CompileShader(id);
 		GLint status;
-		glGetShaderiv(id, GL_COMPILE_STATUS, &status);
+		gl.GetShaderiv(id, GL_COMPILE_STATUS, &status);
 		return status != GL_FALSE;
 	}
 
 	std::string infoLog() {
 		GLint len;
-		glGetShaderiv(id, GL_INFO_LOG_LENGTH, &len);
+		gl.GetShaderiv(id, GL_INFO_LOG_LENGTH, &len);
 		auto info = new GLchar[len + 1];
 		if (info) {
-			glGetShaderInfoLog(id, len, nullptr, info);
+			gl.GetShaderInfoLog(id, len, nullptr, info);
 			info[len] = '\0';
 			std::string s(info);
 			delete[] info;
@@ -54,37 +54,40 @@ public:
 
 		return "error retrieving info log";
 	}
+
+private:
+	Context& gl;
 };
 
 class Program {
 public:
 	GLuint id;
 
-	Program(Context* context) {
-		id = glCreateProgram();
+	Program(Context& gl) : gl(gl) {
+		id = gl.CreateProgram();
 	}
 
 	void attach(Shader& s) {
-		glAttachShader(id, s.id);
+		gl.AttachShader(id, s.id);
 	}
 
 	void detach(Shader& s) {
-		glDetachShader(id, s.id);
+		gl.DetachShader(id, s.id);
 	}
 
 	bool link() {
-		glLinkProgram(id);
+		gl.LinkProgram(id);
 		GLint status;
-		glGetProgramiv(id, GL_LINK_STATUS, &status);
+		gl.GetProgramiv(id, GL_LINK_STATUS, &status);
 		return status != GL_FALSE;
 	}
 
 	std::string infoLog() {
 		GLint len;
-		glGetProgramiv(id, GL_INFO_LOG_LENGTH, &len);
+		gl.GetProgramiv(id, GL_INFO_LOG_LENGTH, &len);
 		auto info = new GLchar[len + 1];
 		if (info) {
-			glGetProgramInfoLog(id, len, nullptr, info);
+			gl.GetProgramInfoLog(id, len, nullptr, info);
 			info[len] = '\0';
 			std::string s(info);
 			delete[] info;
@@ -95,8 +98,11 @@ public:
 	}
 
 	~Program() {
-		glDeleteProgram(id);
+		gl.DeleteProgram(id);
 	}
+
+private:
+	Context& gl;
 };
 
 } // namespace gl

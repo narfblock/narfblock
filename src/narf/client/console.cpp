@@ -33,6 +33,7 @@ struct narf::ClientConsoleImpl {
 	narf::TextEditor editState;
 	bool editing;
 	narf::ClientConsole::CursorShape cursorShape;
+	narf::gl::Context* gl;
 };
 
 
@@ -43,9 +44,15 @@ narf::ClientConsole::ClientConsole() {
 	impl->editBuffer = nullptr;
 	impl->paddingLeft = 5; // TODO: make this configurable
 	impl->cursorShape = CursorShape::Default;
+	impl->gl = nullptr;
 	last_blink = std::chrono::system_clock::now();
 	blink_cursor = true;
 	blink_rate = 600;  // Milliseconds
+}
+
+
+void narf::ClientConsole::setGLContext(narf::gl::Context* gl) {
+	impl->gl = gl;
 }
 
 
@@ -66,13 +73,13 @@ void narf::ClientConsole::setFont(narf::font::Font *font) {
 	if (impl->textBuffer) {
 		impl->textBuffer->setFont(font);
 	} else {
-		impl->textBuffer = new narf::font::TextBuffer(font);
+		impl->textBuffer = new narf::font::TextBuffer(*impl->gl, font);
 	}
 
 	if (impl->editBuffer) {
 		impl->editBuffer->setFont(font);
 	} else {
-		impl->editBuffer = new narf::font::TextBuffer(font);
+		impl->editBuffer = new narf::font::TextBuffer(*impl->gl, font);
 	}
 
 	// re-render current text

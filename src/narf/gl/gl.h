@@ -3,9 +3,6 @@
 
 #include <stdint.h>
 
-#include <GL/glew.h>
-
-#define NO_SDL_GLEXT
 #include <SDL.h>
 #include <SDL_opengl.h>
 

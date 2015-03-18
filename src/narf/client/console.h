@@ -31,6 +31,9 @@ namespace narf {
 
 		ClientConsole();
 		~ClientConsole();
+
+		void setGLContext(gl::Context* gl);
+
 		void println(const std::string &s);
 
 		std::string pollInput() override;

@@ -1,4 +1,4 @@
-#include "narf/gl/context.h"
+#include "narf/gl/gl.h"
 #include "narf/console.h"
 
 #ifdef _WIN32
@@ -67,13 +67,48 @@ bool narf::gl::Context::setDisplayMode(const char *title, int32_t width, int32_t
 	    SDL_GL_GetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, &contextMinor) == 0) {
 		glContextVersion = std::to_string(contextMajor) + "." + std::to_string(contextMinor);
 		console->println("GL context version " + glContextVersion);
-	}
-
-	GLenum glew_err = glewInit();
-	if (glew_err != GLEW_OK) {
-		console->println("Error initializing GLEW: " + std::string((const char *)glewGetErrorString(glew_err)));
+	} else {
+		console->println("Could not determine GL context version");
 		return false;
 	}
+
+	// require OpenGL 2.0+
+	if (contextMajor < 2) {
+		console->println("OpenGL 2.0+ required");
+		return false;
+	}
+
+	// load required base (non-extension) OpenGL function
+#define REQ(func) \
+	{ \
+		std::string f("gl" #func); \
+		func = reinterpret_cast<decltype(func)>(SDL_GL_GetProcAddress(f.c_str())); \
+		if (!func) { \
+			console->println("Missing required OpenGL function " + f); \
+			return false; \
+		} \
+	}
+
+	// GL 1.5+
+	REQ(GenBuffers);
+	REQ(DeleteBuffers);
+	REQ(BindBuffer);
+	REQ(BufferData);
+
+	// GL 2.0+
+	REQ(CreateShader);
+	REQ(DeleteShader);
+	REQ(ShaderSource);
+	REQ(CompileShader);
+	REQ(GetShaderiv);
+	REQ(GetShaderInfoLog);
+	REQ(CreateProgram);
+	REQ(LinkProgram);
+	REQ(DeleteProgram);
+	REQ(GetProgramiv);
+	REQ(GetProgramInfoLog);
+	REQ(AttachShader);
+	REQ(DetachShader);
 
 	// set window icon
 #ifdef _WIN32

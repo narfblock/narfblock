@@ -96,8 +96,8 @@ void drawCube(const Point3f& c, Vector3f& hs, uint8_t texID)
 }
 
 
-ChunkVBO::ChunkVBO(const ChunkCoord& cc) :
-	vbo_(GL_ARRAY_BUFFER, GL_STATIC_DRAW), cc_(cc), dirty_(true) {
+ChunkVBO::ChunkVBO(gl::Context& gl, const ChunkCoord& cc) :
+	vbo_(gl, GL_ARRAY_BUFFER, GL_STATIC_DRAW), cc_(cc), dirty_(true) {
 }
 
 
@@ -225,9 +225,9 @@ void ChunkVBO::render(World* world) {
 }
 
 
-Renderer::Renderer(World* world, gl::Texture* tilesTex) :
+Renderer::Renderer(World* world, gl::Context& gl, gl::Texture* tilesTex) :
 	wireframe(false), backfaceCulling(true), fog(true),
-	world_(world), tilesTex_(tilesTex) {
+	world_(world), gl(gl), tilesTex_(tilesTex) {
 }
 
 
@@ -245,7 +245,7 @@ void Renderer::renderChunk(const ChunkCoord& cc)
 		// TODO: render placeholder chunk?
 		// for now, insert the chunk VBO and render it anyway
 		// could do some kind of background processing so it is ready next frame?
-		vboCache_.put(cc, ChunkVBO(cc));
+		vboCache_.put(cc, ChunkVBO(gl, cc));
 		chunkVBO = getChunkVBO(cc);
 		chunkVBO->render(world_);
 	}

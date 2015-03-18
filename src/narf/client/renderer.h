@@ -52,7 +52,7 @@ struct BlockVertex {
 
 class ChunkVBO {
 public:
-	ChunkVBO(const ChunkCoord& cc);
+	ChunkVBO(gl::Context& gl, const ChunkCoord& cc);
 	~ChunkVBO();
 
 	void render(World* world);
@@ -70,7 +70,7 @@ private:
 
 class Renderer {
 public:
-	Renderer(World* world, gl::Texture* tilesTex /*TODO*/);
+	Renderer(World* world, gl::Context& gl, gl::Texture* tilesTex /*TODO*/);
 
 	void setRenderDistance(int32_t numChunks);
 	int32_t getRenderDistance() const;
@@ -90,6 +90,7 @@ public:
 private:
 	World* world_;
 	int32_t renderDistance_; // radius in chunks
+	gl::Context& gl;
 	gl::Texture* tilesTex_;
 	ChunkCache<ChunkCoord, ChunkVBO> vboCache_;
 

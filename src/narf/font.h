@@ -46,7 +46,7 @@ namespace narf {
 
 		class TextBuffer {
 		public:
-			TextBuffer(const Font *font) : font_(font), buffer_(GL_ARRAY_BUFFER, GL_STATIC_DRAW) {}
+			TextBuffer(gl::Context& gl, const Font *font) : font_(font), buffer_(gl, GL_ARRAY_BUFFER, GL_STATIC_DRAW) {}
 
 			void setFont(const Font* font) { font_ = font; }
 			const Font* getFont() { return font_; }

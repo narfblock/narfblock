@@ -670,7 +670,7 @@ void processConnect(ENetEvent& evt) {
 
 	// TODO: put this somewhere common
 	delete renderer;
-	renderer = new narf::Renderer(world, tilesTex);
+	renderer = new narf::Renderer(world, *display, tilesTex);
 }
 
 
@@ -954,8 +954,6 @@ void cmdAbout(const std::string& args) {
 	SDL_GetVersion(&sdl);
 	narf::console->println("SDL " + std::to_string(sdl.major) + "." + std::to_string(sdl.minor) + "." + std::to_string(sdl.patch));
 
-	narf::console->println("GLEW " + std::string(reinterpret_cast<const char*>(glewGetString(GLEW_VERSION))));
-
 	narf::console->println("zlib " + std::string(zlibVersion()));
 
 	auto png = png_access_version_number();
@@ -1082,6 +1080,8 @@ extern "C" int main(int argc, char **argv)
 		return 1;
 	}
 
+	clientConsole->setGLContext(display);
+
 	config.initBool("video.vsync", false);
 
 	newWorld();
@@ -1113,14 +1113,14 @@ extern "C" int main(int argc, char **argv)
 		return 1;
 	}
 
-	renderer = new narf::Renderer(world, tilesTex);
+	renderer = new narf::Renderer(world, *display, tilesTex);
 
 	config.initInt32("video.renderDistance", 5);
 
-	fpsTextBuffer = new narf::font::TextBuffer(nullptr);
-	blockInfoBuffer = new narf::font::TextBuffer(nullptr);
-	entityInfoBuffer = new narf::font::TextBuffer(nullptr);
-	locationBuffer = new narf::font::TextBuffer(nullptr);
+	fpsTextBuffer = new narf::font::TextBuffer(*display, nullptr);
+	blockInfoBuffer = new narf::font::TextBuffer(*display, nullptr);
+	entityInfoBuffer = new narf::font::TextBuffer(*display, nullptr);
+	locationBuffer = new narf::font::TextBuffer(*display, nullptr);
 
 	config.initString("video.hudFont", "DroidSansMono");
 	config.initInt32("video.hudFontSize", 30);
