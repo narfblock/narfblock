@@ -1,7 +1,8 @@
 #include "narf/texteditor.h"
 #include "narf/console.h"
+#include "narf/math/math.h"
 #include <chrono>
-#include "math.h"
+#include <cstdlib>
 
 narf::TextEditor::TextEditor() {
 	homeCursor();
@@ -42,7 +43,7 @@ void narf::TextEditor::delAtCursor(const int count) {
 	if (count < 0) {
 		moveCursor(count);
 	}
-	str_.erase(cursor, static_cast<uint32_t>(std::abs(count)));
+	str_.erase(cursor, static_cast<uint32_t>(abs(count)));
 	updated();
 }
 

@@ -1,6 +1,7 @@
 #include "narf/math/floats.h"
 #include <cmath>
 #include <cstdint>
+#include <cstdlib>
 #include <float.h>
 
 // Borrowed from
@@ -47,7 +48,7 @@ bool narf::almostEqualUlpsAndAbs(float a, float b, float maxDiff, int maxUlpsDif
 	}
 
 	// Find the difference in ULPs.
-	int ulpsDiff = (int)std::abs(uA.i - uB.i);
+	int ulpsDiff = abs(uA.i - uB.i);
 	if (ulpsDiff <= maxUlpsDiff) {
 		return true;
 	}

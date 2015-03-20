@@ -1,13 +1,20 @@
 #include "narf/console.h"
 #include "narf/util/path.h"
 
-
-#ifdef linux
-
+#ifdef __unix__
 #include <sys/stat.h>
 #include <unistd.h>
+#include <stdlib.h>
+#endif
 
+#ifdef _WIN32
+const std::string narf::util::DirSeparator("\\");
+#else
 const std::string narf::util::DirSeparator("/");
+#endif
+
+
+#ifdef linux
 
 static std::string readLink(const std::string &path) {
 	size_t len = 1024;
@@ -45,6 +52,17 @@ std::string narf::util::exeName() {
 	return readLink("/proc/self/exe");
 }
 
+#endif // linux
+
+#if defined(__unix__) && !defined(linux)
+std::string narf::util::exeName() {
+	return "";
+}
+#endif // unix && !linux
+
+
+#if defined(__unix__)
+
 std::string narf::util::userConfigDir(const std::string& appName) {
 	// look up home dir and append .config/<appName>
 	char* home;
@@ -69,7 +87,7 @@ bool narf::util::dirExists(const std::string& path) {
 	return (st.st_mode & S_IFMT) == S_IFDIR;
 }
 
-#endif // linux
+#endif // unix
 
 
 #ifdef _WIN32
@@ -79,7 +97,6 @@ bool narf::util::dirExists(const std::string& path) {
 
 #include "narf/utf.h"
 
-const std::string narf::util::DirSeparator("\\");
 
 std::string narf::util::exeName() {
 	const DWORD len = 32768; // max NT-style name length + terminator

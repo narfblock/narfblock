@@ -37,6 +37,7 @@
 
 #include "narf/console.h"
 #include <errno.h>
+#include <cstdlib>
 
 static bool isSpace(char c) {
 	return c == ' ' || c == '\t';
