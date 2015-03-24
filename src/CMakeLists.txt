@@ -70,6 +70,9 @@ if (CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_CLA
 	SET(CMAKE_C_FLAGS
 		"${CMAKE_C_FLAGS} -Wpointer-arith -Wtype-limits -Wwrite-strings -Wuninitialized -Werror=redundant-decls -Wsign-compare -Wconversion -g -fno-ident")
 
+	# don't export symbols (especially for PIC builds, but it doesn't hurt elsewhere)
+	SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fvisibility=hidden")
+
 	if (STATIC)
 		SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -static -static-libgcc -static-libstdc++")
 	endif()
