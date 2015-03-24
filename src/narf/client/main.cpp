@@ -971,9 +971,9 @@ void cmdAbout(const std::string& args) {
 
 	narf::console->println("");
 	narf::console->println("OpenGL information:");
-	narf::console->println("OpenGL version " + display->glVersion);
-	narf::console->println("GLSL version " + display->glslVersion);
-	narf::console->println("GL context version " + display->glContextVersion);
+	narf::console->println("OpenGL version " + std::string(display->glVersion));
+	narf::console->println("GLSL version " + std::string(display->glslVersion));
+	narf::console->println("GL context version " + std::to_string(display->glContextVersionMajor) + "." + std::to_string(display->glContextVersionMinor));
 }
 
 

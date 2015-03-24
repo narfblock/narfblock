@@ -6,11 +6,6 @@
 #include <windows.h>
 #endif
 
-narf::gl::Context::Context()
-{
-}
-
-
 void narf::gl::Context::setVsync(bool enabled) {
 	int rc;
 	if (enabled) {
@@ -27,6 +22,50 @@ void narf::gl::Context::setVsync(bool enabled) {
 	if (rc != 0) {
 		console->println("WARNING: SDL_GL_SetSwapInterval failed: " + std::string(SDL_GetError()));
 	}
+}
+
+
+bool narf::gl::Context::getFunctions() {
+	// load required base (non-extension) OpenGL function
+#define REQ(func) \
+	{ offsetof(narf::gl::Context, func), "gl" #func }
+
+	static const struct Func {
+		size_t funcOffset;
+		const char* name;
+	} funcs[] = {
+		// GL 1.5+
+		REQ(GenBuffers),
+		REQ(DeleteBuffers),
+		REQ(BindBuffer),
+		REQ(BufferData),
+
+		// GL 2.0+
+		REQ(CreateShader),
+		REQ(DeleteShader),
+		REQ(ShaderSource),
+		REQ(CompileShader),
+		REQ(GetShaderiv),
+		REQ(GetShaderInfoLog),
+		REQ(CreateProgram),
+		REQ(LinkProgram),
+		REQ(DeleteProgram),
+		REQ(GetProgramiv),
+		REQ(GetProgramInfoLog),
+		REQ(AttachShader),
+		REQ(DetachShader),
+	};
+
+	for (const auto& f : funcs) {
+		void** fp = (void**)((uintptr_t)this + f.funcOffset);
+		*fp = SDL_GL_GetProcAddress(f.name);
+		if (!*fp) {
+			console->println("Missing required OpenGL function " + std::string(f.name));
+			return false;
+		}
+	}
+
+	return true;
 }
 
 
@@ -57,15 +96,14 @@ bool narf::gl::Context::setDisplayMode(const char *title, int32_t width, int32_t
 		return false;
 	}
 
-	glVersion = std::string(reinterpret_cast<const char*>(glGetString(GL_VERSION)));
-	glslVersion = std::string(reinterpret_cast<const char*>(glGetString(GL_SHADING_LANGUAGE_VERSION)));
-	console->println("OpenGL version " + glVersion);
-	console->println("GLSL version " + glslVersion);
+	glVersion = reinterpret_cast<const char*>(glGetString(GL_VERSION));
+	glslVersion = reinterpret_cast<const char*>(glGetString(GL_SHADING_LANGUAGE_VERSION));
+	console->println("OpenGL version " + std::string(glVersion));
+	console->println("GLSL version " + std::string(glslVersion));
 
-	int contextMajor, contextMinor;
-	if (SDL_GL_GetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, &contextMajor) == 0 &&
-	    SDL_GL_GetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, &contextMinor) == 0) {
-		glContextVersion = std::to_string(contextMajor) + "." + std::to_string(contextMinor);
+	if (SDL_GL_GetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, &glContextVersionMajor) == 0 &&
+	    SDL_GL_GetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, &glContextVersionMinor) == 0) {
+		auto glContextVersion = std::to_string(glContextVersionMajor) + "." + std::to_string(glContextVersionMinor);
 		console->println("GL context version " + glContextVersion);
 	} else {
 		console->println("Could not determine GL context version");
@@ -73,42 +111,14 @@ bool narf::gl::Context::setDisplayMode(const char *title, int32_t width, int32_t
 	}
 
 	// require OpenGL 2.0+
-	if (contextMajor < 2) {
+	if (glContextVersionMajor < 2) {
 		console->println("OpenGL 2.0+ required");
 		return false;
 	}
 
-	// load required base (non-extension) OpenGL function
-#define REQ(func) \
-	{ \
-		std::string f("gl" #func); \
-		func = reinterpret_cast<decltype(func)>(SDL_GL_GetProcAddress(f.c_str())); \
-		if (!func) { \
-			console->println("Missing required OpenGL function " + f); \
-			return false; \
-		} \
+	if (!getFunctions()) {
+		return false;
 	}
-
-	// GL 1.5+
-	REQ(GenBuffers);
-	REQ(DeleteBuffers);
-	REQ(BindBuffer);
-	REQ(BufferData);
-
-	// GL 2.0+
-	REQ(CreateShader);
-	REQ(DeleteShader);
-	REQ(ShaderSource);
-	REQ(CompileShader);
-	REQ(GetShaderiv);
-	REQ(GetShaderInfoLog);
-	REQ(CreateProgram);
-	REQ(LinkProgram);
-	REQ(DeleteProgram);
-	REQ(GetProgramiv);
-	REQ(GetProgramInfoLog);
-	REQ(AttachShader);
-	REQ(DetachShader);
 
 	// set window icon
 #ifdef _WIN32

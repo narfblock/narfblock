@@ -45,8 +45,6 @@ class Texture; // forward decl
 class Context {
 public:
 
-	Context();
-
 	bool setDisplayMode(const char *title, int32_t width, int32_t height, bool fullscreen);
 
 	void updateViewport();
@@ -62,11 +60,14 @@ public:
 	int32_t width() const;
 	int32_t height() const;
 
-	std::string glVersion;
-	std::string glslVersion;
-	std::string glContextVersion;
+	const char* glVersion;
+	const char* glslVersion;
+
+	int glContextVersionMajor;
+	int glContextVersionMinor;
 
 	// dynamically loaded functions
+	bool getFunctions();
 
 	// GL 1.5+
 	PFNGLGENBUFFERSPROC GenBuffers;
@@ -89,7 +90,6 @@ public:
 	PFNGLATTACHSHADERPROC AttachShader;
 	PFNGLDETACHSHADERPROC DetachShader;
 
-private:
 	SDL_Window *window_;
 	SDL_GLContext context_;
 };
