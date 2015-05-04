@@ -34,20 +34,46 @@
 #define NARF_INI_H
 
 #include <stdint.h>
+#include <stdio.h>
 
 #include <string>
-#include <unordered_map>
+#include <vector>
+#include <algorithm>
 #include <functional>
+#include <unordered_map>
 
 namespace narf {
+namespace INI {
 
-class IniFile {
+class Line {
+	public:
+		enum class Type { Section, Entry, Comment, Other };
+		Line(const char* data, size_t size);
+		Line(const std::string& line);
+		~Line();
+		std::string getKey();
+		std::string getValue();
+		std::string getRaw();
+		Type getType();
+		std::string setValue(std::string newvalue);
+	private:
+		void parse();
+		bool error;
+		std::string key;
+		size_t valueStartPos;
+		size_t valueLength;
+		std::string value;
+		std::string raw;
+		Type lineType;
+};
+
+class File {
 public:
-	IniFile();
-	~IniFile();
+	File();
+	~File();
 
 	bool load(const void* data, size_t size);
-	bool save(/* TODO: bytestream writer? */);
+	std::string save(/* TODO: bytestream writer? */);
 
 	std::string getString(const std::string& key) const;
 	void setString(const std::string& key, const std::string& value);
@@ -84,11 +110,13 @@ public:
 private:
 	// keys are stored as section.key (all sections are stored in the same map)
 	std::unordered_map<std::string, std::string> values_;
+	std::vector<Line> lines;
 
-	void warn(const std::string& s);
+	void warn(const std::string& s) const;
 	void update(const std::string& key);
 };
 
+} // namespace ini
 } // namespace narf
 
 #endif // NARF_INI_H

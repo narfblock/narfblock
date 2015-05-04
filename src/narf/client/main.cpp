@@ -52,7 +52,7 @@ narf::ClientConsole *clientConsole;
 narf::Entity::ID playerEID;
 narf::Entity::ID bouncyBlockEID; // temp hack
 
-narf::IniFile config;
+narf::INI::File config;
 
 narf::Camera cam;
 
