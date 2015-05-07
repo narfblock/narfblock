@@ -1,7 +1,7 @@
 /*
  * INI file load/save
  *
- * Copyright (c) 2015 Daniel Verkamp
+ * Copyright (c) 2015 Daniel Verkamp, Jessica Creighton
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,6 +44,8 @@
 
 namespace narf {
 namespace INI {
+
+void warn(const std::string& s);
 
 class Line {
 	public:
@@ -112,7 +114,6 @@ private:
 	std::unordered_map<std::string, std::string> values_;
 	std::vector<Line> lines;
 
-	void warn(const std::string& s) const;
 	void update(const std::string& key);
 };
 

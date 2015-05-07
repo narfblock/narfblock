@@ -48,6 +48,10 @@ static bool isNewLine(char c) {
 	return c == '\r' || c == '\n';
 }
 
+void narf::INI::warn(const std::string& s) {
+	narf::console->println(s);
+}
+
 narf::INI::Line::Line(const char* data, size_t size) {
 	std::string line(data, size);
 	raw = line;
@@ -85,18 +89,10 @@ std::string narf::INI::Line::setValue(std::string newValue) {
 	value = "";
 	for (size_t i = 0; i < newValue.size(); i++) {
 		char c = newValue.at(i);
-		if (c == '\0') {
-			value += "\\0";
-		} else if (c == '\a') {
-			value += "\\a";
-		} else if (c == '\b') {
-			value += "\\b";
-		} else if (c == '\t') {
-			value += "\\t";
-		} else if (c == '\r'){
-			value += "\\r";
-		} else if (c == '\n') {
-			value += "\\n";
+		std::unordered_map<char, std::string> escapes {{'\0', "\\0"}, {'\a', "\\a"}, {'\b', "\\b"},
+				{'\t', "\\t"}, {'\r', "\\r"}, {'\n', "\\n"}, {';', "\\;"}, {'"', "\\\""}, {'\\', "\\\\"}};
+		if (escapes.count(c) > 0) {
+			value += escapes.at(c);
 		} else if (c < 32 || (uint8_t)c >= 127) {
 			char raw[30];
 			snprintf(raw, sizeof(raw), "\\x%02x", (uint8_t)c); // TODO: Unicode? Or at least latin-1?
@@ -122,6 +118,7 @@ void narf::INI::Line::parse() {
 		Key,
 		Equals,
 		Value,
+		ValueEnd
 	};
 	State state = State::BeginLine;
 	enum class QuoteState { None, Inside, Done };
@@ -134,7 +131,6 @@ void narf::INI::Line::parse() {
 	const char* chars = raw.c_str();
 	size_t size = raw.size();
 	error = false; // No parse errors
-	bool valueDone = false;
 	const char* valueEnd = nullptr;
 	std::string hexEscape;
 	size_t i = 0;
@@ -176,7 +172,7 @@ void narf::INI::Line::parse() {
 					// Rest of line is a comment
 					state = State::Ignore;
 				} else {
-					//warn("junk at end of line");
+					warn("junk at end of line");
 					error = true;
 					c = '\0';
 				}
@@ -200,7 +196,7 @@ void narf::INI::Line::parse() {
 					key = std::string(keyStart, static_cast<size_t>(d - keyStart));
 					keyStart = nullptr;
 				} else if (c == '\0' || isNewLine(c)) {
-					//warn("key without value");
+					warn("key without value");
 					error = true;
 					state = State::Ignore;
 				} else {
@@ -215,7 +211,7 @@ void narf::INI::Line::parse() {
 					state = State::Value;
 				} else {
 					error = true;
-					//warn("junk after key");
+					warn("junk after key");
 					state = State::Ignore;
 				}
 				break;
@@ -228,30 +224,10 @@ void narf::INI::Line::parse() {
 						valueStartPos = i;
 						i--;
 					}
-				} else if (c == '\0' || isNewLine(c) || valueDone) {
-					if (escapeState != EscapeState::None) {
-						if (escapeState == EscapeState::Hex) { // We were at the start
-							if (hexEscape.size() > 0) {
-								value += (char)std::stoi(hexEscape, nullptr, 16); // Reached the end in the middle of a hex escape
-							} else { // Should this error?
-								value += "\\x"; // We started a hex escape, but reached the end before we even started
-							}
-						} else {
-							value += '\\'; // We started escaping but got to the end, so treat it as a normal slash
-						}
-					}
-					// Trim trailing whitespace. std::string doesn't have a built in trim for some reason :|
-					// From here: http://stackoverflow.com/a/17976541
-					if (quoteState == QuoteState::None) {
-						// We weren't inside of a quote, so we should trim trailing spaces
-						auto trimmedback = std::find_if_not(value.rbegin(), value.rend(), [](char c){return isSpace(c);}).base();
-						value = std::string(value.begin(), trimmedback);
-					}
-					valueLength = (size_t)(valueEnd + 1 - valueStart);
-					state = State::Ignore;
-				} else if (c == ';' && quoteState != QuoteState::Inside && escapeState == EscapeState::None) {
-					// We're at comment, so we're done with the value
-					valueDone = true;
+				} else if (c == '\0' || isNewLine(c) || (c == ';' && quoteState != QuoteState::Inside && escapeState == EscapeState::None)) {
+					state = State::ValueEnd;
+					i--;
+					continue;
 				} else {
 					// Accumulate any other chars into value
 					if (!isSpace(c)) {
@@ -306,6 +282,28 @@ void narf::INI::Line::parse() {
 						value += c;
 					}
 				}
+				break;
+			case State::ValueEnd:
+				if (escapeState != EscapeState::None) {
+					if (escapeState == EscapeState::Hex) { // We were at the start
+						if (hexEscape.size() > 0) {
+							value += (char)std::stoi(hexEscape, nullptr, 16); // Reached the end in the middle of a hex escape
+						} else { // Should this error?
+							value += "\\x"; // We started a hex escape, but reached the end before we even started
+						}
+					} else {
+						value += '\\'; // We started escaping but got to the end, so treat it as a normal slash
+					}
+				}
+				// Trim trailing whitespace. std::string doesn't have a built in trim for some reason :|
+				// From here: http://stackoverflow.com/a/17976541
+				if (quoteState == QuoteState::None) {
+					// We weren't inside of a quote, so we should trim trailing spaces
+					auto trimmedback = std::find_if_not(value.rbegin(), value.rend(), [](char c){return isSpace(c);}).base();
+					value = std::string(value.begin(), trimmedback);
+				}
+				valueLength = (size_t)(valueEnd + 1 - valueStart);
+				state = State::EndLine;
 				break;
 			case State::Ignore:
 				// Nothing matters </3
@@ -368,7 +366,7 @@ std::string narf::INI::File::save() {
 				auto line = lines.at(i);
 				if (line.getType() == narf::INI::Line::Type::Section) {
 					if ((section == "" && key.find('.') == std::string::npos) ||
-					    (section != "" && key.find(section + ".") == 0)) {
+							(section != "" && key.find(section + ".") == 0)) {
 						// If we were at global and key is at global
 						// or if we got to the end of the section which matches our key
 						// then insert and break
@@ -428,11 +426,6 @@ void narf::INI::File::update(const std::string& key) {
 
 bool narf::INI::File::has(const std::string& key) const {
 	return values_.count(key) != 0;
-}
-
-
-void narf::INI::File::warn(const std::string& s) const {
-	narf::console->println(s);
 }
 
 
