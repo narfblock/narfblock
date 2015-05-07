@@ -208,113 +208,108 @@ void narf::INI::Line::parse() {
 					// TODO: Are there invalid key characters?
 				}
 				break;
-				case State::Equals:
+			case State::Equals:
+				if (isSpace(c)) {
+					// Eat whitespace
+				} else if (c == '=') {
+					state = State::Value;
+				} else {
+					error = true;
+					//warn("junk after key");
+					state = State::Ignore;
+				}
+				break;
+			case State::Value:
+				if (valueStart == nullptr) {
 					if (isSpace(c)) {
-						// Eat whitespace
-					} else if (c == '=') {
-						state = State::Value;
+						// eat whitespace between = and value
 					} else {
-						error = true;
-						//warn("junk after key");
-						state = State::Ignore;
+						valueStart = d;
+						valueStartPos = i;
+						i--;
 					}
-					break;
-				case State::Value:
-					if (valueStart == nullptr) {
-						if (isSpace(c)) {
-							// eat whitespace between = and value
+				} else if (c == '\0' || isNewLine(c) || valueDone) {
+					if (escapeState != EscapeState::None) {
+						if (escapeState == EscapeState::Hex) { // We were at the start
+							if (hexEscape.size() > 0) {
+								value += (char)std::stoi(hexEscape, nullptr, 16); // Reached the end in the middle of a hex escape
+							} else { // Should this error?
+								value += "\\x"; // We started a hex escape, but reached the end before we even started
+							}
 						} else {
-							valueStart = d;
-							valueStartPos = i;
-							i--;
+							value += '\\'; // We started escaping but got to the end, so treat it as a normal slash
 						}
-					} else {
-						if (c == '\0' || isNewLine(c) || valueDone) {
-							if (escapeState != EscapeState::None) {
-								if (escapeState == EscapeState::Hex) { // We were at the start
-									if (hexEscape.size() > 0) {
-										value += (char)std::stoi(hexEscape, nullptr, 16); // Reached the end in the middle of a hex escape
-									} else { // Should this error?
-										value += "\\x"; // We started a hex escape, but reached the end before we even started
-									}
+					}
+					// Trim trailing whitespace. std::string doesn't have a built in trim for some reason :|
+					// From here: http://stackoverflow.com/a/17976541
+					if (quoteState == QuoteState::None) {
+						// We weren't inside of a quote, so we should trim trailing spaces
+						auto trimmedback = std::find_if_not(value.rbegin(), value.rend(), [](char c){return isSpace(c);}).base();
+						value = std::string(value.begin(), trimmedback);
+					}
+					valueLength = (size_t)(valueEnd + 1 - valueStart);
+					state = State::Ignore;
+				} else if (c == ';' && quoteState != QuoteState::Inside && escapeState == EscapeState::None) {
+					// We're at comment, so we're done with the value
+					valueDone = true;
+				} else {
+					// Accumulate any other chars into value
+					if (!isSpace(c)) {
+						valueEnd = d; // Store the last non-space character so our valueLength is accurate after trimming
+					}
+					if (c == '\\' && escapeState == EscapeState::None) {
+						escapeState = EscapeState::Other;
+					} else if (escapeState == EscapeState::Other) {
+						std::unordered_map<char, char> escapes {{'0', '\0'}, {'a', '\a'}, {'b', '\b'}, {'t', '\t'}, {'r', '\r'}, {'n', '\n'}};
+						if (escapes.count(c) > 0) {
+							value += escapes.at(c);
+						} else if (c == 'x') { // Hex escape
+							escapeState = EscapeState::Hex;
+							hexEscape = "";
+						} else { // Catches Quote, Semicolon, and Backslash
+							value += c;
+						}
+						if (escapeState == EscapeState::Other) {
+							escapeState = EscapeState::None;
+						}
+					} else if (escapeState == EscapeState::Hex) {
+						if (hexEscape.size() < 2 && ((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F'))) {
+							hexEscape += c;
+						} else {
+							if (hexEscape.size() > 0) {
+								value += (char)std::stoi(hexEscape, nullptr, 16);
+							} else { // This should probably error?
+								value += "\\x";
+							}
+							escapeState = EscapeState::None;
+							i--; // Redo the previous character if not part of the he
+							continue;
+						}
+					} else if (c == '"') {
+						switch (quoteState) {
+							case QuoteState::None:
+								if (valueStart == d) {
+									quoteState = QuoteState::Inside;
 								} else {
-									value += '\\'; // We started escaping but got to the end, so treat it as a normal slash
+									error = true;
+									value += '"';
 								}
-							}
-							// Trim trailing whitespace. std::string doesn't have a built in trim for some reason :|
-							// From here: http://stackoverflow.com/a/17976541
-							if (quoteState == QuoteState::None) {
-								// We weren't inside of a quote, so we should trim trailing spaces
-								auto trimmedback = std::find_if_not(value.rbegin(), value.rend(), [](char c){return isSpace(c);}).base();
-								value = std::string(value.begin(), trimmedback);
-							}
-							valueLength = (size_t)(valueEnd + 1 - valueStart);
-							state = State::Ignore;
-						} else {
-							// Accumulate any other chars into value
-							if (c == ';' && quoteState != QuoteState::Inside && escapeState == EscapeState::None) {
-								// We're at comment, so we're done with the value
-								valueDone = true;
-							} else {
-								if (!isSpace(c)) {
-									valueEnd = d; // Store the last non-space character so our valueLength is accurate after trimming
-								}
-								if (c == '\\' && escapeState == EscapeState::None) {
-									escapeState = EscapeState::Other;
-								} else if (escapeState == EscapeState::Other) {
-									std::unordered_map<char, char> escapes {{'0', '\0'}, {'a', '\a'}, {'b', '\b'}, {'t', '\t'}, {'r', '\r'}, {'n', '\n'}};
-									if (escapes.count(c) > 0) {
-										value += escapes.at(c);
-									} else if (c == 'x') { // Hex escape
-										escapeState = EscapeState::Hex;
-										hexEscape = "";
-									} else { // Catches Quote, Semicolon, and Backslash
-										value += c;
-									}
-									if (escapeState == EscapeState::Other) {
-										escapeState = EscapeState::None;
-									}
-								} else if (escapeState == EscapeState::Hex) {
-									if (hexEscape.size() < 2 && ((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F'))) {
-										hexEscape += c;
-									} else {
-										if (hexEscape.size() > 0) {
-											value += (char)std::stoi(hexEscape, nullptr, 16);
-										} else { // This should probably error?
-											value += "\\x";
-										}
-										escapeState = EscapeState::None;
-										i--; // Redo the previous character if not part of the he
-										continue;
-									}
-								} else if (c == '"') {
-									switch (quoteState) {
-										case QuoteState::None:
-											if (valueStart == d) {
-												quoteState = QuoteState::Inside;
-											} else {
-												error = true;
-												value += '"';
-											}
-											break;
-										case QuoteState::Inside:
-											quoteState = QuoteState::Done;
-											break;
-										case QuoteState::Done:
-											error = true;
-											break;
-									}
-
-								} else if (quoteState != QuoteState::Done){
-									value += c;
-								}
-							}
+								break;
+							case QuoteState::Inside:
+								quoteState = QuoteState::Done;
+								break;
+							case QuoteState::Done:
+								error = true;
+								break;
 						}
+					} else if (quoteState != QuoteState::Done){
+						value += c;
 					}
-					break;
-				case State::Ignore:
-					// Nothing matters </3
-					break;
+				}
+				break;
+			case State::Ignore:
+				// Nothing matters </3
+				break;
 		}
 		if (c == '\0' || isNewLine(c)) {
 			break;
@@ -373,7 +368,7 @@ std::string narf::INI::File::save() {
 				auto line = lines.at(i);
 				if (line.getType() == narf::INI::Line::Type::Section) {
 					if ((section == "" && key.find('.') == std::string::npos) ||
-							(section != "" && key.find(section + ".") == 0)) {
+					    (section != "" && key.find(section + ".") == 0)) {
 						// If we were at global and key is at global
 						// or if we got to the end of the section which matches our key
 						// then insert and break
