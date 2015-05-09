@@ -928,6 +928,28 @@ void cmdLoad(const std::string& args) {
 }
 
 
+void cmdSaveConfig(const std::string& args) {
+	auto filename = args;
+	if (args.length() == 0) {
+		filename = narf::util::appendPath(narf::util::userConfigDir("narfblock"), "client.ini");
+		// TODO: recursively mkdir path
+	}
+	narf::console->println("Saving configuration to " + filename);
+	FILE* f = fopen(filename.c_str(), "wb");
+	if (!f) {
+		narf::console->println("Couldn't open configuration file for writing");
+		return;
+	}
+
+	auto configstr = config.save();
+	auto written = fwrite(configstr.c_str(), 1, configstr.length(), f);
+	if (written != configstr.length()) {
+		narf::console->println("Error saving configuration (incomplete write)");
+	}
+	fclose(f);
+}
+
+
 void cmdStats(const std::string& args) {
 	gameLoop->dumpTickTimeHistogram();
 }
@@ -1008,6 +1030,7 @@ extern "C" int main(int argc, char **argv)
 	narf::cmd::cmds["connect"] = cmdConnect;
 	narf::cmd::cmds["disconnect"] = cmdDisconnect;
 	narf::cmd::cmds["save"] = cmdSave;
+	narf::cmd::cmds["saveconfig"] = cmdSaveConfig;
 	narf::cmd::cmds["load"] = cmdLoad;
 	narf::cmd::cmds["stats"] = cmdStats;
 	narf::cmd::cmds["about"] = cmdAbout;
