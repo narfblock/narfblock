@@ -1,5 +1,7 @@
 #include <stdio.h>
 
+#include <gtest/gtest.h>
+
 #include "narf/version.h"
 
 #include "narf/math/math.h"
@@ -18,11 +20,20 @@ void testRayAtDistance(const narf::Ray<float> &ray, float distance) {
 	printf("At distance %f: (%f, %f, %f)\n", distance, p.x, p.y, p.z);
 }
 
+static void oldTests();
+
 int main(int argc, char **argv)
 {
 	printf("NarfBlock unit tests\n");
 	printf("Version: %d.%d%s\n", VERSION_MAJOR, VERSION_MINOR, VERSION_RELEASE);
+	oldTests();
+	testing::InitGoogleTest(&argc, argv);
+	return RUN_ALL_TESTS();
+}
 
+
+// TODO: convert these to gtest
+static void oldTests() {
 	auto angle = narf::Anglef(narf::fromDeg(1234.0f));
 	auto angle2 = narf::Anglef(2.687807048071267548443f);
 	printf("Angle1: %f\n", angle.toDeg());
@@ -109,17 +120,17 @@ int main(int argc, char **argv)
 	for (const auto& c : iter) {
 		printf("%u,%u,%u\n", c.x, c.y, c.z);
 	}
+}
 
-#define TEST_ILOG2(n) printf("ilog2(%u) = %u (%s)\n", n, narf::ilog2(n), narf::ilog2(n) == (int32_t)(log((double)n) / log(2.0)) ? "OK" : "FAIL")
-
-	TEST_ILOG2(0);
-	TEST_ILOG2(1);
-	TEST_ILOG2(2);
-	TEST_ILOG2(3);
-	TEST_ILOG2(4);
-	TEST_ILOG2(5);
-	TEST_ILOG2(6);
-	TEST_ILOG2(15);
-	TEST_ILOG2(16);
-	return 0;
+TEST(ilog2Test, Positive) {
+	EXPECT_EQ(0, narf::ilog2(1));
+	EXPECT_EQ(1, narf::ilog2(2));
+	EXPECT_EQ(1, narf::ilog2(3));
+	EXPECT_EQ(2, narf::ilog2(4));
+	EXPECT_EQ(2, narf::ilog2(5));
+	EXPECT_EQ(2, narf::ilog2(6));
+	EXPECT_EQ(2, narf::ilog2(7));
+	EXPECT_EQ(3, narf::ilog2(8));
+	EXPECT_EQ(3, narf::ilog2(15));
+	EXPECT_EQ(4, narf::ilog2(16));
 }

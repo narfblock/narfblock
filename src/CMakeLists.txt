@@ -52,6 +52,10 @@ if (CLIENT)
 	find_package (PNG REQUIRED)
 endif ()
 
+if (TEST)
+	find_package (GTest REQUIRED)
+endif ()
+
 find_package (Threads REQUIRED)
 find_package (ZLIB REQUIRED)
 find_package (ENet REQUIRED)
@@ -132,6 +136,11 @@ if (SERVER)
 		)
 endif ()
 
+if (TEST)
+	include_directories (
+		"${GTEST_INCLUDE_DIRS}"
+		)
+endif ()
 
 include_directories (
 	"${ENet_INCLUDE_DIRS}"
@@ -270,6 +279,7 @@ if (TEST)
 
 	target_link_libraries (narfblock-test
 		${ENet_LIBRARIES}
+		${GTEST_LIBRARIES}
 		${CMAKE_THREAD_LIBS_INIT}
 		)
 endif ()
