@@ -69,58 +69,70 @@ static void oldTests() {
 	narf::Orientation<float> orient = narf::Vector3f(1, 0, 1);
 	printf("Vector3 (1, 0, 1)-> Orientation (%f, %f)\n", orient.yaw.toDeg(), orient.pitch.toDeg());
 
-	const struct {
-		const char* input;
-		const char* host;
-		uint16_t port;
-	} testAddrs[] = {
-		{"0.0.0.0",                     "0.0.0.0",      0   },
-		{"0.0.0.0:80",                  "0.0.0.0",      80  },
-		{"0.0.0.0::80",                 nullptr             },
-		{"::",                          nullptr             }, // plain IPv6 without port - invalid for now, but should be unambiguous with IPv4 + port
-		{"::1",                         nullptr             },
-		{"1:2::3",                      nullptr             },
-		{"[::]",                        "::",           0   },
-		{"[1:2::3]",                    "1:2::3",       0   },
-		{"[1:2::3]:80",                 "1:2::3",       80  },
-		{"[1:2::3]::80",                nullptr             },
-		{"1:[2:3]::4",                  nullptr             },
-		{"1.2.3.4:[80]",                nullptr             },
-		{"host",                        "host",         0   },
-		{"host:80",                     "host",         80  },
-		{"host::80",                    nullptr             },
-		{"example.com",                 "example.com",  0   },
-		{"example.com:80",              "example.com",  80  },
-		{"example.com::80",             nullptr             },
-	};
-
-	for (size_t i = 0; i < sizeof(testAddrs) / sizeof(*testAddrs); i++) {
-		std::string addr(testAddrs[i].input), host;
-		uint16_t port;
-		printf("splitHostPort: %-15s -> ", addr.c_str());
-		bool valid = narf::net::splitHostPort(addr, host, port);
-
-		if ((!valid && testAddrs[i].host == nullptr) ||
-			(testAddrs[i].host != nullptr && host == std::string(testAddrs[i].host) && port == testAddrs[i].port)) {
-			printf("PASS - ");
-		} else {
-			printf("FAIL - ");
-		}
-
-		if (valid) {
-			printf("host \"%s\" port %u\n", host.c_str(), port);
-		} else {
-			printf("invalid\n");
-		}
-
-	}
-
 	printf("ZYXCoordIter test 0,0,0->2,2,2\n");
 	narf::ZYXCoordIter<narf::Point3<uint32_t>> iter({0, 0, 0}, {2, 2, 2});
 	for (const auto& c : iter) {
 		printf("%u,%u,%u\n", c.x, c.y, c.z);
 	}
 }
+
+
+TEST(splitHostPortTest, Valid) {
+	std::string host;
+	uint16_t port;
+
+	EXPECT_EQ(true, narf::net::splitHostPort("0.0.0.0", host, port));
+	EXPECT_EQ("0.0.0.0", host);
+	EXPECT_EQ(0, port);
+
+	EXPECT_EQ(true, narf::net::splitHostPort("0.0.0.0:80", host, port));
+	EXPECT_EQ("0.0.0.0", host);
+	EXPECT_EQ(80, port);
+
+	EXPECT_EQ(true, narf::net::splitHostPort("[::]", host, port));
+	EXPECT_EQ("::", host);
+	EXPECT_EQ(0, port);
+
+	EXPECT_EQ(true, narf::net::splitHostPort("[1:2::3]", host, port));
+	EXPECT_EQ("1:2::3", host);
+	EXPECT_EQ(0, port);
+
+	EXPECT_EQ(true, narf::net::splitHostPort("[1:2::3]:80", host, port));
+	EXPECT_EQ("1:2::3", host);
+	EXPECT_EQ(80, port);
+
+	EXPECT_EQ(true, narf::net::splitHostPort("host", host, port));
+	EXPECT_EQ("host", host);
+	EXPECT_EQ(0, port);
+
+	EXPECT_EQ(true, narf::net::splitHostPort("host:80", host, port));
+	EXPECT_EQ("host", host);
+	EXPECT_EQ(80, port);
+
+	EXPECT_EQ(true, narf::net::splitHostPort("example.com", host, port));
+	EXPECT_EQ("example.com", host);
+	EXPECT_EQ(0, port);
+
+	EXPECT_EQ(true, narf::net::splitHostPort("example.com:80", host, port));
+	EXPECT_EQ("example.com", host);
+	EXPECT_EQ(80, port);
+}
+
+
+TEST(splitHostPortTest, Invalid) {
+	std::string host;
+	uint16_t port;
+
+	EXPECT_EQ(false, narf::net::splitHostPort("::", host, port)); // plain IPv6 without port - invalid for now, but should be unambiguous with IPv4 + port
+	EXPECT_EQ(false, narf::net::splitHostPort("::1", host, port));
+	EXPECT_EQ(false, narf::net::splitHostPort("1:2::3", host, port));
+	EXPECT_EQ(false, narf::net::splitHostPort("[1:2::3]::80", host, port));
+	EXPECT_EQ(false, narf::net::splitHostPort("1:[2:3]::4", host, port));
+	EXPECT_EQ(false, narf::net::splitHostPort("1.2.3.4:[80]", host, port));
+	EXPECT_EQ(false, narf::net::splitHostPort("host::80", host, port));
+	EXPECT_EQ(false, narf::net::splitHostPort("example.com::80", host, port));
+}
+
 
 TEST(ilog2Test, Positive) {
 	EXPECT_EQ(0, narf::ilog2(1));
