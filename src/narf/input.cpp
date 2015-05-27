@@ -180,6 +180,15 @@ void narf::Input::processTextEvent(const SDL_Event *event) {
 		case SDLK_END:
 			textEditor.endCursor();
 			return;
+		case SDLK_v:
+			if (event->key.keysym.mod & KMOD_CTRL) {
+				paste();
+			}
+			return;
+		case SDLK_INSERT:
+			if (event->key.keysym.mod & KMOD_SHIFT) {
+				paste();
+			}
 		default:
 			// eat any other key - actual text entry happens in SDL_TEXTINPUT
 			return;
@@ -200,6 +209,12 @@ void narf::Input::processTextEvent(const SDL_Event *event) {
 
 	// pass any unhandled input to normal handler
 	processNormalEvent(event);
+}
+
+
+void narf::Input::paste() {
+	// TODO: handle newlines?
+	textEditor.addString(SDL_GetClipboardText());
 }
 
 

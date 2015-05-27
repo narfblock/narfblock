@@ -87,6 +87,7 @@ private:
 
 	void processNormalEvent(const SDL_Event *event);
 	void processTextEvent(const SDL_Event *event);
+	void paste();
 
 	TextEditor &textEditor;
 
