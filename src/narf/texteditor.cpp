@@ -23,7 +23,7 @@ void narf::TextEditor::clear() {
 
 void narf::TextEditor::addString(const std::string &s) {
 	str_.insert(cursor, s);
-	cursor += 1;
+	cursor += s.length();
 	updated();
 }
 

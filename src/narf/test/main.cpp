@@ -4,10 +4,13 @@
 
 #include "narf/version.h"
 
+#include "narf/texteditor.h"
 #include "narf/math/math.h"
 #include "narf/net/net.h"
 
 #include "narf/stdioconsole.h"
+
+using namespace narf;
 
 void testPlanePoint(const narf::Plane<float> &plane, const narf::Point3f &point) {
 	auto distance = plane.distanceTo(point);
@@ -145,4 +148,50 @@ TEST(ilog2Test, Positive) {
 	EXPECT_EQ(3, narf::ilog2(8));
 	EXPECT_EQ(3, narf::ilog2(15));
 	EXPECT_EQ(4, narf::ilog2(16));
+}
+
+
+TEST(TextEditorTest, Simple) {
+	TextEditor ed;
+
+	EXPECT_EQ(0, ed.getString().length());
+
+	ed.addString("hello");
+	EXPECT_EQ("hello", ed.getString());
+
+	// add string at end
+	ed.addString(" world");
+	EXPECT_EQ("hello world", ed.getString());
+
+	// move backwards
+	ed.moveCursor(-6);
+	EXPECT_EQ(5, ed.cursor);
+
+	// add string in middle
+	ed.addString(" cruel");
+	EXPECT_EQ("hello cruel world", ed.getString());
+
+	// home
+	ed.homeCursor();
+	EXPECT_EQ(0, ed.cursor);
+
+	// delete forwards
+	ed.delAtCursor(5);
+	EXPECT_EQ(" cruel world", ed.getString());
+	EXPECT_EQ(0, ed.cursor);
+
+	// add string at front
+	ed.addString("goodbye");
+	EXPECT_EQ("goodbye cruel world", ed.getString());
+	EXPECT_EQ(7, ed.cursor);
+
+	// add string in middle after insert
+	ed.addString("!");
+	EXPECT_EQ("goodbye! cruel world", ed.getString());
+	EXPECT_EQ(8, ed.cursor);
+
+	// delete backwards
+	ed.delAtCursor(-1);
+	EXPECT_EQ("goodbye cruel world", ed.getString());
+	EXPECT_EQ(7, ed.cursor);
 }
