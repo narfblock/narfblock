@@ -34,7 +34,7 @@ namespace narf {
 			bool load(const std::string &filename, uint32_t pixelSize);
 
 			// determine width in pixels of a string in this font
-			float width(const std::string &text, size_t nchars) const;
+			float width(const std::string &text, size_t nbytes) const;
 			float height() const { return font_->height(); }
 
 		private:
@@ -57,7 +57,7 @@ namespace narf {
 			void render();
 			void clear();
 
-			float width(const std::string &text, size_t nchars) const;
+			float width(const std::string &text, size_t nbytes) const;
 
 		private:
 			const Font *font_;

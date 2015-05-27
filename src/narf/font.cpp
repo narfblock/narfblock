@@ -33,7 +33,7 @@ bool narf::font::Font::load(const std::string &filename, uint32_t pixelSize) {
 }
 
 
-float narf::font::Font::width(const std::string &text, size_t nchars) const {
+float narf::font::Font::width(const std::string &text, size_t nbytes) const {
 	narf::UTF8Iterator i(text);
 
 	float width = 0;
@@ -41,9 +41,13 @@ float narf::font::Font::width(const std::string &text, size_t nchars) const {
 	uint32_t prev = 0;
 	size_t n = 0;
 	for (const auto& c : i) {
-		if (n++ >= nchars) {
+		if (n >= nbytes) {
 			break;
 		}
+		// TODO: this is redoing the work that UTF8Iterator does
+		// optimize later to avoid this
+		n += narf::UTF8CharSize(c);
+
 		auto glyph = font_->getGlyph(c);
 		if (glyph) {
 			if (prev) {
@@ -58,8 +62,8 @@ float narf::font::Font::width(const std::string &text, size_t nchars) const {
 }
 
 
-float narf::font::TextBuffer::width(const std::string &text, size_t nchars) const {
-	return font_->width(text, nchars);
+float narf::font::TextBuffer::width(const std::string &text, size_t nbytes) const {
+	return font_->width(text, nbytes);
 }
 
 

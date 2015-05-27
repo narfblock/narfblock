@@ -17,8 +17,10 @@ namespace narf {
 		void clear();
 		void addString(const std::string &s);
 		void setString(const std::string &s);
-		void moveCursor(const int count);
-		void delAtCursor(const int count);
+		void moveCursorLeft(int count = 1);
+		void moveCursorRight(int count = 1);
+		void moveCursor(int count);
+		void delAtCursor(int count);
 		void homeCursor();
 		void endCursor();
 

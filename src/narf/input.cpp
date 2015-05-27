@@ -169,10 +169,10 @@ void narf::Input::processTextEvent(const SDL_Event *event) {
 			textEditor.delAtCursor(1);
 			return;
 		case SDLK_LEFT:
-			textEditor.moveCursor(-1);
+			textEditor.moveCursorLeft();
 			return;
 		case SDLK_RIGHT:
-			textEditor.moveCursor(1);
+			textEditor.moveCursorRight();
 			return;
 		case SDLK_HOME:
 			textEditor.homeCursor();

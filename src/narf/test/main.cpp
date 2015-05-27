@@ -5,6 +5,7 @@
 #include "narf/version.h"
 
 #include "narf/texteditor.h"
+#include "narf/utf.h"
 #include "narf/math/math.h"
 #include "narf/net/net.h"
 
@@ -158,8 +159,31 @@ TEST(TextEditorTest, Simple) {
 
 	ed.addString("hello");
 	EXPECT_EQ("hello", ed.getString());
+	EXPECT_EQ(5, ed.cursor);
+
+	ed.moveCursor(-1);
+	EXPECT_EQ(4, ed.cursor);
+
+	ed.moveCursor(-1);
+	EXPECT_EQ(3, ed.cursor);
+
+	ed.moveCursor(-1);
+	EXPECT_EQ(2, ed.cursor);
+
+	ed.moveCursor(1);
+	EXPECT_EQ(3, ed.cursor);
+
+	ed.moveCursor(-1);
+	EXPECT_EQ(2, ed.cursor);
+
+	ed.moveCursor(-1);
+	EXPECT_EQ(1, ed.cursor);
+
+	ed.moveCursor(-1);
+	EXPECT_EQ(0, ed.cursor);
 
 	// add string at end
+	ed.endCursor();
 	ed.addString(" world");
 	EXPECT_EQ("hello world", ed.getString());
 
@@ -194,4 +218,86 @@ TEST(TextEditorTest, Simple) {
 	ed.delAtCursor(-1);
 	EXPECT_EQ("goodbye cruel world", ed.getString());
 	EXPECT_EQ(7, ed.cursor);
+}
+
+
+TEST(TextEditorTest, Unicode) {
+	TextEditor ed;
+
+	ed.addString("\xC2\xA9");
+	EXPECT_EQ(2, ed.cursor);
+
+	ed.moveCursor(-1);
+	EXPECT_EQ(0, ed.cursor);
+
+	ed.addString("abc");
+	EXPECT_EQ(3, ed.cursor);
+	EXPECT_EQ("abc\xC2\xA9", ed.getString());
+
+	// move cursor right across copyright symbol
+	ed.moveCursor(1);
+	EXPECT_EQ(5, ed.cursor);
+
+	// move cursor left across copyright symbol
+	ed.moveCursor(-1);
+	EXPECT_EQ(3, ed.cursor);
+
+	// insert text before multi-byte codepoint
+	ed.addString("xyz");
+	EXPECT_EQ("abcxyz\xC2\xA9", ed.getString());
+
+	// insert text after multi-byte codepoint
+	ed.endCursor();
+	ed.addString("zyx");
+	EXPECT_EQ("abcxyz\xC2\xA9zyx", ed.getString());
+	EXPECT_EQ(11, ed.cursor);
+
+	// move cursor left across single-byte codepoints
+	ed.moveCursor(-3);
+	EXPECT_EQ(8, ed.cursor);
+
+	// move cursor left across multi-byte codepoint
+	ed.moveCursor(-1);
+	EXPECT_EQ(6, ed.cursor);
+
+	// insert a 3-byte codepoint
+	ed.addString("\xE2\x88\x9A");
+	EXPECT_EQ("abcxyz\xE2\x88\x9A\xC2\xA9zyx", ed.getString());
+	EXPECT_EQ(9, ed.cursor);
+
+	// delete 3-byte codepoint before cursor
+	ed.delAtCursor(-1);
+	EXPECT_EQ("abcxyz\xC2\xA9zyx", ed.getString());
+	EXPECT_EQ(6, ed.cursor);
+
+	// delete 2-byte codepoint after cursor
+	ed.delAtCursor(1);
+	EXPECT_EQ("abcxyzzyx", ed.getString());
+	EXPECT_EQ(6, ed.cursor);
+}
+
+
+TEST(UTF8CharSizeTest, Valid) {
+	EXPECT_EQ(0, UTF8CharSize(""));
+	EXPECT_EQ(1, UTF8CharSize("aZZZ"));
+	EXPECT_EQ(2, UTF8CharSize("\xC2\xA9ZZZ")); // copyright symbol
+	EXPECT_EQ(3, UTF8CharSize("\xE2\x88\x9AZZZ")); // square root
+	EXPECT_EQ(4, UTF8CharSize("\xF0\xA0\x9C\x8EZZZ"));
+}
+
+
+TEST(UTF8PrevCharSize, Valid) {
+	EXPECT_EQ(0,  UTF8PrevCharSize("", 0));
+	EXPECT_EQ(0,  UTF8PrevCharSize("aaa", 0));
+	EXPECT_EQ(1,  UTF8PrevCharSize("aaa", 1));
+	EXPECT_EQ(1,  UTF8PrevCharSize("aaa", 2));
+	EXPECT_EQ(0,  UTF8PrevCharSize("Z\xC2\xA9ZZZ", 0));
+	EXPECT_EQ(1,  UTF8PrevCharSize("Z\xC2\xA9ZZZ", 1));
+	EXPECT_EQ(-1, UTF8PrevCharSize("Z\xC2\xA9ZZZ", 2));
+	EXPECT_EQ(2,  UTF8PrevCharSize("Z\xC2\xA9ZZZ", 3));
+	EXPECT_EQ(2,  UTF8PrevCharSize("\xC2\xA9ZZZ", 2));
+	EXPECT_EQ(1,  UTF8PrevCharSize("\xC2\xA9ZZZ", 3));
+	EXPECT_EQ(3,  UTF8PrevCharSize("\xE2\x88\x9AZZZ", 3));
+	EXPECT_EQ(4,  UTF8PrevCharSize("\xF0\xA0\x9C\x8EZZZ", 4));
+	EXPECT_EQ(2,  UTF8PrevCharSize("abc\xC2\xA9", 5));
 }

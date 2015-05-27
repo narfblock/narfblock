@@ -180,7 +180,7 @@ void narf::UTF8Iter::decode() {
 invalid:
 	// resync to next 0xxxxxxx or 11xxxxxx
 	c0 = s_[i_ + curLen_ - 1];
-	while (((c0 & 0x80u) != 0) && ((c0 & 0xC0u) != 0xC0u)) {
+	while (!isUTF8StartByte(c0)) {
 		curLen_++;
 		c0 = s_[i_ + curLen_ - 1];
 	}
@@ -202,4 +202,60 @@ narf::UTF8Iterator::UTF8Iterator(const char* utf8) :
 
 
 narf::UTF8Iterator::UTF8Iterator(const std::string& utf8) : UTF8Iterator(utf8.c_str()) {
+}
+
+
+int narf::UTF8CharSize(const char* utf8) {
+	unsigned c0 = *(const uint8_t*)utf8;
+	if (c0 == 0) {
+		return 0;
+	} else if (c0 < 0x80u) {
+		return 1;
+	} else if (c0 < 0xE0u) {
+		return 2;
+	} else if (c0 < 0xF0u) {
+		return 3;
+	} else if (c0 < 0xF8u) {
+		return 4;
+	} else {
+		return -1; // invalid encoding
+	}
+}
+
+
+int narf::UTF8CharSize(uint32_t codepoint) {
+	if (codepoint < 0x80u) {
+		return 1;
+	} else if (codepoint < 0x800u) {
+		return 2;
+	} else if (codepoint < 0x1000u) {
+		return 3;
+	} else if (codepoint < 0x200000u) {
+		return 4;
+	} else {
+		return -1; // invalid encoding
+	}
+}
+
+
+int narf::UTF8PrevCharSize(const char* utf8, size_t offset) {
+	auto s = (const uint8_t*)utf8;
+
+	if (offset == 0) {
+		return 0;
+	}
+
+	if (!isUTF8StartByte(s[offset])) {
+		return -1;
+	}
+
+	size_t origOffset = offset;
+
+	// resync to previous 0xxxxxxx or 11xxxxxx
+	while (!isUTF8StartByte(s[--offset])) {
+		if (offset == 0) {
+			break;
+		}
+	}
+	return origOffset - offset;
 }

@@ -98,6 +98,18 @@ namespace narf {
 			return UTF8Iter(end_);
 		}
 	};
+
+	static inline bool isUTF8StartByte(uint8_t b) {
+		// valid start bytes are binary 0xxxxxxx or 11xxxxxx
+		return ((b & 0x80u) == 0) || ((b & 0xC0u) == 0xC0u);
+	}
+
+	// returns size in bytes of first codepoint in utf8
+	int UTF8CharSize(const char* utf8);
+	int UTF8CharSize(uint32_t codepoint);
+
+	// returns size in bytes of codepoint before offset in utf8
+	int UTF8PrevCharSize(const char* utf8, size_t offset);
 }
 
 #endif // NARF_UTF_H
