@@ -270,11 +270,11 @@ endif ()
 
 if (TEST)
 	# unit test executable
+	file(GLOB_RECURSE NARFBLOCK_TEST_SOURCE_FILES ${PROJECT_SOURCE_DIR}/narf/test/*.cpp)
 	add_executable (narfblock-test
 		${NARFBLOCK_COMMON_SOURCE_FILES}
-
+		${NARFBLOCK_TEST_SOURCE_FILES}
 		narf/stdioconsole.cpp
-		narf/test/main.cpp
 		)
 
 	target_link_libraries (narfblock-test

@@ -49,7 +49,9 @@ static bool isNewLine(char c) {
 }
 
 void narf::INI::warn(const std::string& s) {
-	narf::console->println(s);
+	// TODO: Figure out what to do with this
+	printf("%s\n", s.c_str());
+	//narf::console->println(s);
 }
 
 narf::INI::Line::Line(const char* data, size_t size) {
@@ -118,7 +120,6 @@ void narf::INI::Line::parse() {
 		Key,
 		Equals,
 		Value,
-		ValueEnd
 	};
 	State state = State::BeginLine;
 	enum class QuoteState { None, Inside, Done };
@@ -172,9 +173,9 @@ void narf::INI::Line::parse() {
 					// Rest of line is a comment
 					state = State::Ignore;
 				} else {
-					warn("junk at end of line");
+					warn(("found junk character '" + (std::string() + c) +  "' at end of line").c_str());
 					error = true;
-					c = '\0';
+					state = State::Ignore;
 				}
 				break;
 			case State::Section:
@@ -196,7 +197,7 @@ void narf::INI::Line::parse() {
 					key = std::string(keyStart, static_cast<size_t>(d - keyStart));
 					keyStart = nullptr;
 				} else if (c == '\0' || isNewLine(c)) {
-					warn("key without value");
+					warn(("key \"" + key + "\" without value").c_str());
 					error = true;
 					state = State::Ignore;
 				} else {
@@ -224,8 +225,27 @@ void narf::INI::Line::parse() {
 						valueStartPos = i;
 						i--;
 					}
-				} else if (c == '\0' || isNewLine(c) || (c == ';' && quoteState != QuoteState::Inside && escapeState == EscapeState::None)) {
-					state = State::ValueEnd;
+				} else if (c == '\0' || isNewLine(c) || quoteState == QuoteState::Done || (c == ';' && quoteState != QuoteState::Inside && escapeState == EscapeState::None)) {
+					if (escapeState != EscapeState::None) {
+						if (escapeState == EscapeState::Hex) { // We were at the start
+							if (hexEscape.size() > 0) {
+								value += (char)std::stoi(hexEscape, nullptr, 16); // Reached the end in the middle of a hex escape
+							} else { // Should this error?
+								value += "\\x"; // We started a hex escape, but reached the end before we even started
+							}
+						} else {
+							value += '\\'; // We started escaping but got to the end, so treat it as a normal slash
+						}
+					}
+					// Trim trailing whitespace. std::string doesn't have a built in trim for some reason :|
+					// From here: http://stackoverflow.com/a/17976541
+					if (quoteState == QuoteState::None) {
+						// We weren't inside of a quote, so we should trim trailing spaces
+						auto trimmedback = std::find_if_not(value.rbegin(), value.rend(), [](char c){return isSpace(c);}).base();
+						value = std::string(value.begin(), trimmedback);
+					}
+					valueLength = (size_t)(valueEnd + 1 - valueStart);
+					state = State::EndLine;
 					i--;
 					continue;
 				} else {
@@ -258,7 +278,7 @@ void narf::INI::Line::parse() {
 								value += "\\x";
 							}
 							escapeState = EscapeState::None;
-							i--; // Redo the previous character if not part of the he
+							i--; // Redo the previous character if not part of the hex
 							continue;
 						}
 					} else if (c == '"') {
@@ -283,28 +303,6 @@ void narf::INI::Line::parse() {
 					}
 				}
 				break;
-			case State::ValueEnd:
-				if (escapeState != EscapeState::None) {
-					if (escapeState == EscapeState::Hex) { // We were at the start
-						if (hexEscape.size() > 0) {
-							value += (char)std::stoi(hexEscape, nullptr, 16); // Reached the end in the middle of a hex escape
-						} else { // Should this error?
-							value += "\\x"; // We started a hex escape, but reached the end before we even started
-						}
-					} else {
-						value += '\\'; // We started escaping but got to the end, so treat it as a normal slash
-					}
-				}
-				// Trim trailing whitespace. std::string doesn't have a built in trim for some reason :|
-				// From here: http://stackoverflow.com/a/17976541
-				if (quoteState == QuoteState::None) {
-					// We weren't inside of a quote, so we should trim trailing spaces
-					auto trimmedback = std::find_if_not(value.rbegin(), value.rend(), [](char c){return isSpace(c);}).base();
-					value = std::string(value.begin(), trimmedback);
-				}
-				valueLength = (size_t)(valueEnd + 1 - valueStart);
-				state = State::EndLine;
-				break;
 			case State::Ignore:
 				// Nothing matters </3
 				break;
@@ -316,16 +314,26 @@ void narf::INI::Line::parse() {
 	raw.resize(i + 1); // Truncate to just the bits we've read
 }
 
+bool narf::INI::Line::hasError() {
+	return error;
+}
+
 narf::INI::File::File() { }
 
 narf::INI::File::~File() { }
+
+bool narf::INI::File::load(std::string data) {
+	return load(data.c_str(), data.size());
+}
 
 bool narf::INI::File::load(const void* data, size_t size) {
 	const char* chars = static_cast<const char*>(data);
 	size_t i = 0;
 	std::string section;
+	bool error = false;
 	while (i < size) {
 		narf::INI::Line line(chars + i, size - i);
+		error |= line.hasError();
 		lines.push_back(line);
 		i += line.getRaw().size();
 		if (line.getType() == narf::INI::Line::Type::Section) {
@@ -336,7 +344,7 @@ bool narf::INI::File::load(const void* data, size_t size) {
 			// Comment or blank line or something
 		}
 	}
-	return true;
+	return !error;
 }
 
 std::string narf::INI::File::save() {
@@ -378,9 +386,10 @@ std::string narf::INI::File::save() {
 					lastEntry = (size_t)(i + 1);
 				}
 			}
-			if (section != "" && key.find(section + ".") == std::string::npos) {
+			if ((section != "" && key.find(section + ".") == std::string::npos) || (section == "" && key.find(".") != std::string::npos)) {
 				// TODO: Detect which line endings to use
-				lines.insert(lines.begin() + (int)lastEntry, narf::INI::Line("[" + key.substr(0, key.find(".")) + "]\n"));
+				section = key.substr(0, key.find("."));
+				lines.insert(lines.begin() + (int)lastEntry, narf::INI::Line("[" + section + "]\n"));
 				lastEntry++;
 			}
 			auto dotPos = key.find(".");

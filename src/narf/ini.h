@@ -58,6 +58,7 @@ class Line {
 		std::string getRaw();
 		Type getType();
 		std::string setValue(std::string newvalue);
+		bool hasError();
 	private:
 		void parse();
 		bool error;
@@ -74,6 +75,7 @@ public:
 	File();
 	~File();
 
+	bool load(std::string data);
 	bool load(const void* data, size_t size);
 	std::string save(/* TODO: bytestream writer? */);
 
