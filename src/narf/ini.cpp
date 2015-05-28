@@ -84,6 +84,7 @@ narf::INI::Line::Type narf::INI::Line::getType() {
 }
 
 std::string narf::INI::Line::setValue(std::string newValue) {
+	// TODO: Make this overwrite any whitespace before an inline comment, to maintain its position
 	if (value == newValue) {
 		return value;
 	}
@@ -135,8 +136,8 @@ void narf::INI::Line::parse() {
 	const char* valueEnd = nullptr;
 	std::string hexEscape;
 	size_t i = 0;
+	char c;
 	for (; i <= size; i++) {
-		char c;
 		const char* d;
 		if (i == size) {
 			c = '\0';
@@ -311,7 +312,7 @@ void narf::INI::Line::parse() {
 			break;
 		}
 	}
-	raw.resize(i + 1); // Truncate to just the bits we've read
+	raw.resize(i + (c != '\0' ? 1 : 0)); // Truncate to just the bits we've read, ignoring last \0
 }
 
 bool narf::INI::Line::hasError() {
@@ -409,6 +410,36 @@ std::string narf::INI::File::save() {
 		output += line.getRaw();
 	}
 	return output;
+}
+
+bool narf::INI::File::remove(const std::string& key) {
+	// TODO: Remove section if removing key causes it to be empty?
+	// TODO: Add a removeSection() in order to remove an entirie section?
+	if (!has(key)) {
+		return false;
+	}
+	auto s = values_.size();
+	values_.erase(key);
+	std::string section;
+	bool done = false;
+	s = lines.size();
+	for (size_t i = 0; i < lines.size(); i++) {
+		auto line = lines[i];
+		switch (line.getType()) {
+			case narf::INI::Line::Type::Section:
+				section = line.getKey() + ".";
+				break;
+			case narf::INI::Line::Type::Entry:
+				if (key == section + line.getKey()) {
+					lines.erase(lines.begin() + (int)i);
+					i--;
+				}
+				break;
+			default:
+				break;
+		}
+	}
+	return true;
 }
 
 std::string narf::INI::File::getString(const std::string& key) const {
@@ -607,3 +638,4 @@ int32_t narf::INI::File::getInt32(const std::string& key, int32_t defaultValue) 
 uint32_t narf::INI::File::getUInt32(const std::string& key, uint32_t defaultValue) const {
 	return has(key) ? getUInt32(key) : defaultValue;
 }
+

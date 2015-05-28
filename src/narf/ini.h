@@ -78,6 +78,7 @@ public:
 	bool load(std::string data);
 	bool load(const void* data, size_t size);
 	std::string save(/* TODO: bytestream writer? */);
+	bool remove(const std::string& key);
 
 	std::string getString(const std::string& key) const;
 	void setString(const std::string& key, const std::string& value);
