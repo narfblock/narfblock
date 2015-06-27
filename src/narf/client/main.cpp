@@ -376,13 +376,13 @@ void draw2d() {
 	}
 
 	entityInfoBuffer->clear();
-	entityInfoBuffer->print("numEntities: " + std::to_string(world->getNumEntities()), 0, (float)display->height() - hudFontHeight * 3.0f, blue);
+	entityInfoBuffer->print("numEntities: " + std::to_string(world->entityManager.getNumEntities()), 0, (float)display->height() - hudFontHeight * 3.0f, blue);
 
 	std::string location_str;
 	if (playerEID == narf::Entity::InvalidID) {
 		location_str = "Pos: " + std::to_string(cam.position.x) + ", " + std::to_string(cam.position.y) + ", " + std::to_string(cam.position.z);
 	} else {
-		narf::EntityRef player(world, playerEID);
+		narf::EntityRef player(world->entityManager, playerEID);
 		location_str = "Pos: " + std::to_string(player->position.x) + ", " + std::to_string(player->position.y) + ", " + std::to_string(player->position.z);
 	}
 	location_str += " Yaw: " + std::to_string(cam.orientation.yaw) + " Pitch: " + std::to_string(cam.orientation.pitch);
@@ -520,7 +520,7 @@ void sim_frame(const narf::Input &input, narf::timediff dt)
 	float movePitch = 0.0f;
 
 	if (playerEID != narf::Entity::InvalidID) {
-		narf::EntityRef player(world, playerEID);
+		narf::EntityRef player(world->entityManager, playerEID);
 
 		if (player->antigrav) {
 			// if flying, move in the direction of camera including pitch
@@ -565,7 +565,7 @@ void sim_frame(const narf::Input &input, narf::timediff dt)
 	world->update(dt);
 
 	if (playerEID != narf::Entity::InvalidID) {
-		narf::EntityRef player(world, playerEID);
+		narf::EntityRef player(world->entityManager, playerEID);
 		if (player->onGround && player->antigrav) {
 			player->antigrav = false;
 			narf::console->println("left antigrav mode");
@@ -629,7 +629,7 @@ void sim_frame(const narf::Input &input, narf::timediff dt)
 		narf::PlayerCommand cmd(narf::PlayerCommand::Type::TernaryAction);
 		cmd.velocity = narf::Vector3f(0.0f, 0.0f, 0.0f);
 		if (playerEID != narf::Entity::InvalidID) {
-			narf::EntityRef player(world, playerEID);
+			narf::EntityRef player(world->entityManager, playerEID);
 			cmd.velocity = player->velocity;
 		}
 		cmd.position = cam.position;
@@ -1109,9 +1109,9 @@ extern "C" int main(int argc, char **argv)
 
 	newWorld();
 
-	playerEID = world->newEntity();
+	playerEID = world->entityManager.newEntity();
 	{
-		narf::EntityRef player(world, playerEID);
+		narf::EntityRef player(world->entityManager, playerEID);
 
 		// initial player position
 		player->position = narf::Vector3f(15.0f, 10.0f, 3.0f * 16.0f);
@@ -1122,9 +1122,9 @@ extern "C" int main(int argc, char **argv)
 	cam.orientation.yaw = atan2f(cam.position.y, cam.position.x);
 	cam.orientation.pitch = 0.0f;
 
-	bouncyBlockEID = world->newEntity();
+	bouncyBlockEID = world->entityManager.newEntity();
 	{
-		narf::EntityRef bouncyBlock(world, bouncyBlockEID);
+		narf::EntityRef bouncyBlock(world->entityManager, bouncyBlockEID);
 		bouncyBlock->position = narf::Vector3f(10.0f, 10.0f, 21.0f);
 		bouncyBlock->prevPosition = bouncyBlock->position;
 		bouncyBlock->bouncy = true;

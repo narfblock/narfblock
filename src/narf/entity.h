@@ -39,6 +39,7 @@
 namespace narf {
 
 class World;
+class EntityManager;
 
 class Entity {
 public:
@@ -46,7 +47,7 @@ public:
 	typedef uint32_t ID;
 	static const ID InvalidID = UINT32_MAX;
 
-	Entity(World *world, ID id) : id(id), bouncy(false), explodey(false), model(false), onGround(false), antigrav(false), world_(world) { }
+	Entity(World* world, EntityManager* entMgr, ID id) : id(id), bouncy(false), explodey(false), model(false), onGround(false), antigrav(false), world_(world), entMgr_(entMgr) { }
 
 	ID id;
 
@@ -63,28 +64,54 @@ public:
 	bool antigrav; // magic!
 
 	// return true if object is still alive or false if it should be deleted
-	bool update(narf::timediff dt);
+	bool update(timediff dt);
 
 private:
-	World *world_;
-
+	World* world_;
+	EntityManager* entMgr_;
 };
 
 
 class EntityRef {
 public:
-	EntityRef(World* world, Entity::ID id);
+	EntityRef(EntityManager& entMgr, Entity::ID id);
 	~EntityRef();
 
 	Entity* ent;
 	Entity::ID id;
-	World* world;
+	EntityManager& entMgr;
 
 	Entity* operator ->() { return ent; }
 
 	// no copying
 	EntityRef(const EntityRef&) = delete;
 	EntityRef& operator=(const EntityRef&) = delete;
+};
+
+
+class EntityManager {
+public:
+	EntityManager(World* world);
+
+	Entity* getEntityRef(Entity::ID id);
+	void releaseEntityRef(Entity::ID id);
+
+	Entity::ID newEntity();
+	void deleteEntity(Entity::ID id);
+
+	size_t getNumEntities() const { return entities_.size(); }
+
+	// TODO: this shouldn't be public
+	const std::vector<Entity>& getEntities() const { return entities_; }
+
+	void update(timediff dt);
+	void update(Entity::ID entID, double t, double dt);
+
+private:
+	World* world_;
+	Entity::ID freeEntityID_;
+	uint32_t entityRefs_;
+	std::vector<narf::Entity> entities_;
 };
 
 } // namespace narf

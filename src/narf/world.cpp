@@ -39,7 +39,7 @@
 narf::World::World(int32_t sizeX, int32_t sizeY, int32_t sizeZ, int32_t chunkSizeX, int32_t chunkSizeY, int32_t chunkSizeZ) :
 	sizeX_(sizeX), sizeY_(sizeY), sizeZ_(sizeZ),
 	chunkSizeX_(chunkSizeX), chunkSizeY_(chunkSizeY), chunkSizeZ_(chunkSizeZ),
-	entityRefs_(0),
+	entityManager(this),
 	numBlockTypes_(0)
 {
 	// TODO: verify size is a multiple of chunk_size and a power of 2
@@ -209,61 +209,8 @@ narf::Chunk *narf::World::getChunk(const narf::ChunkCoord& wcc) {
 }
 
 
-narf::Entity::ID narf::World::newEntity() {
-	assert(entityRefs_ == 0);
-	if (entityRefs_ != 0) {
-		narf::console->println("!!!! ERROR: newEntity() called while an EntityRef is live");
-	}
-	auto id = freeEntityID_++;
-	entities_.emplace_back(this, id);
-	return id;
-}
-
-
-void narf::World::deleteEntity(narf::Entity::ID id) {
-	assert(entityRefs_ == 0);
-	if (entityRefs_ != 0) {
-		narf::console->println("!!!! ERROR: deleteEntity() called while an EntityRef is live");
-	}
-
-	for (auto entIter = std::begin(entities_); entIter != std::end(entities_); ++entIter) {
-		if (entIter->id == id) {
-			entities_.erase(entIter);
-			return;
-		}
-	}
-}
-
-
-narf::Entity* narf::World::getEntityRef(narf::Entity::ID id) {
-	// debug helper - make sure newEntity() doesn't get called while there is a live entity ref
-	entityRefs_++;
-	// TODO: if this gets too slow, keep a sorted index of id -> Entity
-	for (auto& ent : entities_) {
-		if (ent.id == id) {
-			return &ent;
-		}
-	}
-	return nullptr;
-}
-
-
-void narf::World::releaseEntityRef(narf::Entity::ID id) {
-	entityRefs_--;
-}
-
-
 void narf::World::update(narf::timediff dt) {
-	std::vector<Entity::ID> entsToDelete;
-	for (auto& ent : entities_) {
-		if (!ent.update(dt)) {
-			entsToDelete.push_back(ent.id);
-		}
-	}
-
-	for (auto& eid : entsToDelete) {
-		deleteEntity(eid);
-	}
+	entityManager.update(dt);
 }
 
 

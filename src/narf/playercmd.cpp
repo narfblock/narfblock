@@ -108,8 +108,8 @@ void narf::PlayerCommand::exec(narf::World* world) {
 		break;
 	case Type::TernaryAction:
 		// fire a new entity
-		auto eid = world->newEntity();
-		narf::EntityRef ent(world, eid);
+		auto eid = world->entityManager.newEntity();
+        narf::EntityRef ent(world->entityManager, eid);
 		ent->position = position;
 		ent->prevPosition = position;
 		ent->velocity = velocity + Vector3f(orientation).normalize() * 20.0f;

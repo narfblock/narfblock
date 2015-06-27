@@ -413,7 +413,7 @@ void Renderer::render(gl::Context& context, const Camera& cam, float stateBlend)
 
 	// render entities
 	// TODO: add accessor to world to get entity iterator
-	for (auto& ent : world_->getEntities()) {
+	for (auto& ent : world_->entityManager.getEntities()) {
 		if (ent.model) {
 			// temp hack: draw an entity as a cube for physics demo
 			// stateBlend represents how far (time-wise) we are between the previous state and the current state.

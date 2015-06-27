@@ -91,10 +91,6 @@ public:
 	static void rayTrace(Point3f basePoint, Vector3f direction,
 		std::function<bool(const Point3f&, const BlockCoord&, const BlockFace&)> test);
 
-	Entity::ID newEntity();
-
-	size_t getNumEntities() const { return entities_.size(); }
-
 	void update(timediff dt);
 
 	BlockTypeId addBlockType(const BlockType &bt);
@@ -106,8 +102,7 @@ public:
 	void calcChunkCoords(const BlockCoord& wbc, ChunkCoord& cc, Chunk::BlockCoord& cbc) const;
 	BlockCoord calcBlockCoords(const ChunkCoord& cc) const;
 
-	// TODO
-	const std::vector<Entity>& getEntities() const { return entities_; }
+	EntityManager entityManager;
 
 	std::function<void(const BlockCoord&)> blockUpdate;
 	std::function<void(const ChunkCoord&)> chunkUpdate;
@@ -126,20 +121,8 @@ protected:
 
 	float gravity_;
 
-	Entity::ID freeEntityID_;
-	uint32_t entityRefs_;
-	std::vector<narf::Entity> entities_;
-
-	Entity* getEntityRef(Entity::ID id);
-	void releaseEntityRef(Entity::ID id);
-
-	void deleteEntity(Entity::ID id);
-
-	void update(Entity::ID entID, double t, double dt);
-
 	BlockTypeId numBlockTypes_;
 	std::vector<BlockType> blockTypes_;
-
 
 	Chunk *newChunk(int32_t chunkX, int32_t chunkY, int32_t chunkZ);
 };

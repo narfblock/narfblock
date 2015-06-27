@@ -1,7 +1,7 @@
 /*
  * NarfBlock entity class
  *
- * Copyright (c) 2013 Daniel Verkamp
+ * Copyright (c) 2013-2015 Daniel Verkamp
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,22 +31,25 @@
  */
 
 #include "narf/entity.h"
+#include "narf/console.h"
 #include "narf/world.h"
 
+using namespace narf;
 
-narf::EntityRef::EntityRef(narf::World* world, narf::Entity::ID id) :
-	ent(world->getEntityRef(id)), id(id), world(world) {
+
+EntityRef::EntityRef(EntityManager& entMgr, Entity::ID id) :
+	ent(entMgr.getEntityRef(id)), id(id), entMgr(entMgr) {
 }
 
 
-narf::EntityRef::~EntityRef() {
-	world->releaseEntityRef(id);
+EntityRef::~EntityRef() {
+	entMgr.releaseEntityRef(id);
 }
 
 
 // TODO: move this to a subclass of entity
-void explode(narf::World *world, const narf::BlockCoord& bc, int32_t radius) {
-	narf::Block air;
+void explode(World* world, const BlockCoord& bc, int32_t radius) {
+	Block air;
 	air.id = 0;
 
 	auto radiusSquared = radius * radius;
@@ -70,7 +73,7 @@ void explode(narf::World *world, const narf::BlockCoord& bc, int32_t radius) {
 }
 
 
-bool narf::Entity::update(narf::timediff dt)
+bool Entity::update(timediff dt)
 {
 	// copy previous state so we can interpolate during render
 	prevPosition = position;
@@ -155,4 +158,67 @@ bool narf::Entity::update(narf::timediff dt)
 	}
 
 	return alive;
+}
+
+
+EntityManager::EntityManager(World* world) :
+	world_(world), entityRefs_(0) {
+}
+
+
+Entity::ID EntityManager::newEntity() {
+	assert(entityRefs_ == 0);
+	if (entityRefs_ != 0) {
+		narf::console->println("!!!! ERROR: newEntity() called while an EntityRef is live");
+	}
+	auto id = freeEntityID_++;
+	entities_.emplace_back(world_, this, id);
+	return id;
+}
+
+
+void EntityManager::deleteEntity(Entity::ID id) {
+	assert(entityRefs_ == 0);
+	if (entityRefs_ != 0) {
+		console->println("!!!! ERROR: deleteEntity() called while an EntityRef is live");
+	}
+
+	for (auto entIter = std::begin(entities_); entIter != std::end(entities_); ++entIter) {
+		if (entIter->id == id) {
+			entities_.erase(entIter);
+			return;
+		}
+	}
+}
+
+
+Entity* EntityManager::getEntityRef(Entity::ID id) {
+	// debug helper - make sure newEntity() doesn't get called while there is a live entity ref
+	entityRefs_++;
+	// TODO: if this gets too slow, keep a sorted index of id -> Entity
+	for (auto& ent : entities_) {
+		if (ent.id == id) {
+			return &ent;
+		}
+	}
+	return nullptr;
+}
+
+
+void EntityManager::releaseEntityRef(Entity::ID id) {
+	entityRefs_--;
+}
+
+
+void EntityManager::update(timediff dt) {
+	std::vector<Entity::ID> entsToDelete;
+	for (auto& ent : entities_) {
+		if (!ent.update(dt)) {
+			entsToDelete.push_back(ent.id);
+		}
+	}
+
+	for (auto& eid : entsToDelete) {
+		deleteEntity(eid);
+	}
 }
