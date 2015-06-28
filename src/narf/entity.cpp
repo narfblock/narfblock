@@ -161,6 +161,37 @@ bool Entity::update(timediff dt)
 }
 
 
+EntityIDAllocator::EntityIDAllocator() : firstFreeID_(0) {
+}
+
+
+EntityIDAllocator::~EntityIDAllocator() {
+}
+
+
+Entity::ID EntityIDAllocator::get() {
+	Entity::ID id;
+	if (!freeIDPool_.empty()) {
+		id = freeIDPool_.back();
+		freeIDPool_.pop_back();
+		return id;
+	} else {
+		id = firstFreeID_++;
+	}
+	return id;
+}
+
+
+void EntityIDAllocator::put(Entity::ID id) {
+	assert(firstFreeID_ > 0);
+	if (id == firstFreeID_ - 1) {
+		--firstFreeID_;
+	} else {
+		freeIDPool_.push_back(id);
+	}
+}
+
+
 EntityManager::EntityManager(World* world) :
 	world_(world), entityRefs_(0) {
 }
@@ -171,7 +202,7 @@ Entity::ID EntityManager::newEntity() {
 	if (entityRefs_ != 0) {
 		narf::console->println("!!!! ERROR: newEntity() called while an EntityRef is live");
 	}
-	auto id = freeEntityID_++;
+	auto id = idAllocator_.get();
 	entities_.emplace_back(world_, this, id);
 	return id;
 }
@@ -186,6 +217,7 @@ void EntityManager::deleteEntity(Entity::ID id) {
 	for (auto entIter = std::begin(entities_); entIter != std::end(entities_); ++entIter) {
 		if (entIter->id == id) {
 			entities_.erase(entIter);
+			idAllocator_.put(id);
 			return;
 		}
 	}

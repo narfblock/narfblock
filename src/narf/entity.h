@@ -89,6 +89,20 @@ public:
 };
 
 
+class EntityIDAllocator {
+public:
+	EntityIDAllocator();
+	~EntityIDAllocator();
+
+	Entity::ID get();
+	void put(Entity::ID id);
+
+private:
+	Entity::ID firstFreeID_;
+	std::vector<Entity::ID> freeIDPool_;
+};
+
+
 class EntityManager {
 public:
 	EntityManager(World* world);
@@ -109,7 +123,7 @@ public:
 
 private:
 	World* world_;
-	Entity::ID freeEntityID_;
+	EntityIDAllocator idAllocator_;
 	uint32_t entityRefs_;
 	std::vector<narf::Entity> entities_;
 };
