@@ -424,7 +424,7 @@ void Renderer::render(gl::Context& context, const Camera& cam, float stateBlend)
 			float y = ent.position.y * stateBlend + ent.prevPosition.y * (1.0f - stateBlend);
 			float z = ent.position.z * stateBlend + ent.prevPosition.z * (1.0f - stateBlend);
 			// x, y is the center of the entity; assume all entities are 1x1x1 for now
-			Point3f center(ent.position);
+			Point3f center(x, y, z);
 			// TODO: entity position should be the center
 			center.z += 0.375f;
 
