@@ -201,7 +201,6 @@ TextureFont::Glyph* TextureFont::loadGlyph(uint32_t charcode) {
 
     auto x = region.x;
     auto y = region.y;
-    auto pitch = face_->glyph->bitmap.pitch;
     atlas_->setRegion(x, y, w, h, face_->glyph->bitmap.buffer, face_->glyph->bitmap.pitch);
 
     Glyph glyph;
