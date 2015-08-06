@@ -40,10 +40,10 @@
 
 
 narf::GameLoop::GameLoop(timediff maxFrameTime, double tickRate) :
-	maxFrameTime_(maxFrameTime),
 	forceStatusUpdate(false),
 	quit(false),
 	callDraw(true),
+	maxFrameTime_(maxFrameTime),
 	tickTimeHistogram(nullptr) {
 	setTickRate(tickRate);
 }

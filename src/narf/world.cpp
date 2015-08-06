@@ -37,9 +37,9 @@
 
 
 narf::World::World(int32_t sizeX, int32_t sizeY, int32_t sizeZ, int32_t chunkSizeX, int32_t chunkSizeY, int32_t chunkSizeZ) :
+	entityManager(this),
 	sizeX_(sizeX), sizeY_(sizeY), sizeZ_(sizeZ),
 	chunkSizeX_(chunkSizeX), chunkSizeY_(chunkSizeY), chunkSizeZ_(chunkSizeZ),
-	entityManager(this),
 	numBlockTypes_(0)
 {
 	// TODO: verify size is a multiple of chunk_size and a power of 2
