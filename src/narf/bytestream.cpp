@@ -65,8 +65,14 @@ void narf::ByteStreamWriter::writeLE(int32_t v) {
 
 
 void narf::ByteStreamWriter::writeLE(float v) {
-	// TODO: total hax
-	writeLE(*reinterpret_cast<uint32_t*>(&v));
+	uint32_t i;
+	static_assert(sizeof(v) == sizeof(i), "float should be 32 bits");
+
+	// Convert float representation to uint32_t.
+	// The compiler should optimize out the memcpy.
+	memcpy(&i, &v, sizeof(i));
+
+	writeLE(i);
 }
 
 
