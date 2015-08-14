@@ -2,8 +2,8 @@
 
 source "${deps}/pkg/common"
 
-src=ncurses-5.9.tar.gz
-sha1=3e042e5f2c7223bffdaac9646a533b8c758b65b5
+src=ncurses-6.0.tar.gz
+sha1=acd606135a5124905da770803c05f1f20dd3b21c
 url="http://ftp.gnu.org/pub/gnu/ncurses/${src}"
 
 fetch $src $sha1 $url
