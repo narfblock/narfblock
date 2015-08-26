@@ -54,6 +54,10 @@ namespace narf {
 			return Vector2<T>(x * v, y * v);
 		}
 
+		const Vector2<T> operator/(T v) const {
+			return Vector2<T>(x / v, y / v);
+		}
+
 		T dot(Vector2<T> vec) const {
 			return x * vec.x + y * vec.y;
 		}
@@ -130,6 +134,10 @@ namespace narf {
 			return *this;
 		}
 
+		const Vector3<T> operator-() const {
+			return Vector3<T>(-x, -y, -z);
+		}
+
 		const Vector3<T> operator-(const Vector3<T> &sub) const {
 			return Vector3<T>(x - sub.x, y - sub.y, z - sub.z);
 		}
@@ -143,6 +151,10 @@ namespace narf {
 
 		const Vector3<T> operator*(T v) const {
 			return Vector3<T>(x * v, y * v, z * v);
+		}
+
+		const Vector3<T> operator/(T v) const {
+			return Vector3<T>(x / v, y / v, z / v);
 		}
 
 		Vector3<T> operator*(Vector3<T> vec) const {
