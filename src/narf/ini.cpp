@@ -418,11 +418,8 @@ bool narf::INI::File::remove(const std::string& key) {
 	if (!has(key)) {
 		return false;
 	}
-	auto s = values_.size();
 	values_.erase(key);
 	std::string section;
-	bool done = false;
-	s = lines.size();
 	for (size_t i = 0; i < lines.size(); i++) {
 		auto line = lines[i];
 		switch (line.getType()) {
