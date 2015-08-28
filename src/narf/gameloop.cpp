@@ -33,7 +33,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
-#include <math.h>
+#include <cmath>
 
 #include "narf/console.h"
 #include "narf/gameloop.h"

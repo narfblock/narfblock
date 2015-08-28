@@ -40,7 +40,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
-#include <math.h>
+#include <cmath>
 
 #include "narf/texture-font.h"
 #include "narf/console.h"

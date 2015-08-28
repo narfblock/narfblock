@@ -56,3 +56,37 @@ TEST(Quaternion, Normalize) {
 	ASSERT_FLOAT_EQ(q2.v.y, 0.67612338f);
 	ASSERT_FLOAT_EQ(q2.v.z, 0.50709254f);
 }
+
+TEST(Quaternion, Orientation) {
+	narf::Quaternion<float> q1(3, -1, 4, 3);
+	q1.normalizeSelf();
+	narf::Orientation<float> o = q1;
+	narf::Quaternion<float> q2 = o;
+	ASSERT_NEAR(q1.w, q2.w, 0.00001f);
+	ASSERT_NEAR(q1.v.x, q2.v.x, 0.00001f);
+	ASSERT_NEAR(q1.v.y, q2.v.y, 0.00001f);
+	ASSERT_NEAR(q1.v.z, q2.v.z, 0.00001f);
+}
+
+TEST(Quaternion, Orientation2) {
+	narf::Quaternion<float> q(narf::Angle<float>(0), 1, 0, 0);
+	narf::Orientation<float> o = q;
+	ASSERT_FLOAT_EQ(o.roll, 0);
+	ASSERT_FLOAT_EQ(o.pitch, 0);
+	ASSERT_FLOAT_EQ(o.yaw, 0);
+	q = narf::Quaternion<float>(narf::Angle<float>(narf::fromDeg(-45.0f)), 1, 0, 0);
+	o = q;
+	ASSERT_FLOAT_EQ(o.roll, 0);
+	ASSERT_FLOAT_EQ(o.pitch, (double)M_PI / 4);
+	ASSERT_FLOAT_EQ(o.yaw, 0);
+	q = narf::Quaternion<float>(narf::Angle<float>(narf::fromDeg(-90.0f)), 1, 0, 0);
+	o = q;
+	ASSERT_FLOAT_EQ(o.roll, 0);
+	ASSERT_FLOAT_EQ(o.pitch, (double)M_PI / 2);
+	ASSERT_FLOAT_EQ(o.yaw, 0);
+	q = narf::Quaternion<float>(narf::Angle<float>(narf::fromDeg(-45.0f)), 0, 0, 1);
+	o = q;
+	ASSERT_FLOAT_EQ(o.roll, 0);
+	ASSERT_FLOAT_EQ(o.pitch, 0);
+	ASSERT_FLOAT_EQ(o.yaw, -(double)M_PI / 4);
+}

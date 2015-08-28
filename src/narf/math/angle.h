@@ -1,7 +1,7 @@
 #ifndef NARFBLOCK_MATH_ANGLE_H
 #define NARFBLOCK_MATH_ANGLE_H
 
-#include <math.h>
+#include <cmath>
 #include "narf/bytestream.h"
 #include "narf/math/floats.h"
 #include <type_traits>

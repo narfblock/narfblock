@@ -10,6 +10,9 @@
 namespace narf {
 
 	template<class T>
+	class Orientation;
+
+	template<class T>
 	class Vector2 {
 	public:
 		T x, y;
@@ -63,7 +66,7 @@ namespace narf {
 		}
 
 		T angleTo(Vector2<T> vec) const {
-			return acos(dot(vec) / (length() * vec.length()));
+			return std::acos(dot(vec) / (length() * vec.length()));
 		}
 	};
 
@@ -104,7 +107,7 @@ namespace narf {
 		}
 
 		T length() const {
-			return sqrt(lengthSquared());
+			return std::sqrt(lengthSquared());
 		}
 
 		operator Orientation<T>() const {
@@ -120,6 +123,15 @@ namespace narf {
 				return *this;
 			} else {
 				return Vector3<T>(x / length, y / length, z / length);
+			}
+		}
+
+		void normalizeSelf() {
+			T length = this->length();
+			if (length != 0) {
+				x /= length;
+				y /= length;
+				z /= length;
 			}
 		}
 
@@ -157,6 +169,13 @@ namespace narf {
 			return Vector3<T>(x / v, y / v, z / v);
 		}
 
+		Vector3<T> &operator/=(T v) {
+			x /= v;
+			y /= v;
+			z /= v;
+			return *this;
+		}
+
 		Vector3<T> operator*(Vector3<T> vec) const {
 			return Vector3<T>(x * vec.x, y * vec.y, z * vec.z);
 		}
@@ -173,7 +192,7 @@ namespace narf {
 		}
 
 		T angleTo(Vector3<T> vec) const {
-			return acos(dot(vec) / (length() * vec.length()));
+			return std::acos(dot(vec) / (length() * vec.length()));
 		}
 
 		// point to point distance squared
@@ -186,7 +205,7 @@ namespace narf {
 
 		// point to point distance
 		T distanceTo(const Vector3<T>& p) const {
-			return sqrt(distanceSquaredTo(p));
+			return std::sqrt(distanceSquaredTo(p));
 		}
 
 		T minComponent() const {

@@ -1,13 +1,20 @@
 #ifndef NARFBLOCK_QUATERNION_H
 #define NARFBLOCK_QUATERNION_H
 
-#include <math.h>
+#include <cmath>
 
 #include "narf/bytestream.h"
 #include "narf/math/vector.h"
 #include "narf/math/matrix.h"
+#include "narf/math/orientation.h"
 
 namespace narf {
+
+	template<class T>
+	class Matrix4x4;
+
+	template<class T>
+	class Orientation;
 
 	template<class T>
 		class Quaternion {
@@ -22,19 +29,37 @@ namespace narf {
 				Quaternion(T w, Vector3<T> v) : w(w), v(v) {
 				}
 
-				//Quaternion(T angle, Vector3<T> vec) : v(v) {
-					//w = cos(angle);
-					//auto sin_a = sin(angle);
-					//v.x = vec.x * sin_a;
-					//v.y = vec.y * sin_a;
-					//v.z = vec.z * sin_a;
-				//}
+				Quaternion(Orientation<T> o) {
+					// http://www.sedris.org/wg8home/Documents/WG80485.pdf
+					T roll_cos = std::cos(o.roll / 2); // Bank
+					T pitch_cos = std::cos(o.pitch / 2); // Attitude
+					T yaw_cos = std::cos(o.yaw / 2); // Heading
+					T roll_sin = std::sin(o.roll / 2);
+					T pitch_sin = std::sin(o.pitch / 2);
+					T yaw_sin = std::sin(o.yaw / 2);
+					w = yaw_cos * roll_cos * pitch_cos + yaw_sin * roll_sin * pitch_sin;
+					v.x = -yaw_cos * roll_cos * pitch_sin + yaw_sin * roll_sin * pitch_cos;
+					v.y = -yaw_cos * roll_sin * pitch_cos - yaw_sin * roll_cos * pitch_sin;
+					v.z = yaw_sin * roll_cos * pitch_cos - yaw_cos * roll_sin * pitch_sin;
+				}
+
+				Quaternion(Angle<T> angle, T x, T y, T z) : Quaternion(angle, Vector3<T>(x, y, z)) { }
+
+				Quaternion(Angle<T> angle, Vector3<T> vec) : v(vec) {
+					vec.normalizeSelf();
+					w = std::cos(angle / 2);
+					auto sin_a = std::sin(angle / 2);
+					v.x = vec.x * sin_a;
+					v.y = vec.y * sin_a;
+					v.z = vec.z * sin_a;
+					normalizeSelf();
+				}
 
 				Quaternion(Matrix4x4<T> mat) {
 					T trace = mat.arr[0] + mat.arr[5] + mat.arr[10] + 1.0;
 					T s, x, y, z;
 					if (trace > 0) {
-						s = 0.5 / sqrt(trace);
+						s = 0.5 / std::sqrt(trace);
 						x = (mat.arr[9] - mat.arr[6]) * s;
 						y = (mat.arr[2] - mat.arr[8]) * s;
 						z = (mat.arr[4] - mat.arr[1]) * s;
@@ -44,19 +69,19 @@ namespace narf {
 						T c1 = mat.arr[5];
 						T c2 = mat.arr[10];
 						if (c0 > c1 && c0 > c2) {
-							s = sqrt(1.0 + mat.arr[0] - mat.arr[5] - mat.arr[10]) * 2;
+							s = std::sqrt(1.0 + mat.arr[0] - mat.arr[5] - mat.arr[10]) * 2;
 							x = 0.5 / s;
 							y = (mat.arr[1] + mat.arr[4]) / s;
 							z = (mat.arr[2] + mat.arr[8]) / s;
 							w = (mat.arr[6] + mat.arr[9]) / s;
 						} else if (c1 > c0 && c1 > c2) {
-							s = sqrt(1.0 + mat.arr[5] - mat.arr[0] - mat.arr[10]) * 2;
+							s = std::sqrt(1.0 + mat.arr[5] - mat.arr[0] - mat.arr[10]) * 2;
 							x = (mat.arr[1] + mat.arr[4]) / s;
 							y = 0.5 / s;
 							z = (mat.arr[6] + mat.arr[9]) / s;
 							w = (mat.arr[2] + mat.arr[8]) / s;
 						} else if (c2 > c0 && c2 > c1) {
-							s = sqrt(1.0 + mat.arr[10] - mat.arr[0] - mat.arr[5]) * 2;
+							s = std::sqrt(1.0 + mat.arr[10] - mat.arr[0] - mat.arr[5]) * 2;
 							x = (mat.arr[2] + mat.arr[8]) / s;
 							y = (mat.arr[6] + mat.arr[9]) / s;
 							z = 0.5 / s;
@@ -85,7 +110,7 @@ namespace narf {
 				}
 
 				T norm() const {
-					return sqrt(w * w + v.dot(v));
+					return std::sqrt(w * w + v.dot(v));
 				}
 
 				void normalizeSelf() {
@@ -131,12 +156,28 @@ namespace narf {
 					return Quaternion<T>(w * mult.w - v.dot(mult.v), mult.v * w + v * mult.w + v.cross(mult.v));
 				}
 
+				Quaternion<T> &operator*=(const Quaternion<T> &mult) {
+					w = w * mult.w - v.dot(mult.v);
+					v = mult.v * w + v * mult.w + v.cross(mult.v);
+					return *this;
+				}
+
 				const Quaternion<T> operator/(const Quaternion<T> &div) const {
 					return *this * div.inverse();
 				}
 
+				Quaternion<T> &operator/=(const Quaternion<T> &div) {
+					*this *= div.inverse();
+				}
+
 				const Quaternion<T> operator/(T div) const {
 					return Quaternion<T>(w / div, v / div);
+				}
+
+				Quaternion<T> &operator/=(T div) {
+					w /= div;
+					v /= div;
+					return *this;
 				}
 
 				//const narf::Matrix4x4<T> toMatrix() const {

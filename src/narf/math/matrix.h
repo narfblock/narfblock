@@ -8,6 +8,9 @@
 namespace narf {
 
 	template<class T>
+	class Vector3;
+
+	template<class T>
 	class Matrix4x4 {
 	public:
 		T arr[16];

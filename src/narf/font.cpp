@@ -5,7 +5,7 @@
 #include "narf/file.h"
 #include "narf/utf.h"
 #include "narf/util/path.h"
-#include <math.h> // Need floor or something
+#include <cmath> // Need floor or something
 
 
 narf::font::Font::Font() : font_(nullptr) {
