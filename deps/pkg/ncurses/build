@@ -13,14 +13,35 @@ cd ${work}
 tar xf "${files}/${src}"
 cd ncurses-*
 
+extra_config=''
+
+case "${host_triplet}" in
+	*mingw*)
+		export PATH_SEPARATOR=";"
+		extra_config="${extra_config}
+			--disable-home-terminfo
+			--disable-termcap
+			--enable-term-driver
+			--enable-database
+			--enable-sp-funcs
+			--enable-interop
+		"
+		;;
+	*)
+		extra_config="${extra_config}
+			--with-terminfo-dirs=/usr/share/terminfo:/etc/terminfo:/lib/terminfo
+			--with-default-terminfo-dir=/usr/share/terminfo
+			--without-gpm
+			--without-dlsym
+		"
+		;;
+esac
+
 ./configure \
 	--prefix=${prefix} \
 	--host=${host_triplet} \
 	--without-shared \
-	--without-gpm \
-	--without-dlsym \
-	--with-terminfo-dirs=/usr/share/terminfo:/etc/terminfo:/lib/terminfo \
-	--with-default-terminfo-dir=/usr/share/terminfo \
+	${extra_config} \
 	LDFLAGS="-L${prefix}/lib ${LDFLAGS}" \
 	CPPFLAGS="-I${prefix}/include"
 

@@ -62,16 +62,8 @@ for host_triplet in ${hosts}; do
 
 	[ $client = y ] && build libpng
 	[ $client = y ] && build sdl2
-
-	# use pdcurses on Windows and ncurses elsewhere
-	if [ $server = y ]; then
-		case $host_triplet in
-			*mingw*) build pdcurses;;
-			*)      build ncurses;;
-		esac
-	fi
-
 	[ $client = y ] && build freetype
+	[ $server = y ] && build ncurses
 
 	build cmake-toolchain
 done
