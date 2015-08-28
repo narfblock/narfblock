@@ -12,7 +12,7 @@ Narfblock
 - libpng development libraries
 - zlib development libraries
 - FreeType development libraries
-- ncurses (Linux) or pdcurses (Windows) development libraries
+- ncurses development libraries
 - ENet 1.3 or newer development libraries
 - GoogleTest (gtest) development libraries
 
