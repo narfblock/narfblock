@@ -4,8 +4,12 @@
 #include "narf/math/floats.h"
 #include "narf/math/ints.h"
 #include "narf/math/orientation.h"
+#include "narf/math/quaternion.h"
 
 namespace narf {
+
+	template<class T>
+	class Quaternion;
 
 	template<class T>
 	class Vector3;
@@ -40,6 +44,35 @@ namespace narf {
 			arr[13] = nD;
 			arr[14] = nE;
 			arr[15] = nF;
+		}
+
+		Matrix4x4<T>(Quaternion<T> q) {
+			q.normalizeSelf();
+			T e0 = q.w;
+			T e1 = q.v.x;
+			T e2 = q.v.y;
+			T e3 = q.v.z;
+
+			arr[0]  = 1 - 2 * (e2 * e2 + e3 * e3);
+			//arr[0]  = e0 * e0 + e1 * e1 - e2 * e2 - e3 * e3;
+			arr[1]  =     2 * (e1 * e2 - e0 * e3);
+			arr[2]  =     2 * (e1 * e3 + e0 * e2);
+			arr[3]  = 0;
+
+			arr[4]  =     2 * (e1 * e2 + e0 * e3);
+			arr[5]  = 1 - 2 * (e1 * e1 + e3 * e3);
+			//arr[5]  = e0 * e0 - e1 * e1 + e2 * e2 - e3 * e3;
+			arr[6]  =     2 * (e2 * e3 - e0 * e1);
+			arr[7]  = 0;
+
+			arr[8]  =     2 * (e1 * e3 - e0 * e2);
+			arr[9]  =     2 * (e2 * e3 + e0 * e1);
+			arr[10] = 1 - 2 * (e1 * e1 + e2 * e2);
+			//arr[10]  = e0 * e0 - e1 * e1 - e2 * e2 + e3 * e3;
+			arr[11] = 0;
+
+			arr[12] = arr[13] = arr[14] = 0;
+			arr[15] = 1;
 		}
 
 		static const Matrix4x4<T> identity() {
@@ -78,8 +111,8 @@ namespace narf {
 
 		static const Matrix4x4<T> rotate(T angle, T x, T y, T z) {
 			auto u = Vector3<T>(x, y, z).normalize();
-			T s = sin(angle);
-			T c = cos(angle);
+			T s = std::sin(angle);
+			T c = std::cos(angle);
 			auto v = u * (1 - c);
 
 			Matrix4x4<T> r;
@@ -114,6 +147,30 @@ namespace narf {
 				x, y, z, 1);
 		}
 
+		T get(int y, int x) const {
+			return arr[4 * (y - 1) + (x - 1)];
+		}
+
+		T get(int c) const {
+			return get(c / 10, c % 10);
+		}
+
+		T operator[](int c) const {
+			return get(c);
+		}
+
+		T set(int y, int x, T val) {
+			arr[4 * (y - 1) + (x - 1)] = val;
+		}
+
+		T set(int c, T val) {
+			set(c / 10, c % 10, val);
+		}
+
+		T& operator[](int c) {
+			return arr[4 * (c / 10 - 1) + (c % 10 - 1)];
+		}
+
 		const Matrix4x4<T> operator*(const Matrix4x4<T>& rhs) const {
 			Matrix4x4<T> result;
 			for (int c = 0; c < 4; c++) {
@@ -126,6 +183,18 @@ namespace narf {
 				}
 			}
 			return result;
+		}
+
+		std::string to_string() {
+			std::string out = "(";
+			for (int y = 0; y < 4; y++) {
+				out += "(";
+				for (int x = 0; x < 4; x++) {
+					out += std::to_string(arr[4 * y + x]) + (x < 3 ? ", " : "");
+				}
+				out += std::string(")") + (y < 3 ? ", " : "");
+			}
+			return out + ")";
 		}
 	};
 

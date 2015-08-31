@@ -2,6 +2,7 @@
 #define NARFBLOCK_QUATERNION_H
 
 #include <cmath>
+#include <string>
 
 #include "narf/bytestream.h"
 #include "narf/math/vector.h"
@@ -56,39 +57,51 @@ namespace narf {
 				}
 
 				Quaternion(Matrix4x4<T> mat) {
-					T trace = mat.arr[0] + mat.arr[5] + mat.arr[10] + 1.0;
+					/* http://arxiv.org/pdf/math/0701759v1.pdf
+					 * a^2 = (1 + a11 + a22 + a33)/4
+					 * b^2 = (1 + a11 − a22 − a33)/4
+					 * c^2 = (1 − a11 + a22 − a33)/4
+					 * d^2 = (1 − a11 − a22 + a33)/4
+					 * ab = (a32 − a23)/4
+					 * ac = (a13 − a31)/4
+					 * ad = (a21 − a12)/4
+					 * cd = (a32 + a23)/4
+					 * db = (a13 + a31)/4
+					 * bc = (a21 + a12)/4  */
+
+					// There's more computationally efficient ways to do this
+					w = std::sqrt(1 + mat[11] + mat[22] + mat[33]) / 2;
 					T s, x, y, z;
-					if (trace > 0) {
-						s = 0.5 / std::sqrt(trace);
-						x = (mat.arr[9] - mat.arr[6]) * s;
-						y = (mat.arr[2] - mat.arr[8]) * s;
-						z = (mat.arr[4] - mat.arr[1]) * s;
-						w = 0.25 / s;
+					if (w > 0) {
+						s = 4 * w;
+						x = (mat[32] - mat[23]) / s;
+						y = (mat[13] - mat[31]) / s;
+						z = (mat[21] - mat[12]) / s;
 					} else {
-						T c0 = mat.arr[0];
-						T c1 = mat.arr[5];
-						T c2 = mat.arr[10];
-						if (c0 > c1 && c0 > c2) {
-							s = std::sqrt(1.0 + mat.arr[0] - mat.arr[5] - mat.arr[10]) * 2;
-							x = 0.5 / s;
-							y = (mat.arr[1] + mat.arr[4]) / s;
-							z = (mat.arr[2] + mat.arr[8]) / s;
-							w = (mat.arr[6] + mat.arr[9]) / s;
-						} else if (c1 > c0 && c1 > c2) {
-							s = std::sqrt(1.0 + mat.arr[5] - mat.arr[0] - mat.arr[10]) * 2;
-							x = (mat.arr[1] + mat.arr[4]) / s;
-							y = 0.5 / s;
-							z = (mat.arr[6] + mat.arr[9]) / s;
-							w = (mat.arr[2] + mat.arr[8]) / s;
-						} else if (c2 > c0 && c2 > c1) {
-							s = std::sqrt(1.0 + mat.arr[10] - mat.arr[0] - mat.arr[5]) * 2;
-							x = (mat.arr[2] + mat.arr[8]) / s;
-							y = (mat.arr[6] + mat.arr[9]) / s;
-							z = 0.5 / s;
-							w = (mat.arr[1] + mat.arr[4]) / s;
+						x = std::sqrt(1 + mat[11] - mat[22] - mat[33]) / 2;
+						if (x > 0) {
+							s = 4 * x;
+							w = (mat[32] - mat[23]) / s;
+							y = (mat[21] + mat[12]) / s;
+							z = (mat[13] + mat[31]) / s;
+						} else {
+							y = std::sqrt(1 - mat[11] + mat[22] - mat[33]) / 2;
+							if (y > 0) {
+								s = 4 * y;
+								w = (mat[13] - mat[31]) / s;
+								x = (mat[21] + mat[12]) / s;
+								z = (mat[32] + mat[23]) / s;
+							} else {
+								z = std::sqrt(1 - mat[11] - mat[22] + mat[33]) / 2;
+								s = 4 * z;
+								w = (mat[21] - mat[12]) / s;
+								x = (mat[13] + mat[31]) / s;
+								y = (mat[32] + mat[23]) / s;
+							}
 						}
 					}
 					v = Vector3<T>(x, y, z);
+					normalizeSelf();
 				}
 
 				Quaternion(ByteStreamReader& s) {
@@ -178,6 +191,10 @@ namespace narf {
 					w /= div;
 					v /= div;
 					return *this;
+				}
+
+				std::string to_string() {
+					return std::string("(") + std::to_string(w) + ", " + std::to_string(v.x) + ", " + std::to_string(v.y) + ", " + std::to_string(v.z) + ")";
 				}
 
 				//const narf::Matrix4x4<T> toMatrix() const {
