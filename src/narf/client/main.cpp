@@ -80,6 +80,8 @@ narf::BlockWrapper selectedBlockFace;
 ENetHost* client = nullptr;
 ENetPeer* server = nullptr;
 
+bool paused = false;
+
 enum class ConnectState {
 	Unconnected,
 	Connecting,
@@ -485,7 +487,6 @@ void sim_frame(const narf::Input &input, narf::timediff dt)
 		}
 	}
 
-
 	// tell the console whether to draw the cursor
 	clientConsole->setEditState(input.state() == narf::Input::InputStateText);
 
@@ -760,14 +761,25 @@ void ClientGameLoop::getInput() {
 
 	input.resetLookRel();
 
+	if (input.togglePause()) {
+		paused = !paused;
+		if (paused) {
+			narf::console->println("Paused");
+		} else {
+			narf::console->println("Unpaused");
+		}
+		input.reset();
+	}
+
 	pollNet();
 }
 
 void ClientGameLoop::tick(narf::timediff dt) {
-	// TODO: merge the common sim_frame stuff into GameLoop
-	sim_frame(input, dt);
-	input.endSample();
-	input.beginSample();
+	if (!paused) {
+		// TODO: merge the common sim_frame stuff into GameLoop
+		sim_frame(input, dt);
+		input.reset();
+	}
 }
 
 

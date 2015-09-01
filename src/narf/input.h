@@ -43,11 +43,11 @@ public:
 		toggleBackfaceCulling_(false),
 		toggleFog_(false),
 		toggleFullscreen_(false),
+		togglePause_(false),
 		lookRel_(0.0f, 0.0f) { }
 
-	void beginSample();
+	void reset();
 	void processEvent(const SDL_Event *event);
-	void endSample();
 
 	bool strafeLeft() const { return strafeLeft_ && (lastStrafe_ == LastStrafeLeft || !strafeRight_); }
 	bool strafeRight() const { return strafeRight_ && (lastStrafe_ == LastStrafeRight || !strafeLeft_); }
@@ -75,6 +75,7 @@ public:
 	bool toggleBackfaceCulling() const { return toggleBackfaceCulling_; }
 	bool toggleFog() const { return toggleFog_; }
 	bool toggleFullscreen() const { return toggleFullscreen_; }
+	bool togglePause() const { return togglePause_; }
 	bool screenshot() const { return screenshot_; }
 
 	const Vector2f lookRel() const { return lookRel_; }
@@ -125,6 +126,7 @@ private:
 	bool toggleBackfaceCulling_;
 	bool toggleFog_;
 	bool toggleFullscreen_;
+	bool togglePause_;
 	bool screenshot_;
 
 	Vector2f lookRel_;

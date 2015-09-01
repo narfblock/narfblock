@@ -81,6 +81,9 @@ void narf::Input::processNormalEvent(const SDL_Event *event) {
 		case SDLK_F4:
 			toggleFog_ = true;
 			break;
+		case SDLK_PAUSE:
+			togglePause_ = true;
+			break;
 		}
 		break;
 
@@ -218,7 +221,7 @@ void narf::Input::paste() {
 }
 
 
-void narf::Input::beginSample()
+void narf::Input::reset()
 {
 	// reset one-shot events and relative measurements
 	jump_ = false;
@@ -229,12 +232,8 @@ void narf::Input::beginSample()
 	toggleBackfaceCulling_ = false;
 	toggleFog_ = false;
 	toggleFullscreen_ = false;
+	togglePause_ = false;
 	screenshot_ = false;
 	lookRel_ = Vector2f(0.0f, 0.0f);
 	text_.clear();
-}
-
-
-void narf::Input::endSample()
-{
 }
