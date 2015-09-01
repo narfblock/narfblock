@@ -101,6 +101,7 @@ class ClientGameLoop : public narf::GameLoop {
 public:
 	ClientGameLoop(double maxFrameTime, double tickRate);
 
+	void getInput() override;
 	void tick(narf::timediff dt) override;
 	void updateStatus(const std::string& status) override;
 	void draw(float stateBlend) override;
@@ -442,18 +443,6 @@ void chat(const std::string& text) {
 }
 
 
-void poll_input(narf::Input *input)
-{
-	SDL_Event e;
-
-	input->beginSample();
-	while (SDL_PollEvent(&e)) {
-		input->processEvent(&e);
-	}
-	input->endSample();
-}
-
-
 void sendPlayerCommand(const narf::PlayerCommand& cmd) {
 	narf::ByteStreamWriter bs;
 	cmd.serialize(bs);
@@ -505,15 +494,6 @@ void sim_frame(const narf::Input &input, narf::timediff dt)
 	} else {
 		SDL_SetRelativeMouseMode(SDL_TRUE);
 	}
-
-	// TODO: decouple player direction and camera direction
-	cam.orientation.yaw -= input.lookRel().x;
-	cam.orientation.yaw = fmodf(cam.orientation.yaw, (float)M_PI * 2.0f);
-
-	cam.orientation.pitch.minimum = -(float)M_PI;
-	cam.orientation.pitch.maximum = (float)M_PI;
-	cam.orientation.pitch -= input.lookRel().y;
-	cam.orientation.pitch = clampf(cam.orientation.pitch, -(float)M_PI/2, (float)M_PI/2);
 
 	narf::Vector3f vel_rel(0.0f, 0.0f, 0.0f);
 
@@ -756,17 +736,38 @@ ClientGameLoop::ClientGameLoop(double maxFrameTime, double tickRate) :
 }
 
 
-void ClientGameLoop::tick(narf::timediff dt) {
-	poll_input(&input);
+void ClientGameLoop::getInput() {
+	SDL_Event e;
+
+	while (SDL_PollEvent(&e)) {
+		input.processEvent(&e);
+	}
+
 	if (input.exit()) {
 		quit = true;
 		return;
 	}
 
-	pollNet();
+	// update camera in getInput() for smooth camera motion even if tickRate is low
+	// TODO: decouple player direction and camera direction
+	cam.orientation.yaw -= input.lookRel().x;
+	cam.orientation.yaw = fmodf(cam.orientation.yaw, (float)M_PI * 2.0f);
 
+	cam.orientation.pitch.minimum = -(float)M_PI;
+	cam.orientation.pitch.maximum = (float)M_PI;
+	cam.orientation.pitch -= input.lookRel().y;
+	cam.orientation.pitch = clampf(cam.orientation.pitch, -(float)M_PI / 2, (float)M_PI / 2);
+
+	input.resetLookRel();
+
+	pollNet();
+}
+
+void ClientGameLoop::tick(narf::timediff dt) {
 	// TODO: merge the common sim_frame stuff into GameLoop
 	sim_frame(input, dt);
+	input.endSample();
+	input.beginSample();
 }
 
 

@@ -33,6 +33,7 @@ public:
 	ServerGameLoop(double maxFrameTime, double tickRate, size_t maxClients);
 	~ServerGameLoop();
 
+	void getInput() override;
 	void tick(narf::timediff dt) override;
 	void updateStatus(const std::string& status) override;
 	void draw(float stateBlend) override;
@@ -335,7 +336,7 @@ void ServerGameLoop::processNetEvent(ENetEvent& evt) {
 }
 
 
-void ServerGameLoop::tick(narf::timediff dt) {
+void ServerGameLoop::getInput() {
 	// check for console input
 	auto input = narf::console->pollInput();
 	if (input != "") {
@@ -346,6 +347,10 @@ void ServerGameLoop::tick(narf::timediff dt) {
 			tellAll(nullptr, input);
 		}
 	}
+}
+
+
+void ServerGameLoop::tick(narf::timediff dt) {
 	ENetEvent evt;
 	if (enet_host_service(server, &evt, 0) > 0) {
 		processNetEvent(evt);

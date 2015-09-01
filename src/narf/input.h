@@ -78,6 +78,7 @@ public:
 	bool screenshot() const { return screenshot_; }
 
 	const Vector2f lookRel() const { return lookRel_; }
+	void resetLookRel() { lookRel_ = { 0,0 }; }
 
 	const std::string &text() const { return text_; }
 

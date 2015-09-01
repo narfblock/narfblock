@@ -124,6 +124,8 @@ void narf::GameLoop::run() {
 
 		tAccum += frameTime;
 
+		getInput();
+
 		auto physicsStart = narf::time::now();
 		while (tAccum >= tickStep_) {
 			tick(tickStep_);
