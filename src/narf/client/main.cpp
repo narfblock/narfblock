@@ -860,7 +860,12 @@ void newWorld()
 
 void cmdSet(const std::string &args) {
 	auto tokens = narf::util::tokenize(args, ' ');
-	if (tokens.size() == 1) {
+	if (tokens.size() == 0) {
+		for (auto& key : config.getKeys()) {
+			auto value(config.getString(key, ""));
+			narf::console->println(key + " = " + value);
+		}
+	} else if (tokens.size() == 1) {
 		auto key(tokens[0]);
 		auto value(config.getString(key, ""));
 		narf::console->println(key + " = " + value);

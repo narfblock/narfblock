@@ -466,6 +466,16 @@ bool narf::INI::File::has(const std::string& key) const {
 }
 
 
+std::vector<std::string> narf::INI::File::getKeys() const {
+	std::vector<std::string> keys;
+	for (auto& iter : values_) {
+		keys.push_back(iter.first);
+	}
+	std::sort(keys.begin(), keys.end());
+	return keys;
+}
+
+
 bool narf::INI::File::getBool(const std::string& key) const {
 	auto raw = getString(key);
 	switch (raw[0]) {

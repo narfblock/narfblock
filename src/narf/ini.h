@@ -104,6 +104,8 @@ public:
 	void initFloat(const std::string& key, float defaultValue);
 	void initInt32(const std::string& key, int32_t defaultValue);
 
+	std::vector<std::string> getKeys() const;
+
 	// overloads for get* with default value
 	// TODO: remove these once everything uses init*
 	std::string getString(const std::string& key, const std::string& defaultValue) const;
