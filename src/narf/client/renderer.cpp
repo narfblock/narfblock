@@ -371,7 +371,7 @@ void Renderer::render(gl::Context& context, const Camera& cam, float stateBlend,
 	auto pitchMatrix = Matrix4f::rotate((cam.orientation.pitch + (float)M_PI / 2.0f), 1.0f, 0.0f, 0.0f);
 	auto yawMatrix = Matrix4f::rotate(cam.orientation.yaw - ((float)M_PI / 2.0f), 0.0f, 0.0f, 1.0f);
 	auto translateMatrix = Matrix4f::translate(-cam.position.x, -cam.position.y, -cam.position.z);
-	auto camMatrix = pitchMatrix * yawMatrix * translateMatrix * translate;
+	auto camMatrix = translate * pitchMatrix * yawMatrix * translateMatrix;
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();

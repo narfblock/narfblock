@@ -82,6 +82,11 @@ ENetPeer* server = nullptr;
 
 bool paused = false;
 
+// stereoscopic rendering
+bool stereoEnabled;
+bool stereoCross;
+float stereoSeparation;
+
 enum class ConnectState {
 	Unconnected,
 	Connecting,
@@ -162,7 +167,7 @@ void configEvent(const std::string& key) {
 			gameLoop->setMaxFrameTime(maxFrameTime);
 		}
 	} else if (key == "video.hudFont" ||
-	           key == "video.hudFontSize") {
+		key == "video.hudFontSize") {
 		auto font = setFont(
 			"HUD",
 			"video.hudFont", "DroidSansMono",
@@ -177,7 +182,7 @@ void configEvent(const std::string& key) {
 			locationBuffer->setFont(font);
 		}
 	} else if (key == "video.consoleFont" ||
-	           key == "video.consoleFontSize") {
+		key == "video.consoleFontSize") {
 		auto font = setFont(
 			"console",
 			"video.consoleFont", "DroidSansMono",
@@ -185,6 +190,12 @@ void configEvent(const std::string& key) {
 		if (font) {
 			clientConsole->setFont(font);
 		}
+	} else if (key == "video.stereo.enabled") {
+		stereoEnabled = config.getBool(key);
+	} else if (key == "video.stereo.cross") {
+		stereoCross = config.getBool(key);
+	} else if (key == "video.stereo.separation") {
+		stereoSeparation = config.getFloat(key);
 	} else {
 		narf::console->println("Config var updated: " + key);
 	}
@@ -356,7 +367,7 @@ void draw2d() {
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 
-	if (config.getBool("misc.stereo.enabled", false)) {
+	if (stereoEnabled) {
 		int height = display->height();
 		int width = display->width();
 		glViewport(0, height / 4, width / 2, height / 2);
@@ -415,11 +426,11 @@ void draw(float stateBlend) {
 	display->updateViewport();
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	if (config.getBool("misc.stereo.enabled", false)) {
+	if (stereoEnabled) {
 		int height = display->height();
 		int width = display->width();
-		float sep = config.getFloat("misc.stereo.separation", 0.1f);
-		if (config.getBool("misc.stereo.cross", true)) {
+		float sep = stereoSeparation;
+		if (stereoCross) {
 			sep = -sep;
 		}
 		glViewport(0, height / 4, width / 2, height / 2);
@@ -1198,6 +1209,10 @@ extern "C" int main(int argc, char **argv)
 	}
 
 	config.initString("video.consoleCursorShape", "default");
+
+	config.initBool("video.stereo.enabled", false);
+	config.initBool("video.stereo.cross", true);
+	config.initFloat("video.stereo.separation", 0.1f);
 
 	SDL_SetRelativeMouseMode(SDL_TRUE);
 
