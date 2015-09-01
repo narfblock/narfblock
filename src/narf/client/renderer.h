@@ -76,6 +76,7 @@ public:
 	int32_t getRenderDistance() const;
 
 	void render(gl::Context& context, const Camera& cam, float stateBlend);
+	void render(gl::Context& context, const Camera& cam, float stateBlend, Matrix4x4f translate);
 
 	void chunkUpdate(const ChunkCoord& cc);
 	void blockUpdate(const BlockCoord& wbc);

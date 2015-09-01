@@ -295,8 +295,8 @@ void drawCubeHighlight(const narf::BlockWrapper &blockFace)
 }
 
 
-void draw3d(float stateBlend) {
-	renderer->render(*display, cam, stateBlend);
+void draw3d(float stateBlend, narf::Matrix4x4f translate) {
+	renderer->render(*display, cam, stateBlend, translate);
 
 	if (selectedBlockFace.block) {
 		// draw a selection rectangle
@@ -356,7 +356,17 @@ void draw2d() {
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 
-	draw_cursor();
+	if (config.getBool("misc.stereo.enabled", false)) {
+		int height = display->height();
+		int width = display->width();
+		glViewport(0, height / 4, width / 2, height / 2);
+		draw_cursor();
+		glViewport(width / 2, height / 4, width / 2, height / 2);
+		draw_cursor();
+		glViewport(0, 0, width, height);
+	} else {
+		draw_cursor();
+	}
 
 	auto blue = narf::Color(0.0f, 0.0f, 1.0f);
 
@@ -405,7 +415,22 @@ void draw(float stateBlend) {
 	display->updateViewport();
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	draw3d(stateBlend);
+	if (config.getBool("misc.stereo.enabled", false)) {
+		int height = display->height();
+		int width = display->width();
+		float sep = config.getFloat("misc.stereo.separation", 0.1f);
+		if (config.getBool("misc.stereo.cross", true)) {
+			sep = -sep;
+		}
+		glViewport(0, height / 4, width / 2, height / 2);
+		draw3d(stateBlend, narf::Matrix4x4f::translate(sep, 0, 0));
+		glViewport(width / 2, height / 4, width / 2, height / 2);
+		draw3d(stateBlend, narf::Matrix4x4f::translate(-sep, 0, 0));
+		glViewport(0, 0, width, height);
+	} else {
+		draw3d(stateBlend, narf::Matrix4x4f::translate(0, 0, 0));
+	}
+
 	draw2d();
 
 	display->swap();

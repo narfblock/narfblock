@@ -316,8 +316,11 @@ int32_t Renderer::getRenderDistance() const {
 	return renderDistance_;
 }
 
-
 void Renderer::render(gl::Context& context, const Camera& cam, float stateBlend) {
+	render(context, cam, stateBlend, Matrix4x4f::translate(0, 0, 0));
+}
+
+void Renderer::render(gl::Context& context, const Camera& cam, float stateBlend, Matrix4x4f translate) {
 	// draw 3d world and objects
 
 	glEnable(GL_DEPTH_TEST);
@@ -368,7 +371,7 @@ void Renderer::render(gl::Context& context, const Camera& cam, float stateBlend)
 	auto pitchMatrix = Matrix4f::rotate((cam.orientation.pitch + (float)M_PI / 2.0f), 1.0f, 0.0f, 0.0f);
 	auto yawMatrix = Matrix4f::rotate(cam.orientation.yaw - ((float)M_PI / 2.0f), 0.0f, 0.0f, 1.0f);
 	auto translateMatrix = Matrix4f::translate(-cam.position.x, -cam.position.y, -cam.position.z);
-	auto camMatrix = pitchMatrix * yawMatrix * translateMatrix;
+	auto camMatrix = pitchMatrix * yawMatrix * translateMatrix * translate;
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
