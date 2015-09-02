@@ -455,9 +455,10 @@ void narf::INI::File::setString(const std::string& key, const std::string& value
 
 
 void narf::INI::File::update(const std::string& key) {
-	if (updateHandler) {
-		updateHandler(key);
-	}
+	updateSignal.emit(key);
+	//if (updateHandler) {
+		//updateHandler(key);
+	//}
 }
 
 

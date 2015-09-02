@@ -42,6 +42,8 @@
 #include <functional>
 #include <unordered_map>
 
+#include "signal.h"
+
 namespace narf {
 namespace INI {
 
@@ -83,7 +85,8 @@ public:
 	std::string getString(const std::string& key) const;
 	void setString(const std::string& key, const std::string& value);
 
-	std::function<void(const std::string& key)> updateHandler;
+	Signal<void (const std::string&)> updateSignal;
+	//std::function<void(const std::string& key)> updateHandler;
 
 	bool has(const std::string& key) const;
 

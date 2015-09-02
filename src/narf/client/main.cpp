@@ -83,9 +83,12 @@ ENetPeer* server = nullptr;
 bool paused = false;
 
 // stereoscopic rendering
-bool stereoEnabled;
-bool stereoCross;
-float stereoSeparation;
+struct Stereo {
+	bool enabled;
+	bool cross;
+	float separation;
+};
+Stereo stereo;
 
 enum class ConnectState {
 	Unconnected,
@@ -191,11 +194,11 @@ void configEvent(const std::string& key) {
 			clientConsole->setFont(font);
 		}
 	} else if (key == "video.stereo.enabled") {
-		stereoEnabled = config.getBool(key);
+		stereo.enabled = config.getBool(key);
 	} else if (key == "video.stereo.cross") {
-		stereoCross = config.getBool(key);
+		stereo.cross = config.getBool(key);
 	} else if (key == "video.stereo.separation") {
-		stereoSeparation = config.getFloat(key);
+		stereo.separation = config.getFloat(key);
 	} else {
 		narf::console->println("Config var updated: " + key);
 	}
@@ -367,7 +370,7 @@ void draw2d() {
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 
-	if (stereoEnabled) {
+	if (stereo.enabled) {
 		int height = display->height();
 		int width = display->width();
 		glViewport(0, height / 4, width / 2, height / 2);
@@ -426,11 +429,11 @@ void draw(float stateBlend) {
 	display->updateViewport();
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	if (stereoEnabled) {
+	if (stereo.enabled) {
 		int height = display->height();
 		int width = display->width();
-		float sep = stereoSeparation;
-		if (stereoCross) {
+		float sep = stereo.separation;
+		if (stereo.cross) {
 			sep = -sep;
 		}
 		glViewport(0, height / 4, width / 2, height / 2);
@@ -1104,7 +1107,7 @@ extern "C" int main(int argc, char **argv)
 		config.load(iniMem.data, iniMem.size);
 	}
 
-	config.updateHandler = configEvent;
+	config.updateSignal += configEvent;
 
 	client = enet_host_create(nullptr, 1, narf::net::MAX_CHANNELS, 0, 0);
 	if (!client) {

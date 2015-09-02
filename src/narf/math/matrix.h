@@ -110,7 +110,11 @@ namespace narf {
 		}
 
 		static const Matrix4x4<T> rotate(T angle, T x, T y, T z) {
-			auto u = Vector3<T>(x, y, z).normalize();
+			return rotate(angle, Vector3<T>(x, y, z));
+		}
+
+		static const Matrix4x4<T> rotate(T angle, Vector3<T> vec) {
+			auto u = vec.normalize();
 			T s = std::sin(angle);
 			T c = std::cos(angle);
 			auto v = u * (1 - c);
