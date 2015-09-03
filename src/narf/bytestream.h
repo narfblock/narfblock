@@ -45,6 +45,7 @@ public:
 	ByteStreamWriter();
 	~ByteStreamWriter();
 
+	void write(uint8_t v);
 	void writeLE(uint16_t v);
 	void writeLE(uint32_t v);
 	void writeLE(int32_t v);
@@ -71,6 +72,7 @@ public:
 	size_t size() const { return size_; }
 	size_t bytesLeft() const { return bytesLeft_; }
 
+	bool read(uint8_t* v);
 	bool readLE(uint16_t* v);
 	bool readLE(uint32_t* v);
 	bool readLE(int32_t* v);

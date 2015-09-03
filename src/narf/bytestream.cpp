@@ -44,6 +44,11 @@ narf::ByteStreamWriter::~ByteStreamWriter() {
 }
 
 
+void narf::ByteStreamWriter::write(uint8_t v) {
+	data_.push_back(v);
+}
+
+
 // TODO: use vector's resize() and write directly to data if this turns out to be slow
 void narf::ByteStreamWriter::writeLE(uint16_t v) {
 	data_.push_back(static_cast<uint8_t>(v));
@@ -99,6 +104,17 @@ narf::ByteStreamReader::~ByteStreamReader() {
 	if (data_ != nullptr) {
 		delete[] data_;
 	}
+}
+
+bool narf::ByteStreamReader::read(uint8_t* v) {
+	assert(v != nullptr);
+	if (bytesLeft_ < 1) {
+		return false;
+	}
+	*v = iter_[0];
+	iter_ += 1;
+	bytesLeft_ -= 1;
+	return true;
 }
 
 

@@ -33,6 +33,7 @@
 #ifndef NARF_ENTITY_H
 #define NARF_ENTITY_H
 
+#include "narf/bytestream.h"
 #include "narf/time.h"
 #include "narf/math/vector.h"
 
@@ -65,6 +66,9 @@ public:
 
 	// return true if object is still alive or false if it should be deleted
 	bool update(timediff dt);
+
+	void serialize(ByteStreamWriter& s) const;
+	void deserialize(ByteStreamReader& s);
 
 private:
 	World* world_;
@@ -121,11 +125,16 @@ public:
 	void update(timediff dt);
 	void update(Entity::ID entID, double t, double dt);
 
+	void deserializeEntity(ByteStreamReader& s);
+
 private:
 	World* world_;
 	EntityIDAllocator idAllocator_;
 	uint32_t entityRefs_;
 	std::vector<narf::Entity> entities_;
+
+	// internal client-only function - create entity with given ID
+	Entity::ID newEntity(Entity::ID id);
 };
 
 } // namespace narf

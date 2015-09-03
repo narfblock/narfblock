@@ -716,6 +716,11 @@ void processChunk(ENetEvent& evt) {
 	world->deserializeChunk(bs, wcc);
 }
 
+void processEntity(ENetEvent& evt) {
+	narf::ByteStreamReader bs(evt.packet->data, evt.packet->dataLength);
+	world->entityManager.deserializeEntity(bs);
+}
+
 void processReceive(ENetEvent& evt) {
 	switch (evt.channelID) {
 	case narf::net::CHAN_CHAT:
@@ -723,6 +728,9 @@ void processReceive(ENetEvent& evt) {
 		break;
 	case narf::net::CHAN_CHUNK:
 		processChunk(evt);
+		break;
+	case narf::net::CHAN_ENTITY:
+		processEntity(evt);
 		break;
 	}
 }

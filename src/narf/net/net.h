@@ -32,7 +32,8 @@ namespace narf {
 		const uint8_t CHAN_CHAT			= 0;
 		const uint8_t CHAN_PLAYERCMD	= 1;
 		const uint8_t CHAN_CHUNK		= 2;
-		const size_t MAX_CHANNELS		= 3;
+		const uint8_t CHAN_ENTITY		= 3;
+		const size_t MAX_CHANNELS		= 4;
 
 		const uint16_t DEFAULT_PORT = 8686;
 

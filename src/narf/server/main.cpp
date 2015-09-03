@@ -101,6 +101,16 @@ void genWorld() {
 
 	world->chunkUpdate = chunkUpdate;
 	world->blockUpdate = blockUpdate;
+
+	// add test entity
+	auto bouncyBlockEID = world->entityManager.newEntity();
+	{
+		narf::EntityRef bouncyBlock(world->entityManager, bouncyBlockEID);
+		bouncyBlock->position = narf::Vector3f(10.0f, 10.0f, 21.0f);
+		bouncyBlock->prevPosition = bouncyBlock->position;
+		bouncyBlock->bouncy = true;
+		bouncyBlock->model = true;
+	}
 }
 
 
@@ -194,6 +204,12 @@ void markChunksClean() {
 	}
 }
 
+void sendEntityUpdate(const Client* to, const narf::Entity& ent) {
+	narf::ByteStreamWriter bs;
+	ent.serialize(bs);
+	auto packet = enet_packet_create(bs.data(), bs.size(), ENET_PACKET_FLAG_RELIABLE);
+	enet_peer_send(to->peer, narf::net::CHAN_ENTITY, packet);
+}
 
 ServerGameLoop::ServerGameLoop(double maxFrameTime, double tickRate, size_t maxClients) :
 	narf::GameLoop(maxFrameTime, tickRate),
@@ -358,13 +374,16 @@ void ServerGameLoop::tick(narf::timediff dt) {
 
 	world->update(dt);
 
-	// send chunk updates to all clients
+	// send chunk and entity updates to all clients
 	for (size_t i = 0; i < maxClients; i++) {
 		auto client = &clients[i];
 		if (client->peer) {
 			narf::ZYXCoordIter<narf::ChunkCoord> iter({ 0, 0, 0 }, { world->chunksX(), world->chunksY(), world->chunksZ() });
 			for (const auto& wcc : iter) {
 				sendChunkUpdate(client, wcc, true);
+			}
+			for (const auto& ent : world->entityManager.getEntities()) {
+				sendEntityUpdate(client, ent);
 			}
 		}
 	}
@@ -373,7 +392,7 @@ void ServerGameLoop::tick(narf::timediff dt) {
 
 
 void ServerGameLoop::updateStatus(const std::string& status) {
-	cursesConsole->setStatus(status);
+	cursesConsole->setStatus(status + " " + std::to_string(world->entityManager.getNumEntities()) + " entities");
 }
 
 

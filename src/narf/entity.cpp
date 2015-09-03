@@ -160,6 +160,37 @@ bool Entity::update(timediff dt)
 	return alive;
 }
 
+void Entity::serialize(ByteStreamWriter& s) const {
+	// TODO this could be much more compactly encoded...
+	// do the dumbest possible encoding that works (for now)
+	s.writeLE(id);
+	s.writeLE(position.x);
+	s.writeLE(position.y);
+	s.writeLE(position.z);
+	s.writeLE(velocity.x);
+	s.writeLE(velocity.y);
+	s.writeLE(velocity.z);
+	s.writeLE((uint8_t)model);
+}
+
+void Entity::deserialize(ByteStreamReader& s) {
+	uint8_t tmp8;
+
+	if (/*!s.readLE(&id) || */ // id is read by EntityManager::deserializeEntity (this is a mess, fix it later)
+		!s.readLE(&position.x) ||
+		!s.readLE(&position.y) ||
+		!s.readLE(&position.z) ||
+		!s.readLE(&velocity.x) ||
+		!s.readLE(&velocity.y) ||
+		!s.readLE(&velocity.z) ||
+		!s.read(&tmp8)) {
+		narf::console->println("entity deserialize error");
+		assert(0);
+		return;
+	}
+	model = tmp8;
+}
+
 
 EntityIDAllocator::EntityIDAllocator() : firstFreeID_(0) {
 }
@@ -208,6 +239,17 @@ Entity::ID EntityManager::newEntity() {
 }
 
 
+Entity::ID EntityManager::newEntity(Entity::ID id) {
+	assert(entityRefs_ == 0);
+	if (entityRefs_ != 0) {
+		narf::console->println("!!!! ERROR: newEntity() called while an EntityRef is live");
+	}
+
+	entities_.emplace_back(world_, this, id);
+	return id;
+}
+
+
 void EntityManager::deleteEntity(Entity::ID id) {
 	assert(entityRefs_ == 0);
 	if (entityRefs_ != 0) {
@@ -225,11 +267,10 @@ void EntityManager::deleteEntity(Entity::ID id) {
 
 
 Entity* EntityManager::getEntityRef(Entity::ID id) {
-	// debug helper - make sure newEntity() doesn't get called while there is a live entity ref
-	entityRefs_++;
 	// TODO: if this gets too slow, keep a sorted index of id -> Entity
 	for (auto& ent : entities_) {
 		if (ent.id == id) {
+			entityRefs_++; // debug helper - make sure newEntity() doesn't get called while there is a live entity ref
 			return &ent;
 		}
 	}
@@ -253,4 +294,29 @@ void EntityManager::update(timediff dt) {
 	for (auto& eid : entsToDelete) {
 		deleteEntity(eid);
 	}
+}
+
+
+void EntityManager::deserializeEntity(ByteStreamReader& s) {
+	Entity::ID id;
+	if (!s.readLE(&id)) {
+		narf::console->println("entity ID deserialize error");
+		assert(0);
+		return;
+	}
+
+	auto ent = getEntityRef(id);
+	if (!ent) {
+		narf::console->println("new ent ID " + std::to_string(id));
+		newEntity(id);
+		ent = getEntityRef(id);
+		assert(ent != nullptr);
+		if (!ent) {
+			return;
+		}
+	}
+
+	ent->deserialize(s);
+
+	releaseEntityRef(id);
 }
