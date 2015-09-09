@@ -410,7 +410,9 @@ void draw2d() {
 		location_str = "Pos: " + std::to_string(cam.position.x) + ", " + std::to_string(cam.position.y) + ", " + std::to_string(cam.position.z);
 	} else {
 		narf::EntityRef player(world->entityManager, playerEID);
-		location_str = "Pos: " + std::to_string(player->position.x) + ", " + std::to_string(player->position.y) + ", " + std::to_string(player->position.z);
+		if (player.ent) {
+			location_str = "Pos: " + std::to_string(player->position.x) + ", " + std::to_string(player->position.y) + ", " + std::to_string(player->position.z);
+		}
 	}
 	location_str += " Yaw: " + std::to_string(cam.orientation.yaw) + " Pitch: " + std::to_string(cam.orientation.pitch);
 	locationBuffer->clear();
@@ -542,7 +544,7 @@ void sim_frame(const narf::Input &input, narf::timediff dt)
 	if (playerEID != narf::Entity::InvalidID) {
 		narf::EntityRef player(world->entityManager, playerEID);
 
-		if (player->antigrav) {
+		if (player.ent && player->antigrav) {
 			// if flying, move in the direction of camera including pitch
 			movePitch = cam.orientation.pitch;
 		}
@@ -562,23 +564,26 @@ void sim_frame(const narf::Input &input, narf::timediff dt)
 		// normalize so that diagonal movement is not faster than cardinal directions
 		vel_rel = vel_rel.normalize() * (input.run() ? runspeed : movespeed);
 
-		if (input.jump()) {
-			if (player->onGround) {
-				vel_rel += narf::Vector3f(0.0f, 0.0f, 8.0f);
-			} else if (player->velocity.z > 0.0f) {
-				// still going up - double jump triggers flying
-				player->antigrav = true;
-				narf::console->println("entered antigrav mode");
+		if (connectState == ConnectState::Unconnected) {
+			// TODO: do client-side prediction
+			if (input.jump()) {
+				if (player->onGround) {
+					vel_rel += narf::Vector3f(0.0f, 0.0f, 8.0f);
+				} else if (player->velocity.z > 0.0f) {
+					// still going up - double jump triggers flying
+					player->antigrav = true;
+					narf::console->println("entered antigrav mode");
+				}
 			}
-		}
 
-		// hax
-		player->velocity.x = vel_rel.x;
-		player->velocity.y = vel_rel.y;
-		player->velocity.z += vel_rel.z;
+			// hax
+			player->velocity.x = vel_rel.x;
+			player->velocity.y = vel_rel.y;
+			player->velocity.z += vel_rel.z;
 
-		if (player->antigrav) {
-			player->velocity.z = vel_rel.z;
+			if (player->antigrav) {
+				player->velocity.z = vel_rel.z;
+			}
 		}
 	}
 
@@ -586,14 +591,16 @@ void sim_frame(const narf::Input &input, narf::timediff dt)
 
 	if (playerEID != narf::Entity::InvalidID) {
 		narf::EntityRef player(world->entityManager, playerEID);
-		if (player->onGround && player->antigrav) {
-			player->antigrav = false;
-			narf::console->println("left antigrav mode");
-		}
+		if (player.ent) {
+			if (player->onGround && player->antigrav) {
+				player->antigrav = false;
+				narf::console->println("left antigrav mode");
+			}
 
-		// lock camera to player
-		cam.position = player->position;
-		cam.position.z += 1.6f;
+			// lock camera to player
+			cam.position = player->position;
+			cam.position.z += 1.6f;
+		}
 	}
 
 	// Let's see what we're looking at
@@ -650,7 +657,9 @@ void sim_frame(const narf::Input &input, narf::timediff dt)
 		cmd.velocity = narf::Vector3f(0.0f, 0.0f, 0.0f);
 		if (playerEID != narf::Entity::InvalidID) {
 			narf::EntityRef player(world->entityManager, playerEID);
-			cmd.velocity = player->velocity;
+			if (player.ent) {
+				cmd.velocity = player->velocity;
+			}
 		}
 		cmd.position = cam.position;
 		cmd.orientation = cam.orientation;
@@ -710,6 +719,17 @@ void processChat(ENetEvent& evt) {
 	narf::console->println(text);
 }
 
+void processPlayerCmd(ENetEvent& evt) {
+	// TODO: for now, this is just what entity the player is controlling/camera is following
+	narf::ByteStreamReader bs(evt.packet->data, evt.packet->dataLength);
+	if (!bs.readLE(&playerEID)) {
+		narf::console->println("Player entity ID deserialize error");
+		assert(0);
+	}
+
+	narf::console->println("Player is now following entity ID " + std::to_string(playerEID));
+}
+
 void processChunk(ENetEvent& evt) {
 	narf::ByteStreamReader bs(evt.packet->data, evt.packet->dataLength);
 	narf::ChunkCoord wcc;
@@ -725,6 +745,9 @@ void processReceive(ENetEvent& evt) {
 	switch (evt.channelID) {
 	case narf::net::CHAN_CHAT:
 		processChat(evt);
+		break;
+	case narf::net::CHAN_PLAYERCMD:
+		processPlayerCmd(evt);
 		break;
 	case narf::net::CHAN_CHUNK:
 		processChunk(evt);

@@ -43,7 +43,9 @@ EntityRef::EntityRef(EntityManager& entMgr, Entity::ID id) :
 
 
 EntityRef::~EntityRef() {
-	entMgr.releaseEntityRef(id);
+	if (ent) {
+		entMgr.releaseEntityRef(id);
+	}
 }
 
 

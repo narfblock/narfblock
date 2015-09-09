@@ -26,6 +26,9 @@ public:
 	}
 
 	ENetPeer* peer;
+
+	// entity this player is controlling/spectating
+	narf::Entity::ID entityID;
 };
 
 
@@ -228,6 +231,18 @@ void onEntityDeleted(narf::Entity::ID id) {
 	deletedEntities.push_back(id);
 }
 
+
+void sendPlayerCameraUpdate(const Client* to, narf::Entity::ID followID) {
+	narf::ByteStreamWriter bs;
+	// TODO: put this somewhere better
+	// TODO: for now, this is the only server->client message on CHAN_PLAYERCMD,
+	// but this should have a message type later.
+	bs.writeLE(followID);
+	auto packet = enet_packet_create(bs.data(), bs.size(), ENET_PACKET_FLAG_RELIABLE);
+	enet_peer_send(to->peer, narf::net::CHAN_PLAYERCMD, packet);
+}
+
+
 ServerGameLoop::ServerGameLoop(double maxFrameTime, double tickRate, size_t maxClients) :
 	narf::GameLoop(maxFrameTime, tickRate),
 	maxClients(maxClients) {
@@ -287,6 +302,17 @@ void ServerGameLoop::processConnect(ENetEvent& evt) {
 	// send a server message greeting
 	tellAll(nullptr, "Client connected from " + narf::net::to_string(evt.peer->address));
 
+	// spawn a new entity for this player (TODO: allow 'spectate mode', etc?)
+	client->entityID = world->entityManager.newEntity();
+	{
+		narf::EntityRef player(world->entityManager, client->entityID);
+
+		// initial player position
+		player->position = narf::Vector3f(15.0f, 10.0f, 3.0f * 16.0f);
+		player->prevPosition = player->position;
+	}
+	sendPlayerCameraUpdate(client, client->entityID);
+
 	// send all chunks (!!)
 	narf::ZYXCoordIter<narf::ChunkCoord> iter({ 0, 0, 0 }, { world->chunksX(), world->chunksY(), world->chunksZ() });
 	for (const auto& wcc : iter) {
@@ -317,6 +343,8 @@ void ServerGameLoop::processDisconnect(ENetEvent& evt) {
 
 	narf::console->println(disconnectMsg);
 	tellAll(nullptr, disconnectMsg);
+
+	// TODO: despawn player's entity
 }
 
 
