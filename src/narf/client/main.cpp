@@ -718,7 +718,7 @@ void processChunk(ENetEvent& evt) {
 
 void processEntity(ENetEvent& evt) {
 	narf::ByteStreamReader bs(evt.packet->data, evt.packet->dataLength);
-	world->entityManager.deserializeEntity(bs);
+	world->entityManager.deserializeEntityUpdate(bs);
 }
 
 void processReceive(ENetEvent& evt) {

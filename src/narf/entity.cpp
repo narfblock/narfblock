@@ -163,7 +163,6 @@ bool Entity::update(timediff dt)
 void Entity::serialize(ByteStreamWriter& s) const {
 	// TODO this could be much more compactly encoded...
 	// do the dumbest possible encoding that works (for now)
-	s.writeLE(id);
 	s.writeLE(position.x);
 	s.writeLE(position.y);
 	s.writeLE(position.z);
@@ -176,8 +175,7 @@ void Entity::serialize(ByteStreamWriter& s) const {
 void Entity::deserialize(ByteStreamReader& s) {
 	uint8_t tmp8;
 
-	if (/*!s.readLE(&id) || */ // id is read by EntityManager::deserializeEntity (this is a mess, fix it later)
-		!s.readLE(&position.x) ||
+	if (!s.readLE(&position.x) ||
 		!s.readLE(&position.y) ||
 		!s.readLE(&position.z) ||
 		!s.readLE(&velocity.x) ||
@@ -292,31 +290,70 @@ void EntityManager::update(timediff dt) {
 	}
 
 	for (auto& eid : entsToDelete) {
+		onEntityDeleted.emit(eid);
 		deleteEntity(eid);
 	}
 }
 
 
-void EntityManager::deserializeEntity(ByteStreamReader& s) {
+void EntityManager::serializeEntityFullUpdate(ByteStreamWriter& s, const Entity& ent) const {
+	s.write((uint8_t)UpdateType::FullUpdate);
+	s.writeLE(ent.id);
+	ent.serialize(s);
+}
+
+
+void EntityManager::serializeEntityDelete(ByteStreamWriter& s, Entity::ID id) const {
+	s.write((uint8_t)UpdateType::Deleted);
+	s.writeLE(id);
+}
+
+
+void EntityManager::deserializeEntityUpdate(ByteStreamReader& s) {
 	Entity::ID id;
+	uint8_t tmp8;
+
+	if (!s.read(&tmp8)) { // type
+		narf::console->println("entity update type deserialize error");
+		assert(0);
+		return;
+	}
+
+	// for now, all update types have ID next
 	if (!s.readLE(&id)) {
 		narf::console->println("entity ID deserialize error");
 		assert(0);
 		return;
 	}
 
-	auto ent = getEntityRef(id);
-	if (!ent) {
-		narf::console->println("new ent ID " + std::to_string(id));
-		newEntity(id);
-		ent = getEntityRef(id);
-		assert(ent != nullptr);
-		if (!ent) {
-			return;
+	switch ((UpdateType)tmp8) {
+	case UpdateType::FullUpdate:
+		{
+			auto ent = getEntityRef(id);
+			if (!ent) {
+				narf::console->println("new ent ID " + std::to_string(id));
+				newEntity(id);
+				ent = getEntityRef(id);
+				assert(ent != nullptr);
+				if (!ent) {
+					return;
+				}
+			}
+
+			ent->deserialize(s);
+			releaseEntityRef(id);
+
+			break;
 		}
+
+	case UpdateType::Deleted:
+		narf::console->println("delete ent ID " + std::to_string(id));
+		deleteEntity(id);
+		break;
+
+	default:
+		narf::console->println("unknown entity update type " + std::to_string(tmp8));
+		assert(0);
+		break;
 	}
-
-	ent->deserialize(s);
-
-	releaseEntityRef(id);
 }

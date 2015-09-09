@@ -10,6 +10,7 @@
 #include "narf/net/net.h"
 
 #include <chrono>
+#include <queue>
 
 #include <enet/enet.h>
 
@@ -53,6 +54,8 @@ public:
 ServerGameLoop* game;
 
 narf::World *world;
+
+std::deque<narf::Entity::ID> deletedEntities;
 
 // TODO: move these
 #define WORLD_X_MAX 64
@@ -206,9 +209,23 @@ void markChunksClean() {
 
 void sendEntityUpdate(const Client* to, const narf::Entity& ent) {
 	narf::ByteStreamWriter bs;
-	ent.serialize(bs);
+	world->entityManager.serializeEntityFullUpdate(bs, ent);
 	auto packet = enet_packet_create(bs.data(), bs.size(), ENET_PACKET_FLAG_RELIABLE);
 	enet_peer_send(to->peer, narf::net::CHAN_ENTITY, packet);
+}
+
+
+void sendDeletedEntityUpdate(const Client* to, narf::Entity::ID id) {
+	narf::ByteStreamWriter bs;
+	world->entityManager.serializeEntityDelete(bs, id);
+	auto packet = enet_packet_create(bs.data(), bs.size(), ENET_PACKET_FLAG_RELIABLE);
+	enet_peer_send(to->peer, narf::net::CHAN_ENTITY, packet);
+}
+
+
+void onEntityDeleted(narf::Entity::ID id) {
+	narf::console->println("entity " + std::to_string(id) + " deleted");
+	deletedEntities.push_back(id);
 }
 
 ServerGameLoop::ServerGameLoop(double maxFrameTime, double tickRate, size_t maxClients) :
@@ -385,6 +402,12 @@ void ServerGameLoop::tick(narf::timediff dt) {
 			for (const auto& ent : world->entityManager.getEntities()) {
 				sendEntityUpdate(client, ent);
 			}
+
+			while (deletedEntities.size()) {
+				auto id = deletedEntities.front();
+				deletedEntities.pop_front();
+				sendDeletedEntityUpdate(client, id);
+			}
 		}
 	}
 	markChunksClean();
@@ -427,6 +450,9 @@ int main(int argc, char **argv)
 	// TODO: make tick rate and max clients configurable
 	game = new ServerGameLoop(0.25, 60.0, 32);
 	game->callDraw = false;
+
+	world->entityManager.onEntityDeleted += onEntityDeleted;
+
 	game->run();
 	delete game;
 	delete narf::console;

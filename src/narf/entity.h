@@ -34,6 +34,7 @@
 #define NARF_ENTITY_H
 
 #include "narf/bytestream.h"
+#include "narf/signal.h"
 #include "narf/time.h"
 #include "narf/math/vector.h"
 
@@ -125,7 +126,11 @@ public:
 	void update(timediff dt);
 	void update(Entity::ID entID, double t, double dt);
 
-	void deserializeEntity(ByteStreamReader& s);
+	void deserializeEntityUpdate(ByteStreamReader& s);
+	void serializeEntityFullUpdate(ByteStreamWriter& s, const Entity& ent) const;
+	void serializeEntityDelete(ByteStreamWriter& s, Entity::ID id) const;
+
+	Signal<void(Entity::ID id)> onEntityDeleted;
 
 private:
 	World* world_;
@@ -135,6 +140,11 @@ private:
 
 	// internal client-only function - create entity with given ID
 	Entity::ID newEntity(Entity::ID id);
+
+	enum class UpdateType {
+		FullUpdate = 0,
+		Deleted = 1,
+	};
 };
 
 } // namespace narf

@@ -42,7 +42,7 @@
 #include <functional>
 #include <unordered_map>
 
-#include "signal.h"
+#include "narf/signal.h"
 
 namespace narf {
 namespace INI {
