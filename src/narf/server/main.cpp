@@ -2,11 +2,13 @@
 #include "narf/bytestream.h"
 #include "narf/chunkcache.h"
 #include "narf/cursesconsole.h"
+#include "narf/embed.h"
 #include "narf/gameloop.h"
 #include "narf/playercmd.h"
 #include "narf/world.h"
 #include "narf/cmd/cmd.h"
 #include "narf/util/path.h"
+#include "narf/util/tokenize.h"
 #include "narf/net/net.h"
 
 #include <chrono>
@@ -132,6 +134,8 @@ void cmdStats(const std::string& args) {
 }
 
 
+DECLARE_EMBED(extra_credits_txt);
+
 void cmdAbout(const std::string& args) {
 	narf::console->println("");
 	narf::console->println("About NarfBlock");
@@ -139,6 +143,11 @@ void cmdAbout(const std::string& args) {
 	narf::console->println("");
 	narf::console->println("Authors:");
 	narf::console->println(VERSION_AUTHORS);
+	narf::console->println("");
+	auto credits = narf::util::tokenize(EMBED_STRING(extra_credits_txt), '\n');
+	for (auto& c : credits) {
+		narf::console->println(c);
+	}
 	narf::console->println("");
 	narf::console->println("Library versions:");
 	narf::console->println("ENet " + std::to_string(ENET_VERSION_MAJOR) + "." + std::to_string(ENET_VERSION_MINOR) + "." + std::to_string(ENET_VERSION_PATCH));

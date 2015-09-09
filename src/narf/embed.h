@@ -44,4 +44,6 @@
 #define EMBED_DATA(name) static_cast<const void*>(::name)
 #define EMBED_SIZE(name) static_cast<size_t>(::name##_len)
 
+#define EMBED_STRING(name) std::string(static_cast<const char*>(EMBED_DATA(name)), EMBED_SIZE(name))
+
 #endif // NARF_EMBED_H

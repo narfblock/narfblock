@@ -1043,6 +1043,8 @@ void cmdStats(const std::string& args) {
 }
 
 
+DECLARE_EMBED(extra_credits_txt);
+
 void cmdAbout(const std::string& args) {
 	// TODO: replace this with a GUI window
 	narf::console->println("");
@@ -1053,6 +1055,12 @@ void cmdAbout(const std::string& args) {
 	auto authors = narf::util::tokenize(VERSION_AUTHORS, '\n');
 	for (auto& a : authors) {
 		narf::console->println(a);
+	}
+	narf::console->println("");
+
+	auto credits = narf::util::tokenize(EMBED_STRING(extra_credits_txt), '\n');
+	for (auto& c : credits) {
+		narf::console->println(c);
 	}
 
 	narf::console->println("");

@@ -170,6 +170,7 @@ FUNCTION(EMBED out_var in_f)
 	SET(${out_var} "${out_f}" PARENT_SCOPE)
 ENDFUNCTION()
 
+EMBED(embed_extra_credits_txt ../extra-credits.txt)
 
 # source files used by both client and server
 set (NARFBLOCK_COMMON_SOURCE_FILES
@@ -193,6 +194,7 @@ set (NARFBLOCK_COMMON_SOURCE_FILES
 	narf/util/path.cpp
 	narf/net/addr.cpp
 	narf/net/socket.cpp
+	${embed_extra_credits_txt}
 	)
 
 

@@ -64,4 +64,4 @@ To disable components, specify additional options on the cmake command line:
 
 ## Credits
 
-Textures from the Isabella II texture pack by Bonemouse are used: http://www.minecraftforum.net/topic/242175-Isabella/
+See [extra-credits.txt](extra-credits.txt).
