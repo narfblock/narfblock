@@ -39,7 +39,7 @@
 bool narf::embed::uncompress(void* dst, size_t dstSize, const void* src, size_t srcSize) {
 	z_stream st;
 
-	st.next_in = static_cast<z_const Bytef*>(const_cast<void*>(src));
+	st.next_in = static_cast<Bytef*>(const_cast<void*>(src));
 	st.avail_in = static_cast<uInt>(srcSize);
 
 	st.next_out = static_cast<Bytef*>(dst);
