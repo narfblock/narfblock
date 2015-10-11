@@ -159,9 +159,9 @@ FUNCTION(EMBED out_var in_f)
 	FILE(RELATIVE_PATH src_f_full ${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/${in_f})
 	get_filename_component(src_f ${src_f_full} NAME)
 	get_filename_component(src_dir ${src_f_full} PATH)
-	SET(out_f "${PROJECT_BINARY_DIR}/${src_f}.c")
+	SET(out_f "${PROJECT_BINARY_DIR}/${src_f}.cpp")
 	ADD_CUSTOM_COMMAND(OUTPUT ${out_f}
-		COMMAND xxd -i ${src_f} > ${out_f}
+		COMMAND ${CMAKE_SOURCE_DIR}/embed.sh ${src_f} ${out_f}
 		DEPENDS ${in_f}
 		WORKING_DIRECTORY ${src_dir}
 		COMMENT "Embedding ${src_f}"
@@ -178,6 +178,7 @@ set (NARFBLOCK_COMMON_SOURCE_FILES
 	narf/block.cpp
 	narf/bytestream.cpp
 	narf/chunk.cpp
+	narf/embed.cpp
 	narf/entity.cpp
 	narf/file.cpp
 	narf/gameloop.cpp
@@ -267,6 +268,7 @@ if (SERVER)
 		${CMAKE_THREAD_LIBS_INIT}
 		${CURSES_LIBRARY}
 		${ENet_LIBRARIES}
+		${ZLIB_LIBRARY}
 		)
 endif ()
 
@@ -283,6 +285,7 @@ if (TEST)
 		${ENet_LIBRARIES}
 		${GTEST_LIBRARIES}
 		${CMAKE_THREAD_LIBS_INIT}
+		${ZLIB_LIBRARY}
 		)
 endif ()
 

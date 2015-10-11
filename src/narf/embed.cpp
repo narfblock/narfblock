@@ -30,27 +30,35 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef NARF_EMBED_H
-#define NARF_EMBED_H
+#include "narf/embed.h"
 
-#include <stdint.h>
-#include <stdlib.h>
+#include <zlib.h>
+#include <stdio.h>
 
-namespace narf {
-namespace embed {
-	bool uncompress(void* dst, size_t dstSize, const void* src, size_t srcSize);
+
+bool narf::embed::uncompress(void* dst, size_t dstSize, const void* src, size_t srcSize) {
+	z_stream st;
+
+	st.next_in = static_cast<z_const Bytef*>(const_cast<void*>(src));
+	st.avail_in = static_cast<uInt>(srcSize);
+
+	st.next_out = static_cast<Bytef*>(dst);
+	st.avail_out = static_cast<uInt>(dstSize);
+
+	st.zalloc = nullptr;
+	st.zfree = nullptr;
+
+	if (::inflateInit2(&st, 32) != Z_OK) { // 32 = autodetect zlib/gzip
+		return false;
+	}
+
+	if (::inflate(&st, Z_FINISH) != Z_STREAM_END) {
+		return false;
+	}
+
+	if (st.total_out != dstSize) {
+		return false;
+	}
+
+	return true;
 }
-}
-
-#define DECLARE_EMBED(name) \
-	namespace narf { namespace embed { \
-		extern uint8_t name##_data[]; \
-		extern const size_t name##_size; \
-	}}
-
-#define EMBED_DATA(name) static_cast<const void*>(narf::embed::name##_data)
-#define EMBED_SIZE(name) narf::embed::name##_size
-
-#define EMBED_STRING(name) std::string(static_cast<const char*>(EMBED_DATA(name)), EMBED_SIZE(name))
-
-#endif // NARF_EMBED_H
