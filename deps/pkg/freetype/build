@@ -2,8 +2,8 @@
 
 source "${deps}/pkg/common"
 
-src=freetype-2.5.5.tar.bz2
-sha1=7b7460ef51a8fdb17baae53c6658fc1ad000a1c2
+src=freetype-2.6.1.tar.bz2
+sha1=393447fbf64c107b20a1ccc9e9a9a52f39786ae0
 url="http://download.sourceforge.net/freetype/${src}"
 
 fetch $src $sha1 $url
@@ -14,11 +14,11 @@ tar xf "${files}/${src}"
 cd freetype-*
 
 function disable_feature(){
-    sed -i -e "s/#define $1/#undef $1/" include/config/ftoption.h
+    sed -i -e "s/#define $1/#undef $1/" include/freetype/config/ftoption.h
 }
 
 function enable_feature(){
-    sed -i -e "s:/\* #define $1 \*/:#define $1:" include/config/ftoption.h
+    sed -i -e "s:/\* #define $1 \*/:#define $1:" include/freetype/config/ftoption.h
 }
 
 function disable_module(){

@@ -2,8 +2,8 @@
 
 source "${deps}/pkg/common"
 
-src=enet-1.3.12.tar.gz
-sha1=5fd9ef590dc7bcff652e99fef3e7241b3a743f25
+src=enet-1.3.13.tar.gz
+sha1=5bcf9aa1a8f2e54cc85c1435d7dac0970d382b7e
 url="http://enet.bespin.org/download/${src}"
 
 fetch $src $sha1 $url
