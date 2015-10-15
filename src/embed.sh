@@ -30,8 +30,6 @@ ingz=$(mktemp)
 
 gzip -9 -n -c "$in" > "$ingz"
 
-echo "$ingz"
-
 rawsize=$(size "$in")
 gzsize=$(size "$ingz")
 
