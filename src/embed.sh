@@ -77,3 +77,4 @@ ${varbase}_ctor ${varbase}_inst;
 EOF
 
 mv "$tmp" "$out"
+rm -f "$ingz"
