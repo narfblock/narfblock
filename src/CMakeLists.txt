@@ -64,8 +64,6 @@ if (SERVER)
 	find_package (Curses REQUIRED)
 endif ()
 
-include (DownloadFont)
-
 if (CMAKE_CXX_COMPILER_ID STREQUAL Clang)
 	set(CMAKE_COMPILER_IS_CLANG 1)
 endif ()
