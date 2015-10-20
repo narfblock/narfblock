@@ -1172,13 +1172,6 @@ void cmdMusic(const std::string& args) {
 		return;
 	}
 
-	SDL_LockMutex(musicMutex);
-	if (musicSamples) {
-		delete[] musicSamples;
-		musicSamples = nullptr;
-	}
-	SDL_UnlockMutex(musicMutex);
-
 	auto newMusicSize = op_pcm_total(opusFile, -1) * 2; // stereo
 	auto newMusicSamples = new float[newMusicSize];
 
@@ -1202,9 +1195,15 @@ void cmdMusic(const std::string& args) {
 	}
 
 	SDL_LockMutex(musicMutex);
+
+	if (musicSamples) {
+		delete[] musicSamples;
+	}
+
 	musicSamples = newMusicSamples;
 	musicSize = newMusicSize;
 	musicCursor = 0;
+
 	SDL_UnlockMutex(musicMutex);
 
 	op_free(opusFile);
