@@ -75,12 +75,16 @@ narf::font::TextBuffer *blockInfoBuffer;
 narf::font::TextBuffer *entityInfoBuffer;
 narf::font::TextBuffer *locationBuffer;
 
+SDL_AudioDeviceID audioDev = 0;
+
 narf::BlockWrapper selectedBlockFace;
 
 ENetHost* client = nullptr;
 ENetPeer* server = nullptr;
 
 bool paused = false;
+
+bool audioEnabled = true;
 
 // stereoscopic rendering
 struct Stereo {
@@ -138,6 +142,48 @@ narf::font::Font* setFont(
 	}
 
 	return font;
+}
+
+static void audioCallback(void* userdata, Uint8* stream, int len) {
+	// TODO
+	float *f = reinterpret_cast<float*>(stream);
+	int numSamples = len / 4;
+
+	for (int i = 0; i < numSamples; i += 2) {
+		// moving in stereo
+		f[i + 0] = 0.0f;
+		f[i + 1] = 0.0f;
+	}
+}
+
+static bool initAudio() {
+	if (audioDev) {
+		SDL_CloseAudioDevice(audioDev);
+		audioDev = 0;
+	}
+
+	if (audioEnabled) {
+		SDL_AudioSpec desired = {}, actual = {};
+		// We want 48 KHz stereo f32 to match opusfile output
+		desired.freq = 48000;
+		desired.channels = 2;
+		desired.format = AUDIO_F32;
+		desired.samples = 4096; // TODO: user-configurable buffer size?
+		desired.callback = audioCallback;
+
+		audioDev = SDL_OpenAudioDevice(NULL, 0, &desired, &actual, 0);
+		if (!audioDev) {
+			narf::console->println("Could not open default audio device: " + std::string(SDL_GetError()));
+			audioEnabled = false;
+			return false;
+		}
+
+		SDL_PauseAudioDevice(audioDev, 0);
+
+		narf::console->println("Audio initialized: " + std::to_string(actual.freq) + " Hz, " + std::to_string(actual.channels) + " channels");
+	}
+
+	return true;
 }
 
 
@@ -199,6 +245,9 @@ void configEvent(const std::string& key) {
 		stereo.cross = config.getBool(key);
 	} else if (key == "video.stereo.separation") {
 		stereo.separation = config.getFloat(key);
+	} else if (key == "audio.enabled") {
+		audioEnabled = config.getBool(key);
+		initAudio();
 	} else {
 		narf::console->println("Config var updated: " + key);
 	}
@@ -1154,11 +1203,13 @@ extern "C" int main(int argc, char **argv)
 		return 1;
 	}
 
-	if (SDL_Init(SDL_INIT_TIMER | SDL_INIT_VIDEO) < 0) {
-		fatalError("SDL_Init(SDL_INIT_EVERYTHING) failed: " + std::string(SDL_GetError()));
+	if (SDL_Init(SDL_INIT_TIMER | SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0) {
+		fatalError("SDL_Init() failed: " + std::string(SDL_GetError()));
 		SDL_Quit();
 		return 1;
 	}
+
+	config.initBool("audio.enabled", true);
 
 	SDL_DisplayMode mode;
 	// TODO: iterate over monitors?
