@@ -13,6 +13,10 @@ cd ${work}
 tar xf "${files}/${src}"
 cd opus-*
 
+# libopus symbols get exported from the executable with static linking
+# fix that junk
+sed -i -e "s/__declspec(dllexport)//" include/opus_defines.h
+
 ./configure \
 	--prefix=${prefix} \
 	--host=${host_triplet} \
