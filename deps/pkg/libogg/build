@@ -24,4 +24,9 @@ cd libogg-*
 
 make ${MAKEFLAGS} install
 
+cat >> ${prefix}/deps.cmake << EOF
+set(LibOgg_INCLUDE_DIR "${prefix}/include/ogg" CACHE PATH "")
+set(LibOgg_LIBRARY "${prefix}/lib/libogg.a" CACHE FILEPATH "")
+EOF
+
 cd "${deps}"; rm -rf "${work}"

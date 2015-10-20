@@ -27,4 +27,9 @@ cd opusfile-*
 
 make ${MAKEFLAGS} install
 
+cat >> ${prefix}/deps.cmake << EOF
+set(OpusFile_INCLUDE_DIR "${prefix}/include/opus" CACHE PATH "")
+set(OpusFile_LIBRARY "${prefix}/lib/libopusfile.a" CACHE FILEPATH "")
+EOF
+
 cd "${deps}"; rm -rf "${work}"

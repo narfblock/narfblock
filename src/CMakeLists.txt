@@ -50,6 +50,9 @@ if (CLIENT)
 	find_package (SDL2 REQUIRED)
 	find_package (Freetype REQUIRED)
 	find_package (PNG REQUIRED)
+	find_package (OpusFile REQUIRED)
+	find_package (Opus REQUIRED)
+	find_package (LibOgg REQUIRED)
 endif ()
 
 if (TEST)
@@ -125,6 +128,9 @@ if (CLIENT)
 	include_directories (
 		"${SDL2_INCLUDE_DIR}"
 		"${FREETYPE_INCLUDE_DIRS}"
+		"${OpusFile_INCLUDE_DIRS}"
+		"${Opus_INCLUDE_DIRS}"
+		"${LibOgg_INCLUDE_DIRS}"
 		)
 endif ()
 
@@ -243,6 +249,9 @@ if (CLIENT)
 		${PNG_LIBRARY}
 		${ZLIB_LIBRARY}
 		${ENet_LIBRARIES}
+		${OpusFile_LIBRARIES}
+		${Opus_LIBRARIES}
+		${LibOgg_LIBRARIES}
 		${CMAKE_THREAD_LIBS_INIT}
 		)
 

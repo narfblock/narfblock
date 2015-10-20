@@ -11,6 +11,8 @@
 #include <zlib.h>
 #include <png.h>
 
+#include <opusfile.h>
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -85,6 +87,10 @@ ENetPeer* server = nullptr;
 bool paused = false;
 
 bool audioEnabled = true;
+SDL_mutex* musicMutex = nullptr;
+float* musicSamples = nullptr;
+size_t musicSize = 0; // size of musicSamples in samples
+size_t musicCursor = 0; // play position in samples
 
 // stereoscopic rendering
 struct Stereo {
@@ -145,15 +151,27 @@ narf::font::Font* setFont(
 }
 
 static void audioCallback(void* userdata, Uint8* stream, int len) {
-	// TODO
-	float *f = reinterpret_cast<float*>(stream);
-	int numSamples = len / 4;
+	SDL_LockMutex(musicMutex);
 
-	for (int i = 0; i < numSamples; i += 2) {
-		// moving in stereo
-		f[i + 0] = 0.0f;
-		f[i + 1] = 0.0f;
+	if (!musicSamples) {
+		// fill with silence
+		memset(stream, 0, len);
+		SDL_UnlockMutex(musicMutex);
+		return;
 	}
+
+	float* out = reinterpret_cast<float*>(stream);
+	size_t numSamples = (size_t)len / sizeof(float);
+
+	while (numSamples > 0) {
+		auto count = std::min(numSamples, musicSize - musicCursor);
+		memcpy(out, musicSamples + musicCursor, count * sizeof(float));
+		numSamples -= count;
+		out += count;
+		musicCursor = (musicCursor + count) % musicSize;
+	}
+
+	SDL_UnlockMutex(musicMutex);
 }
 
 static bool initAudio() {
@@ -1143,6 +1161,55 @@ void cmdAbout(const std::string& args) {
 	narf::console->println("GL context version " + std::to_string(display->glContextVersionMajor) + "." + std::to_string(display->glContextVersionMinor));
 }
 
+void cmdMusic(const std::string& args) {
+	// terrible hack for testing audio
+	// decode the entire file into a big buffer all at once
+
+	auto opusFile = op_open_file(args.c_str(), NULL);
+
+	if (!opusFile) {
+		narf::console->println("Failed to open music file " + args);
+		return;
+	}
+
+	SDL_LockMutex(musicMutex);
+	if (musicSamples) {
+		delete[] musicSamples;
+		musicSamples = nullptr;
+	}
+	SDL_UnlockMutex(musicMutex);
+
+	auto newMusicSize = op_pcm_total(opusFile, -1) * 2; // stereo
+	auto newMusicSamples = new float[newMusicSize];
+
+	size_t decoded = 0;
+	while (decoded < newMusicSize) {
+		auto rc = op_read_float_stereo(opusFile, newMusicSamples + decoded, newMusicSize - decoded);
+		if (rc < 0) {
+			narf::console->println("opusfile decode failed");
+			decoded = 0;
+			break;
+		}
+
+		decoded += rc * 2; // return code is number of samples per channel, and we are decoding in stereo
+	}
+
+	if (decoded != newMusicSize) {
+		narf::console->println("opusfile decode returned wrong number of samples (got " + std::to_string(decoded) + ", expected " + std::to_string(newMusicSize) + ")");
+		delete[] newMusicSamples;
+		newMusicSamples = nullptr;
+		newMusicSize = 0;
+	}
+
+	SDL_LockMutex(musicMutex);
+	musicSamples = newMusicSamples;
+	musicSize = newMusicSize;
+	musicCursor = 0;
+	SDL_UnlockMutex(musicMutex);
+
+	op_free(opusFile);
+}
+
 
 void fatalError(const std::string& msg) {
 	if (narf::console) {
@@ -1179,6 +1246,7 @@ extern "C" int main(int argc, char **argv)
 	narf::cmd::cmds["load"] = cmdLoad;
 	narf::cmd::cmds["stats"] = cmdStats;
 	narf::cmd::cmds["about"] = cmdAbout;
+	narf::cmd::cmds["music"] = cmdMusic;
 
 	narf::MemoryFile iniMem;
 	auto configFile = narf::util::appendPath(narf::util::userConfigDir("narfblock"), "client.ini");
@@ -1209,6 +1277,7 @@ extern "C" int main(int argc, char **argv)
 		return 1;
 	}
 
+	musicMutex = SDL_CreateMutex();
 	config.initBool("audio.enabled", true);
 
 	SDL_DisplayMode mode;
