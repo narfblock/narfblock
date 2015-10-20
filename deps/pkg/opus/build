@@ -1,0 +1,28 @@
+#!/bin/bash
+
+source "${deps}/pkg/common"
+
+src=opus-1.1.tar.gz
+sha1=35005f5549e2583f5770590135984dcfce6f3d58
+url="http://downloads.xiph.org/releases/opus/${src}"
+
+fetch $src $sha1 $url
+
+mkdir ${work}
+cd ${work}
+tar xf "${files}/${src}"
+cd opus-*
+
+./configure \
+	--prefix=${prefix} \
+	--host=${host_triplet} \
+	--disable-shared \
+	--disable-doc \
+	--disable-extra-programs \
+	--disable-silent-rules \
+	LDFLAGS="-L${prefix}/lib ${LDFLAGS}" \
+	CPPFLAGS="-I${prefix}/include"
+
+make ${MAKEFLAGS} install
+
+cd "${deps}"; rm -rf "${work}"

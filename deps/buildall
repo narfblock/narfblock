@@ -60,6 +60,9 @@ for host_triplet in ${hosts}; do
 	build enet
 	build zlib
 
+	[ $client = y ] && build libogg
+	[ $client = y ] && build opus
+	[ $client = y ] && build opusfile
 	[ $client = y ] && build libpng
 	[ $client = y ] && build sdl2
 	[ $client = y ] && build freetype

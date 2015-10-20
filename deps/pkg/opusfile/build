@@ -1,0 +1,30 @@
+#!/bin/bash
+
+source "${deps}/pkg/common"
+
+src=opusfile-0.6.tar.gz
+sha1=2422e3c7bf6105a832226850b19053ec5ac41293
+url="http://downloads.xiph.org/releases/opus/${src}"
+
+fetch $src $sha1 $url
+
+mkdir ${work}
+cd ${work}
+tar xf "${files}/${src}"
+cd opusfile-*
+
+./configure \
+	--prefix=${prefix} \
+	--host=${host_triplet} \
+	--disable-http \
+	--disable-shared \
+	--disable-doc \
+	--disable-silent-rules \
+	LDFLAGS="-L${prefix}/lib ${LDFLAGS}" \
+	CPPFLAGS="-I${prefix}/include" \
+	DEPS_CFLAGS="-I${prefix}/include -I${prefix}/include/opus -I${prefix}/include/ogg" \
+	DEPS_LIBS="-L${prefix}/lib -lopus -logg"
+
+make ${MAKEFLAGS} install
+
+cd "${deps}"; rm -rf "${work}"
