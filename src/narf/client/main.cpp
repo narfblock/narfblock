@@ -1164,11 +1164,21 @@ void cmdAbout(const std::string& args) {
 	narf::console->println("GL context version " + std::to_string(display->glContextVersionMajor) + "." + std::to_string(display->glContextVersionMinor));
 }
 
+DECLARE_EMBED(Who_Likes_to_Party_Kevin_MacLeod_incompetech_opus);
+
 void cmdMusic(const std::string& args) {
 	// terrible hack for testing audio
 	// decode the entire file into a big buffer all at once
 
-	auto opusFile = op_open_file(args.c_str(), NULL);
+	OggOpusFile* opusFile;
+	if (args.length() == 0) {
+		opusFile = op_open_memory(
+		    static_cast<const uint8_t*>(EMBED_DATA(Who_Likes_to_Party_Kevin_MacLeod_incompetech_opus)),
+		    EMBED_SIZE(Who_Likes_to_Party_Kevin_MacLeod_incompetech_opus),
+		    NULL);
+	} else {
+		opusFile = op_open_file(args.c_str(), NULL);
+	}
 
 	if (!opusFile) {
 		narf::console->println("Failed to open music file " + args);

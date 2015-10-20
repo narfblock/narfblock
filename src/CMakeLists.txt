@@ -206,6 +206,7 @@ set (NARFBLOCK_COMMON_SOURCE_FILES
 if (CLIENT)
 	EMBED(embed_DroidSansMono_ttf ../data/DroidSansMono.ttf)
 	EMBED(embed_terrain_png ../data/terrain.png)
+	EMBED(embed_party_opus ../data/Who_Likes_to_Party-Kevin_MacLeod-incompetech.opus)
 
 	SET(NARFBLOCK_CLIENT_SOURCE_FILES
 		narf/input.cpp
@@ -222,6 +223,7 @@ if (CLIENT)
 
 		${embed_DroidSansMono_ttf}
 		${embed_terrain_png}
+		${embed_party_opus}
 		)
 
 	if (WIN32)
