@@ -15,6 +15,7 @@ Narfblock
 - ncurses development libraries
 - ENet 1.3 or newer development libraries
 - GoogleTest (gtest) development libraries
+- libogg, opus, and opusfile development libraries
 
 ## Build Commands
 
