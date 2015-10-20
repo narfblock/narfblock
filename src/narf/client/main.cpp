@@ -12,6 +12,7 @@
 #include <png.h>
 
 #include <opusfile.h>
+#include <opus.h>
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -1153,6 +1154,8 @@ void cmdAbout(const std::string& args) {
 	FT_Library_Version(ftlib, &ftMajor, &ftMinor, &ftPatch);
 	FT_Done_FreeType(ftlib);
 	narf::console->println("FreeType " + std::to_string(ftMajor) + "." + std::to_string(ftMinor) + "." + std::to_string(ftPatch));
+
+	narf::console->println(opus_get_version_string());
 
 	narf::console->println("");
 	narf::console->println("OpenGL information:");
