@@ -45,6 +45,12 @@ namespace narf {
 		void setCursorShape(CursorShape shape);
 		void render();
 
+		void pageUp();
+		void pageDown();
+		void scrollHome();
+		void scrollEnd();
+		uint32_t getHeightInLines();
+
 		narf::TextEditor &getTextEditor();
 
 	private:

@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <chrono>
 #include <list>
+#include <algorithm>
 
 #include "narf/client/console.h"
 
@@ -27,6 +28,7 @@ struct narf::ClientConsoleImpl {
 	uint32_t width;
 	uint32_t height;
 	uint32_t paddingLeft;
+	uint32_t scrollback;
 	narf::font::TextBuffer *textBuffer;
 	narf::font::TextBuffer *editBuffer;
 	std::vector<std::string> text;
@@ -45,9 +47,37 @@ narf::ClientConsole::ClientConsole() {
 	impl->paddingLeft = 5; // TODO: make this configurable
 	impl->cursorShape = CursorShape::Default;
 	impl->gl = nullptr;
+	impl->scrollback = 0;
 	last_blink = std::chrono::system_clock::now();
 	blink_cursor = true;
 	blink_rate = 600;  // Milliseconds
+}
+
+
+uint32_t narf::ClientConsole::getHeightInLines() {
+	// TODO: fix rendering so this is not so crazy
+	return (impl->height - impl->lineHeight * 3 / 2) / impl->lineHeight;
+}
+
+
+void narf::ClientConsole::pageUp() {
+	impl->scrollback += getHeightInLines();
+	impl->scrollback = std::min(impl->scrollback, impl->text.size() - getHeightInLines());
+}
+
+
+void narf::ClientConsole::pageDown() {
+	impl->scrollback -= std::min(getHeightInLines(), impl->scrollback);
+}
+
+
+void narf::ClientConsole::scrollHome() {
+	impl->scrollback = impl->text.size() - getHeightInLines();
+}
+
+
+void narf::ClientConsole::scrollEnd() {
+	impl->scrollback = 0;
 }
 
 
@@ -122,7 +152,13 @@ void narf::ClientConsole::update() {
 		impl->textBuffer->clear();
 
 		uint32_t y = impl->y + impl->lineHeight * 3 / 2;
+		auto scrollLines = impl->scrollback;
 		for (auto iter = impl->text.rbegin(); iter != impl->text.rend(); ++iter) {
+			if (scrollLines > 0) {
+				scrollLines--;
+				continue;
+			}
+
 			if (y + impl->lineHeight >= impl->height) {
 				break;
 			}
@@ -220,6 +256,7 @@ narf::ClientConsole::~ClientConsole() {
 
 void narf::ClientConsole::println(const std::string &s) {
 	impl->text.push_back(s);
+	scrollEnd();
 	update();
 
 	// also print to stdout for now

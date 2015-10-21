@@ -5,6 +5,9 @@
 #include "narf/input.h"
 #include "narf/client/console.h"
 
+// HACK: this should be exposed in a better way
+extern narf::ClientConsole* clientConsole;
+
 void narf::Input::processEvent(const SDL_Event *event) {
 	switch (state_) {
 	case InputStateNormal:
@@ -26,6 +29,39 @@ void narf::Input::processNormalEvent(const SDL_Event *event) {
 		break;
 
 	case SDL_KEYDOWN:
+		// repeating keys
+		switch (event->key.keysym.sym) {
+		case SDLK_KP_9:
+			if (event->key.keysym.mod & KMOD_NUM) {
+				break;
+			}
+			// fallthrough
+		case SDLK_PAGEUP:
+			clientConsole->pageUp();
+			return;
+
+		case SDLK_KP_3:
+			if (event->key.keysym.mod & KMOD_NUM) {
+				break;
+			}
+			// fallthrough
+		case SDLK_PAGEDOWN:
+			clientConsole->pageDown();
+			return;
+		case SDLK_HOME:
+			if (event->key.keysym.mod & KMOD_CTRL) {
+				clientConsole->scrollHome();
+				return;
+			}
+			break;
+		case SDLK_END:
+			if (event->key.keysym.mod & KMOD_CTRL) {
+				clientConsole->scrollEnd();
+				return;
+			}
+			break;
+		}
+
 		if (event->key.repeat) {
 			return;
 		}
