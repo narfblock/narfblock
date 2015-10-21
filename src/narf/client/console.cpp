@@ -62,7 +62,7 @@ uint32_t narf::ClientConsole::getHeightInLines() {
 
 void narf::ClientConsole::pageUp() {
 	impl->scrollback += getHeightInLines();
-	impl->scrollback = std::min(impl->scrollback, impl->text.size() - getHeightInLines());
+	impl->scrollback = std::min(impl->scrollback, (uint32_t)impl->text.size() - getHeightInLines());
 }
 
 
@@ -72,7 +72,7 @@ void narf::ClientConsole::pageDown() {
 
 
 void narf::ClientConsole::scrollHome() {
-	impl->scrollback = impl->text.size() - getHeightInLines();
+	impl->scrollback = (uint32_t)impl->text.size() - getHeightInLines();
 }
 
 
