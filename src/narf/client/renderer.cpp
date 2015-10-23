@@ -111,7 +111,7 @@ void ChunkVBO::markDirty() {
 
 
 void ChunkVBO::drawQuad(const BlockTexCoord& texCoord, const float* quad, float light) {
-	BlockVertex v[4];
+	BlockVertex* v = vbo_.reserve(4);
 
 	memcpy(v[0].vertex, &quad[0*3], sizeof(v[0].vertex));
 	memcpy(v[1].vertex, &quad[1*3], sizeof(v[1].vertex));
@@ -127,11 +127,6 @@ void ChunkVBO::drawQuad(const BlockTexCoord& texCoord, const float* quad, float 
 	v[1].color[0] = light; v[1].color[1] = light; v[1].color[2] = light;
 	v[2].color[0] = light; v[2].color[1] = light; v[2].color[2] = light;
 	v[3].color[0] = light; v[3].color[1] = light; v[3].color[2] = light;
-
-	vbo_.append(v[0]);
-	vbo_.append(v[1]);
-	vbo_.append(v[2]);
-	vbo_.append(v[3]);
 }
 
 

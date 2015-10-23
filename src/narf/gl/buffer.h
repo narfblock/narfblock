@@ -64,6 +64,13 @@ public:
 		data_.push_back(obj);
 	}
 
+	T* reserve(size_t count)
+	{
+		auto prevSize = data_.size();
+		data_.resize(prevSize + count);
+		return &data_[prevSize];
+	}
+
 	void bind()
 	{
 		gl.BindBuffer(target_, name_);
