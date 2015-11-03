@@ -39,41 +39,28 @@
 
 using namespace narf;
 
-// TODO: remove me - only used for bouncy block
-void drawQuad(uint8_t tex_id, const float *quad)
-{
-	uint8_t tex_x = tex_id % 16;
-	uint8_t tex_y = tex_id / 16;
+static void drawQuad(gl::Buffer<BlockVertex>& vbo, const BlockTexCoord& texCoord, const float* quad, float light) {
+	BlockVertex* v = vbo.reserve(4);
 
-	float texcoord_tile_size = 1.0f / 16.0f;
+	memcpy(v[0].vertex, &quad[0 * 3], sizeof(v[0].vertex));
+	memcpy(v[1].vertex, &quad[1 * 3], sizeof(v[1].vertex));
+	memcpy(v[2].vertex, &quad[2 * 3], sizeof(v[2].vertex));
+	memcpy(v[3].vertex, &quad[3 * 3], sizeof(v[3].vertex));
 
-	float u1 = (float)tex_x * texcoord_tile_size;
-	float v1 = (float)tex_y * texcoord_tile_size;
-	float u2 = u1 + texcoord_tile_size;
-	float v2 = v1 + texcoord_tile_size;
+	v[0].texcoord[0] = texCoord.u1; v[0].texcoord[1] = texCoord.v2;
+	v[1].texcoord[0] = texCoord.u2; v[1].texcoord[1] = texCoord.v2;
+	v[2].texcoord[0] = texCoord.u2; v[2].texcoord[1] = texCoord.v1;
+	v[3].texcoord[0] = texCoord.u1; v[3].texcoord[1] = texCoord.v1;
 
-	// TODO: get rid of GL_QUADS, use triangle strip?
-	glBegin(GL_QUADS);
-
-	glTexCoord2f(u1, v2);
-	glVertex3fv(&quad[0 * 3]);
-
-	glTexCoord2f(u2, v2);
-	glVertex3fv(&quad[1 * 3]);
-
-	glTexCoord2f(u2, v1);
-	glVertex3fv(&quad[2 * 3]);
-
-	glTexCoord2f(u1, v1);
-	glVertex3fv(&quad[3 * 3]);
-
-	glEnd();
+	v[0].color[0] = light; v[0].color[1] = light; v[0].color[2] = light;
+	v[1].color[0] = light; v[1].color[1] = light; v[1].color[2] = light;
+	v[2].color[0] = light; v[2].color[1] = light; v[2].color[2] = light;
+	v[3].color[0] = light; v[3].color[1] = light; v[3].color[2] = light;
 }
 
 
-// TODO: remove me - only used for bouncy block
-void drawCube(const Point3f& c, Vector3f& hs, uint8_t texID)
-{
+// TODO: remove me - only used for entities
+static void drawCube(gl::Buffer<BlockVertex>& vbo, const Point3f& c, Vector3f& hs, const BlockType* type) {
 	float x = c.x - hs.x;
 	float y = c.y - hs.y;
 	float z = c.z - hs.z;
@@ -91,7 +78,7 @@ void drawCube(const Point3f& c, Vector3f& hs, uint8_t texID)
 	};
 
 	for (int i = 0; i < 6; i++) {
-		drawQuad(texID, cubeQuads[i]);
+		drawQuad(vbo, type->texCoords[i], cubeQuads[i], 1.0f);
 	}
 }
 
@@ -107,26 +94,6 @@ ChunkVBO::~ChunkVBO() {
 
 void ChunkVBO::markDirty() {
 	dirty_ = true;
-}
-
-
-void ChunkVBO::drawQuad(const BlockTexCoord& texCoord, const float* quad, float light) {
-	BlockVertex* v = vbo_.reserve(4);
-
-	memcpy(v[0].vertex, &quad[0*3], sizeof(v[0].vertex));
-	memcpy(v[1].vertex, &quad[1*3], sizeof(v[1].vertex));
-	memcpy(v[2].vertex, &quad[2*3], sizeof(v[2].vertex));
-	memcpy(v[3].vertex, &quad[3*3], sizeof(v[3].vertex));
-
-	v[0].texcoord[0] = texCoord.u1; v[0].texcoord[1] = texCoord.v2;
-	v[1].texcoord[0] = texCoord.u2; v[1].texcoord[1] = texCoord.v2;
-	v[2].texcoord[0] = texCoord.u2; v[2].texcoord[1] = texCoord.v1;
-	v[3].texcoord[0] = texCoord.u1; v[3].texcoord[1] = texCoord.v1;
-
-	v[0].color[0] = light; v[0].color[1] = light; v[0].color[2] = light;
-	v[1].color[0] = light; v[1].color[1] = light; v[1].color[2] = light;
-	v[2].color[0] = light; v[2].color[1] = light; v[2].color[2] = light;
-	v[3].color[0] = light; v[3].color[1] = light; v[3].color[2] = light;
 }
 
 
@@ -156,32 +123,32 @@ void ChunkVBO::buildVBO(World* world) {
 			// don't render sides of the cube that are obscured by other opaque cubes
 			if (c.y == world->sizeY() - 1 || !world->isOpaque({c.x, c.y + 1, c.z})) {
 				float quad[] = {fx+1,fy+1,fz+0, fx+0,fy+1,fz+0, fx+0,fy+1,fz+1, fx+1,fy+1,fz+1};
-				drawQuad(type->texCoords[BlockFace::YPos], quad, light);
+				drawQuad(vbo_, type->texCoords[BlockFace::YPos], quad, light);
 			}
 
 			if (c.y == 0 || !world->isOpaque({c.x, c.y - 1, c.z})) {
 				float quad[] = {fx+0,fy+0,fz+0, fx+1,fy+0,fz+0, fx+1,fy+0,fz+1, fx+0,fy+0,fz+1};
-				drawQuad(type->texCoords[BlockFace::YNeg], quad, light);
+				drawQuad(vbo_, type->texCoords[BlockFace::YNeg], quad, light);
 			}
 
 			if (c.x == world->sizeX() - 1 || !world->isOpaque({c.x + 1, c.y, c.z})) {
 				float quad[] = {fx+1,fy+0,fz+0, fx+1,fy+1,fz+0, fx+1,fy+1,fz+1, fx+1,fy+0,fz+1};
-				drawQuad(type->texCoords[BlockFace::XPos], quad, light);
+				drawQuad(vbo_, type->texCoords[BlockFace::XPos], quad, light);
 			}
 
 			if (c.x == 0 || !world->isOpaque({c.x - 1, c.y, c.z})) {
 				float quad[] = {fx+0,fy+1,fz+0, fx+0,fy+0,fz+0, fx+0,fy+0,fz+1, fx+0,fy+1,fz+1};
-				drawQuad(type->texCoords[BlockFace::XNeg], quad, light);
+				drawQuad(vbo_, type->texCoords[BlockFace::XNeg], quad, light);
 			}
 
 			if (c.z == world->sizeZ() - 1 || !world->isOpaque({c.x, c.y, c.z + 1})) {
 				float quad[] = {fx+0,fy+0,fz+1, fx+1,fy+0,fz+1, fx+1,fy+1,fz+1, fx+0,fy+1,fz+1};
-				drawQuad(type->texCoords[BlockFace::ZPos], quad, light);
+				drawQuad(vbo_, type->texCoords[BlockFace::ZPos], quad, light);
 			}
 
 			if (c.z == 0 || !world->isOpaque({c.x, c.y, c.z - 1})) {
 				float quad[] = {fx+0,fy+1,fz+0, fx+1,fy+1,fz+0, fx+1,fy+0,fz+0, fx+0,fy+0,fz+0};
-				drawQuad(type->texCoords[BlockFace::ZNeg], quad, light);
+				drawQuad(vbo_, type->texCoords[BlockFace::ZNeg], quad, light);
 			}
 		}
 	}
@@ -222,7 +189,7 @@ void ChunkVBO::render(World* world) {
 
 Renderer::Renderer(World* world, gl::Context& gl, gl::Texture* tilesTex) :
 	wireframe(false), backfaceCulling(true), fog(true),
-	world_(world), gl(gl), tilesTex_(tilesTex) {
+	world_(world), gl(gl), tilesTex_(tilesTex), entityVbo_(gl, GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW) {
 }
 
 
@@ -410,6 +377,8 @@ void Renderer::render(gl::Context& context, const Camera& cam, float stateBlend,
 	}
 
 	// render entities
+	entityVbo_.clear();
+
 	// TODO: add accessor to world to get entity iterator
 	for (auto& ent : world_->entityManager.getEntities()) {
 		if (ent.model) {
@@ -429,9 +398,29 @@ void Renderer::render(gl::Context& context, const Camera& cam, float stateBlend,
 			// TODO: this should be a property of entity type
 			Vector3f halfSize(0.375f, 0.375f, 0.375f);
 
-			drawCube(center, halfSize, 1);
+			drawCube(entityVbo_, center, halfSize, world_->getBlockType(6));
 		}
 	}
+
+	entityVbo_.upload();
+
+	entityVbo_.bind();
+
+	// TODO: move this stuff into Buffer class
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	glEnableClientState(GL_COLOR_ARRAY);
+
+	glVertexPointer(3, GL_FLOAT, sizeof(BlockVertex), (void*)offsetof(BlockVertex, vertex));
+	glTexCoordPointer(2, GL_FLOAT, sizeof(BlockVertex), (void*)offsetof(BlockVertex, texcoord));
+	glColorPointer(3, GL_FLOAT, sizeof(BlockVertex), (void*)offsetof(BlockVertex, color));
+
+	glDrawArrays(GL_QUADS, 0, (int)entityVbo_.count());
+	glDisableClientState(GL_COLOR_ARRAY);
+	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+	glDisableClientState(GL_VERTEX_ARRAY);
+
+	entityVbo_.unbind();
 
 	glDisable(GL_TEXTURE_2D);
 }

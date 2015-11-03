@@ -63,7 +63,6 @@ private:
 	ChunkCoord cc_;
 	bool dirty_;
 
-	void drawQuad(const BlockTexCoord& texCoord, const float* quad, float light);
 	void buildVBO(World* world);
 };
 
@@ -94,6 +93,7 @@ private:
 	gl::Context& gl;
 	gl::Texture* tilesTex_;
 	ChunkCache<ChunkCoord, ChunkVBO> vboCache_;
+	gl::Buffer<BlockVertex> entityVbo_; // TODO: for now, entities are just rendered as cubes too
 
 	void renderChunk(const ChunkCoord& cc);
 	ChunkVBO* getChunkVBO(const ChunkCoord& cc);
