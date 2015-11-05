@@ -24,9 +24,9 @@ varbase="${varbase//-/_}"
 # to the actual output target at the end.
 # This avoids to avoid two copies of this script
 # appending to the same file.
-tmp=$(mktemp)
+tmp=$(mktemp /tmp/tmp.XXXXXXXXXX)
 
-ingz=$(mktemp)
+ingz=$(mktemp /tmp/tmp.XXXXXXXXXX.gz)
 
 gzip -9 -n -c "$in" > "$ingz"
 
