@@ -47,3 +47,4 @@ tar zxf gtest.tar.gz
 # Replace SDL_opengl.h with the one from SDL 2.0.4
 # TODO: remove this once 2.0.4 is (finally) released!
 wget https://hg.libsdl.org/SDL/raw-file/c94127dcbe97/include/SDL_opengl.h -O /usr/local/include/SDL2/SDL_opengl.h
+wget https://www.libsdl.org/tmp/SDL/include/SDL_opengl_glext.h -O /usr/local/include/SDL2/SDL_opengl_glext.h
