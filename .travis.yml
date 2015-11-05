@@ -22,7 +22,8 @@ script:
     - ./narfblock-test
 
 before_install:
-    - ./travis-setup.sh
+    - "if [ $(uname) = Linux ]; then travis/setup-linux.sh; fi"
+    - "if [ $(uname) = Darwin ]; then travis/setup-osx.sh; fi"
 
 notifications:
     irc:
