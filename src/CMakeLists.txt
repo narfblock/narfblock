@@ -82,13 +82,16 @@ if (CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_CLA
 		SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -static -static-libgcc -static-libstdc++")
 	endif()
 
-	# position-independent executable
-	if (PIE)
-		SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIE")
-		SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pie -Wl,-z,relro,-z,now")
+	if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+		# position-independent executable
+		if (PIE)
+			SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIE")
+			SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pie -Wl,-z,relro,-z,now")
+		endif()
+
+		SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--as-needed")
 	endif()
 
-	SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--as-needed")
 
 	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_C_FLAGS} -std=gnu++0x")
 endif ()
