@@ -26,6 +26,7 @@ tar zxf opus-1.1.tar.gz
 )
 
 wget http://downloads.xiph.org/releases/opus/opusfile-0.6.tar.gz
+tar zxf opusfile-0.6.tar.gz
 (cd opusfile-0.6
     ./configure
     make
