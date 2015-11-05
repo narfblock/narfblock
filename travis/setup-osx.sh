@@ -43,3 +43,7 @@ tar zxf gtest.tar.gz
     ar -rv /usr/local/lib/libgtest_main.a gtest_main.o
     cp -R include/gtest /usr/local/include
 )
+
+# Replace SDL_opengl.h with the one from SDL 2.0.4
+# TODO: remove this once 2.0.4 is (finally) released!
+wget https://hg.libsdl.org/SDL/raw-file/c94127dcbe97/include/SDL_opengl.h -O /usr/local/include/SDL2/SDL_opengl.h
