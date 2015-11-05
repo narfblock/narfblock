@@ -22,7 +22,7 @@ script:
     - ./narfblock-test
 
 before_install:
-    - sudo ./travis-setup.sh
+    - ./travis-setup.sh
 
 notifications:
     irc:
