@@ -1,10 +1,14 @@
 #include "narf/console.h"
 #include "narf/util/path.h"
 
-#ifdef __unix__
+#if defined(__unix__) || defined(__APPLE__)
 #include <sys/stat.h>
 #include <unistd.h>
 #include <stdlib.h>
+#endif
+
+#ifdef __APPLE__
+#include <mach-o/dyld.h>
 #endif
 
 #ifdef _WIN32
@@ -61,7 +65,7 @@ std::string narf::util::exeName() {
 #endif // unix && !linux
 
 
-#if defined(__unix__)
+#if defined(__unix__) || defined(__APPLE__)
 
 std::string narf::util::userConfigDir(const std::string& appName) {
 	// look up home dir and append .config/<appName>
@@ -133,6 +137,21 @@ bool narf::util::dirExists(const std::string& path) {
 }
 
 #endif // _WIN32
+
+#ifdef __APPLE__
+
+std::string narf::util::exeName() {
+	char buffer[32768];
+	uint32_t len = sizeof(buffer);
+
+	if (_NSGetExecutablePath(buffer, &len) == 0) {
+		return std::string(buffer);
+	}
+
+	return ""; // error
+}
+
+#endif // __APPLE__
 
 std::string narf::util::dirName(const std::string& path) {
 	size_t len = path.length();
