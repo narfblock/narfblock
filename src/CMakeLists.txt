@@ -202,6 +202,7 @@ set (NARFBLOCK_COMMON_SOURCE_FILES
 	narf/util/path.cpp
 	narf/net/addr.cpp
 	narf/net/socket.cpp
+	narf/net/server.cpp
 	${embed_extra_credits_txt}
 	)
 
