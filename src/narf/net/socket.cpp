@@ -35,7 +35,13 @@ bool net::Socket::setNonBlocking(bool nonblocking) {
 	DWORD dw = nonblocking ? 1 : 0;
 	return ioctlsocket(sock, FIONBIO, &dw) == 0;
 #else
-	return fcntl(sock, F_SETFL, O_NONBLOCK) != -1;
+	auto flags = fcntl(sock, F_GETFL, 0);
+	if (nonblocking) {
+		flags |= O_NONBLOCK;
+	} else {
+		flags &= ~O_NONBLOCK;
+	}
+	return fcntl(sock, F_SETFL, flags) != -1;
 #endif
 }
 
