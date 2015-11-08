@@ -55,12 +55,12 @@ public:
 
 	~World();
 
-	void serialize(ByteStreamWriter& s);
-	void deserialize(ByteStreamReader& s);
+	void serialize(ByteStream& s);
+	void deserialize(ByteStream& s);
 
 	// TODO: make these private
-	void serializeChunk(ByteStreamWriter& s, const ChunkCoord& wcc);
-	void deserializeChunk(ByteStreamReader& s, ChunkCoord& wcc);
+	void serializeChunk(ByteStream& s, const ChunkCoord& wcc);
+	void deserializeChunk(ByteStream& s, ChunkCoord& wcc);
 
 	bool validCoords(const BlockCoord& wbc) const;
 

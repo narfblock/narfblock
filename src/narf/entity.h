@@ -68,8 +68,8 @@ public:
 	// return true if object is still alive or false if it should be deleted
 	bool update(timediff dt);
 
-	void serialize(ByteStreamWriter& s) const;
-	void deserialize(ByteStreamReader& s);
+	void serialize(ByteStream& s) const;
+	void deserialize(ByteStream& s);
 
 private:
 	World* world_;
@@ -126,9 +126,9 @@ public:
 	void update(timediff dt);
 	void update(Entity::ID entID, double t, double dt);
 
-	void deserializeEntityUpdate(ByteStreamReader& s);
-	void serializeEntityFullUpdate(ByteStreamWriter& s, const Entity& ent) const;
-	void serializeEntityDelete(ByteStreamWriter& s, Entity::ID id) const;
+	void deserializeEntityUpdate(ByteStream& s);
+	void serializeEntityFullUpdate(ByteStream& s, const Entity& ent) const;
+	void serializeEntityDelete(ByteStream& s, Entity::ID id) const;
 
 	Signal<void(Entity::ID id)> onEntityDeleted;
 

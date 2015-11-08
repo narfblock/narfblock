@@ -49,9 +49,9 @@ public:
 	};
 
 	PlayerCommand(Type type);
-	PlayerCommand(ByteStreamReader& s);
+	PlayerCommand(ByteStream& s);
 
-	void serialize(ByteStreamWriter& s) const;
+	void serialize(ByteStream& s) const;
 
 	void exec(World* world);
 

@@ -1,7 +1,7 @@
 /*
  * NarfBlock bytestream writer and reader
  *
- * Copyright (c) 2014 Daniel Verkamp
+ * Copyright (c) 2014 Daniel Verkamp, Jessica Creighton
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,126 +33,261 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include <stdio.h>
 
-#include "narf/bytestream.h"
+#include "bytestream.h"
 
-narf::ByteStreamWriter::ByteStreamWriter() {
+narf::ByteStream::ByteStream() : pos(0) { }
+
+narf::ByteStream::ByteStream(size_t size) : pos(0) {
+	data_.resize(size);
 }
 
-
-narf::ByteStreamWriter::~ByteStreamWriter() {
+narf::ByteStream::ByteStream(const void* data, size_t size) : pos(0) {
+	if (data != nullptr) {
+		auto v = static_cast<const uint8_t*>(data);
+		data_ = std::vector<uint8_t>(v, v + size);
+	} else {
+		data_.reserve(size);
+	}
 }
 
+narf::ByteStream::~ByteStream() { }
 
-void narf::ByteStreamWriter::write(uint8_t v) {
-	data_.push_back(v);
+uint8_t narf::ByteStream::typeSize(ByteStream::Type type) {
+	if (type == ByteStream::Type::U8 || type == ByteStream::Type::I8) {
+		return 1;
+	} else if (type == ByteStream::Type::U16 || type == ByteStream::Type::I16) {
+		return 2;
+	} else if (type == ByteStream::Type::U32 || type == ByteStream::Type::I32 ||
+	           type == ByteStream::Type::FLOAT) {
+		return 4;
+	} else if (type == ByteStream::Type::U64 || type == ByteStream::Type::I64 ||
+	           type == ByteStream::Type::DOUBLE) {
+		return 8;
+	}
+	return 1;
 }
 
+void narf::ByteStream::write(const void* data, Type type, Endian endian /*= Endian::DEFAULT*/) {
+	auto v = static_cast<const uint8_t*>(data);
+	uint8_t size = typeSize(type);
 
-// TODO: use vector's resize() and write directly to data if this turns out to be slow
-void narf::ByteStreamWriter::writeLE(uint16_t v) {
-	data_.push_back(static_cast<uint8_t>(v));
-	data_.push_back(static_cast<uint8_t>(v >> 8));
+	if (pos + size > data_.size()) {
+		data_.resize(pos + size, 0);
+	}
+
+	if (endian == Endian::DEFAULT) {
+		endian = default_;
+	}
+
+	for (int i = 0; i < size; i++) {
+		data_[pos + i] = v[(endian == Endian::BIG ? (size - 1 - i) : i)];
+	}
+	pos += size;
+
 }
 
-
-void narf::ByteStreamWriter::writeLE(uint32_t v) {
-	data_.push_back(static_cast<uint8_t>(v));
-	data_.push_back(static_cast<uint8_t>(v >> 8));
-	data_.push_back(static_cast<uint8_t>(v >> 16));
-	data_.push_back(static_cast<uint8_t>(v >> 24));
+void narf::ByteStream::write(uint8_t v) {
+	write(&v, ByteStream::Type::U8);
 }
 
-
-void narf::ByteStreamWriter::writeLE(int32_t v) {
-	writeLE(static_cast<uint32_t>(v));
+void narf::ByteStream::write(int8_t v) {
+	write(&v, ByteStream::Type::I8);
 }
 
+void narf::ByteStream::write(uint16_t v, Endian endian /*= Endian::DEFAULT*/) {
+	write(&v, ByteStream::Type::U16, endian);
+}
 
-void narf::ByteStreamWriter::writeLE(float v) {
+void narf::ByteStream::write(int16_t v, Endian endian /*= Endian::DEFAULT*/) {
+	write(&v, ByteStream::Type::I16, endian);
+}
+
+void narf::ByteStream::write(uint32_t v, Endian endian /*= Endian::DEFAULT*/) {
+	write(&v, ByteStream::Type::U32, endian);
+}
+
+void narf::ByteStream::write(int32_t v, Endian endian /*= Endian::DEFAULT*/) {
+	write(&v, ByteStream::Type::I32, endian);
+}
+
+void narf::ByteStream::write(uint64_t v, Endian endian /*= Endian::DEFAULT*/) {
+	write(&v, ByteStream::Type::U64, endian);
+}
+
+void narf::ByteStream::write(int64_t v, Endian endian /*= Endian::DEFAULT*/) {
+	write(&v, ByteStream::Type::I64, endian);
+}
+
+void narf::ByteStream::write(float v, Endian endian /*= Endian::DEFAULT*/) {
 	uint32_t i;
 	static_assert(sizeof(v) == sizeof(i), "float should be 32 bits");
-
-	// Convert float representation to uint32_t.
-	// The compiler should optimize out the memcpy.
-	memcpy(&i, &v, sizeof(i));
-
-	writeLE(i);
+	write(&v, ByteStream::Type::FLOAT, endian);
 }
 
+void narf::ByteStream::write(double v, Endian endian /*= Endian::DEFAULT*/) {
+	uint64_t i;
+	static_assert(sizeof(v) == sizeof(i), "double should be 64 bits");
+	write(&v, ByteStream::Type::DOUBLE, endian);
+}
 
-narf::ByteStreamReader::ByteStreamReader(size_t size) {
-	data_ = new uint8_t[size];
-	if (data_ != nullptr) {
-		size_ = size;
+bool narf::ByteStream::read(void* v, narf::ByteStream::Type type, Endian endian) {
+	assert(v != nullptr);
+	uint8_t size = typeSize(type);
+	if (pos + size > this->size()) {
+		overran_ = true;
+		return false;
+	}
+
+	if (endian == Endian::DEFAULT) {
+		endian = default_;
+	}
+
+	auto vp = static_cast<uint8_t*>(v);
+	for (int i = 0; i < size; i++) {
+		vp[i] = data_[pos + (endian == ByteStream::Endian::BIG ? (size - 1 - i) : i)];
+	}
+	pos += size;
+	overran_ = false;
+	return true;
+}
+
+std::vector<uint8_t> narf::ByteStream::read(size_t c) {
+	if (overran_ || pos + c > size()) {
+		overran_ = true;
+		c = size() - pos;
 	} else {
-		size_ = 0;
+		overran_ = false;
 	}
-	reset();
+	return std::vector<uint8_t>(data_.begin() + pos, data_.begin() + pos + c);
 }
 
+std::vector<uint8_t> narf::ByteStream::readString(Type type /*= Type::U16*/, Endian endian /*= Endian::DEFAULT*/) {
+	size_t size = 0;
+	read(&size, type, endian);
+	return read(size);
+}
 
-narf::ByteStreamReader::ByteStreamReader(const void* data, size_t size) :
-	ByteStreamReader(size) {
-	if (data_ != nullptr) {
-		memcpy(data_, data, size);
+bool narf::ByteStream::read(uint8_t* v) {
+	return read(v, Type::U8);
+}
+
+uint8_t narf::ByteStream::readU8() {
+	uint8_t v = 0;
+	read(&v, Type::U8);
+	return v;
+}
+
+int8_t narf::ByteStream::readI8() {
+	int8_t v = 0;
+	read(&v, Type::I8);
+	return v;
+}
+
+uint16_t narf::ByteStream::readU16(Endian endian /*= Endian::DEFAULT*/) {
+	uint16_t v = 0;
+	read(&v, Type::U16, endian);
+	return v;
+}
+
+int16_t narf::ByteStream::readI16(Endian endian /*= Endian::DEFAULT*/) {
+	int16_t v = 0;
+	read(&v, Type::I16, endian);
+	return v;
+}
+
+uint32_t narf::ByteStream::readU32(Endian endian /*= Endian::DEFAULT*/) {
+	uint32_t v = 0;
+	read(&v, Type::U32, endian);
+	return v;
+}
+
+int32_t narf::ByteStream::readI32(Endian endian /*= Endian::DEFAULT*/) {
+	int32_t v = 0;
+	read(&v, Type::I32, endian);
+	return v;
+}
+
+uint64_t narf::ByteStream::readU64(Endian endian /*= Endian::DEFAULT*/) {
+	uint64_t v = 0;
+	read(&v, Type::U64, endian);
+	return v;
+}
+
+int64_t narf::ByteStream::readI64(Endian endian /*= Endian::DEFAULT*/) {
+	int64_t v = 0;
+	read(&v, Type::I64, endian);
+	return v;
+}
+
+float narf::ByteStream::readFloat(Endian endian /*= Endian::DEFAULT*/) {
+	float v = 0.0f;
+	read(&v, Type::U16, endian);
+	return v;
+}
+
+double narf::ByteStream::readDouble(Endian endian /*= Endian::DEFAULT*/) {
+	double v = 0.0;
+	read(&v, Type::I16, endian);
+	return v;
+}
+
+bool narf::ByteStream::read(uint16_t* v, Endian endian /*= Endian::DEFAULT*/) {
+	return read(v, Type::U16, endian);
+}
+
+bool narf::ByteStream::read(int16_t* v, Endian endian /*= Endian::DEFAULT*/) {
+	return read(v, Type::I16, endian);
+}
+
+bool narf::ByteStream::read(uint32_t* v, Endian endian /*= Endian::DEFAULT*/) {
+	return read(v, Type::U32, endian);
+}
+
+bool narf::ByteStream::read(int32_t* v, Endian endian /*= Endian::DEFAULT*/) {
+	return read(v, Type::I32, endian);
+}
+
+bool narf::ByteStream::read(uint64_t* v, Endian endian /*= Endian::DEFAULT*/) {
+	return read(v, Type::U64, endian);
+}
+
+bool narf::ByteStream::read(int64_t* v, Endian endian /*= Endian::DEFAULT*/) {
+	return read(v, Type::I64, endian);
+}
+
+bool narf::ByteStream::read(float* v, Endian endian /*= Endian::DEFAULT*/) {
+	return read(v, Type::FLOAT, endian);
+}
+
+bool narf::ByteStream::read(double* v, Endian endian /*= Endian::DEFAULT*/) {
+	return read(v, Type::DOUBLE, endian);
+}
+
+void narf::ByteStream::seek(size_t newPos) {
+	if (pos > size()) {
+		pos = size();
+	} else {
+		pos = newPos;
 	}
 }
 
-
-narf::ByteStreamReader::~ByteStreamReader() {
-	if (data_ != nullptr) {
-		delete[] data_;
-	}
+size_t narf::ByteStream::tell() {
+	return pos;
 }
 
-bool narf::ByteStreamReader::read(uint8_t* v) {
-	assert(v != nullptr);
-	if (bytesLeft_ < 1) {
-		return false;
-	}
-	*v = iter_[0];
-	iter_ += 1;
-	bytesLeft_ -= 1;
-	return true;
+void narf::ByteStream::skip(size_t c) {
+	pos = (pos + c > size()) ? size() : (pos + c);
 }
 
-
-bool narf::ByteStreamReader::readLE(uint16_t* v) {
-	assert(v != nullptr);
-	if (bytesLeft_ < 2) {
-		return false;
-	}
-	*v = static_cast<uint16_t>(
-		static_cast<uint16_t>(iter_[0]) |
-		static_cast<uint16_t>(iter_[1]) << 8);
-	iter_ += 2;
-	bytesLeft_ -= 2;
-	return true;
+void narf::ByteStream::clear() {
+	data_.clear();
+	pos = 0;
 }
 
-
-bool narf::ByteStreamReader::readLE(uint32_t* v) {
-	if (bytesLeft_ < 4) {
-		return false;
-	}
-	*v = static_cast<uint32_t>(
-		static_cast<uint32_t>(iter_[0]) |
-		static_cast<uint32_t>(iter_[1]) << 8 |
-		static_cast<uint32_t>(iter_[2]) << 16 |
-		static_cast<uint32_t>(iter_[3]) << 24);
-	iter_ += 4;
-	bytesLeft_ -= 4;
-	return true;
-}
-
-
-bool narf::ByteStreamReader::readLE(int32_t* v) {
-	return readLE(reinterpret_cast<uint32_t*>(v));
-}
-
-
-bool narf::ByteStreamReader::readLE(float* v) {
-	// TODO: total hax
-	return readLE(reinterpret_cast<uint32_t*>(v));
+bool narf::ByteStream::overran() {
+	bool v = overran_;
+	overran_ = false;
+	return v;
 }

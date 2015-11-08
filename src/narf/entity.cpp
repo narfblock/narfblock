@@ -162,27 +162,27 @@ bool Entity::update(timediff dt)
 	return alive;
 }
 
-void Entity::serialize(ByteStreamWriter& s) const {
+void Entity::serialize(ByteStream& s) const {
 	// TODO this could be much more compactly encoded...
 	// do the dumbest possible encoding that works (for now)
-	s.writeLE(position.x);
-	s.writeLE(position.y);
-	s.writeLE(position.z);
-	s.writeLE(velocity.x);
-	s.writeLE(velocity.y);
-	s.writeLE(velocity.z);
-	s.writeLE((uint8_t)model);
+	s.write(position.x, ByteStream::Endian::LITTLE);
+	s.write(position.y, ByteStream::Endian::LITTLE);
+	s.write(position.z, ByteStream::Endian::LITTLE);
+	s.write(velocity.x, ByteStream::Endian::LITTLE);
+	s.write(velocity.y, ByteStream::Endian::LITTLE);
+	s.write(velocity.z, ByteStream::Endian::LITTLE);
+	s.write((uint8_t)model, ByteStream::Endian::LITTLE);
 }
 
-void Entity::deserialize(ByteStreamReader& s) {
+void Entity::deserialize(ByteStream& s) {
 	uint8_t tmp8;
 
-	if (!s.readLE(&position.x) ||
-		!s.readLE(&position.y) ||
-		!s.readLE(&position.z) ||
-		!s.readLE(&velocity.x) ||
-		!s.readLE(&velocity.y) ||
-		!s.readLE(&velocity.z) ||
+	if (!s.read(&position.x, ByteStream::Endian::LITTLE) ||
+		!s.read(&position.y, ByteStream::Endian::LITTLE) ||
+		!s.read(&position.z, ByteStream::Endian::LITTLE) ||
+		!s.read(&velocity.x, ByteStream::Endian::LITTLE) ||
+		!s.read(&velocity.y, ByteStream::Endian::LITTLE) ||
+		!s.read(&velocity.z, ByteStream::Endian::LITTLE) ||
 		!s.read(&tmp8)) {
 		narf::console->println("entity deserialize error");
 		assert(0);
@@ -298,20 +298,20 @@ void EntityManager::update(timediff dt) {
 }
 
 
-void EntityManager::serializeEntityFullUpdate(ByteStreamWriter& s, const Entity& ent) const {
+void EntityManager::serializeEntityFullUpdate(ByteStream& s, const Entity& ent) const {
 	s.write((uint8_t)UpdateType::FullUpdate);
-	s.writeLE(ent.id);
+	s.write(ent.id, ByteStream::Endian::LITTLE);
 	ent.serialize(s);
 }
 
 
-void EntityManager::serializeEntityDelete(ByteStreamWriter& s, Entity::ID id) const {
+void EntityManager::serializeEntityDelete(ByteStream& s, Entity::ID id) const {
 	s.write((uint8_t)UpdateType::Deleted);
-	s.writeLE(id);
+	s.write(id, ByteStream::Endian::LITTLE);
 }
 
 
-void EntityManager::deserializeEntityUpdate(ByteStreamReader& s) {
+void EntityManager::deserializeEntityUpdate(ByteStream& s) {
 	Entity::ID id;
 	uint8_t tmp8;
 
@@ -322,7 +322,7 @@ void EntityManager::deserializeEntityUpdate(ByteStreamReader& s) {
 	}
 
 	// for now, all update types have ID next
-	if (!s.readLE(&id)) {
+	if (!s.read(&id, ByteStream::Endian::LITTLE)) {
 		narf::console->println("entity ID deserialize error");
 		assert(0);
 		return;

@@ -58,8 +58,8 @@ public:
 	Chunk(World *world, const Vector3<int32_t>& size, const ChunkCoord& pos);
 	~Chunk();
 
-	void serialize(ByteStreamWriter& s);
-	void deserialize(ByteStreamReader& s);
+	void serialize(ByteStream& s);
+	void deserialize(ByteStream& s);
 
 	void generate(); // generate terrain for a fresh chunk
 

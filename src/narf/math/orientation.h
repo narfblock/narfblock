@@ -46,13 +46,13 @@ namespace narf {
 			}
 		}
 
-		Orientation(ByteStreamReader& s) :
+		Orientation(ByteStream& s) :
 			pitch(s),
 			yaw(s),
 			roll(s) {
 		}
 
-		void serialize(ByteStreamWriter& s) const {
+		void serialize(ByteStream& s) const {
 			pitch.serialize(s);
 			yaw.serialize(s);
 			roll.serialize(s);

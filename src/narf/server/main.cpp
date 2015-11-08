@@ -199,7 +199,7 @@ void markClientChunkClean(const Client* client, const narf::ChunkCoord& cc) {
 void sendChunkUpdate(const Client* to, const narf::ChunkCoord& wcc, bool dirtyOnly) {
 	auto chunk = world->getChunk(wcc);
 	if (!dirtyOnly || clientChunkDirty(to, wcc)) {
-		narf::ByteStreamWriter bs;
+		narf::ByteStream bs;
 		world->serializeChunk(bs, wcc);
 		auto packet = enet_packet_create(bs.data(), bs.size(), ENET_PACKET_FLAG_RELIABLE);
 		enet_peer_send(to->peer, narf::net::CHAN_CHUNK, packet);
@@ -220,7 +220,7 @@ void markChunksClean() {
 }
 
 void sendEntityUpdate(const Client* to, const narf::Entity& ent) {
-	narf::ByteStreamWriter bs;
+	narf::ByteStream bs;
 	world->entityManager.serializeEntityFullUpdate(bs, ent);
 	auto packet = enet_packet_create(bs.data(), bs.size(), ENET_PACKET_FLAG_RELIABLE);
 	enet_peer_send(to->peer, narf::net::CHAN_ENTITY, packet);
@@ -228,7 +228,7 @@ void sendEntityUpdate(const Client* to, const narf::Entity& ent) {
 
 
 void sendDeletedEntityUpdate(const Client* to, narf::Entity::ID id) {
-	narf::ByteStreamWriter bs;
+	narf::ByteStream bs;
 	world->entityManager.serializeEntityDelete(bs, id);
 	auto packet = enet_packet_create(bs.data(), bs.size(), ENET_PACKET_FLAG_RELIABLE);
 	enet_peer_send(to->peer, narf::net::CHAN_ENTITY, packet);
@@ -242,11 +242,11 @@ void onEntityDeleted(narf::Entity::ID id) {
 
 
 void sendPlayerCameraUpdate(const Client* to, narf::Entity::ID followID) {
-	narf::ByteStreamWriter bs;
+	narf::ByteStream bs;
 	// TODO: put this somewhere better
 	// TODO: for now, this is the only server->client message on CHAN_PLAYERCMD,
 	// but this should have a message type later.
-	bs.writeLE(followID);
+	bs.write(followID, narf::ByteStream::Endian::LITTLE);
 	auto packet = enet_packet_create(bs.data(), bs.size(), ENET_PACKET_FLAG_RELIABLE);
 	enet_peer_send(to->peer, narf::net::CHAN_PLAYERCMD, packet);
 }
@@ -366,7 +366,7 @@ void ServerGameLoop::processChat(ENetEvent& evt, Client* client) {
 
 
 void ServerGameLoop::processPlayerCommand(ENetEvent& evt, Client* client) {
-	narf::ByteStreamReader bs(evt.packet->data, evt.packet->dataLength);
+	narf::ByteStream bs(evt.packet->data, evt.packet->dataLength);
 	narf::PlayerCommand cmd(bs);
 	cmd.exec(world);
 }

@@ -1,7 +1,7 @@
 /*
  * NarfBlock bytestream writer and reader
  *
- * Copyright (c) 2014 Daniel Verkamp
+ * Copyright (c) 2014 Daniel Verkamp, Jessica Creighton
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,53 +36,83 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <vector>
+#include <string>
 
 namespace narf {
 
-// TODO: wrap this in a class
-class ByteStreamWriter {
+class ByteStream {
 public:
-	ByteStreamWriter();
-	~ByteStreamWriter();
+	ByteStream();
+	ByteStream(size_t size);
+	ByteStream(const void* data, size_t size);
 
+	~ByteStream();
+
+	enum Type {
+		U8, U16, U32, U64, I8, I16, I32, I64, FLOAT, DOUBLE
+	};
+
+	enum Endian {
+		BIG, LITTLE, DEFAULT
+	};
+
+	void write(const void* data, Type type, Endian endian = Endian::DEFAULT);
 	void write(uint8_t v);
-	void writeLE(uint16_t v);
-	void writeLE(uint32_t v);
-	void writeLE(int32_t v);
-	void writeLE(float v);
+	void write(int8_t v);
+	void write(uint16_t v, Endian endian = Endian::DEFAULT);
+	void write(int16_t v, Endian endian = Endian::DEFAULT);
+	void write(uint32_t v, Endian endian = Endian::DEFAULT);
+	void write(int32_t v, Endian endian = Endian::DEFAULT);
+	void write(uint64_t v, Endian endian = Endian::DEFAULT);
+	void write(int64_t v, Endian endian = Endian::DEFAULT);
+	void write(float v, Endian endian = Endian::DEFAULT);
+	void write(double v, Endian endian = Endian::DEFAULT);
+
+	bool read(void* v, Type type, Endian endian = Endian::DEFAULT);
+	std::vector<uint8_t> read(size_t c);
+	std::vector<uint8_t> readString(Type type = Type::U16, Endian endian = Endian::DEFAULT);
+	bool read(uint8_t* v);
+	uint8_t readU8();
+	int8_t readI8();
+	uint16_t readU16(Endian endian = Endian::DEFAULT);
+	int16_t readI16(Endian endian = Endian::DEFAULT);
+	uint32_t readU32(Endian endian = Endian::DEFAULT);
+	int32_t readI32(Endian endian = Endian::DEFAULT);
+	uint64_t readU64(Endian endian = Endian::DEFAULT);
+	int64_t readI64(Endian endian = Endian::DEFAULT);
+	float readFloat(Endian endian = Endian::DEFAULT);
+	double readDouble(Endian endian = Endian::DEFAULT);
+	bool read(uint16_t* v, Endian endian = Endian::DEFAULT);
+	bool read(int16_t* v, Endian endian = Endian::DEFAULT);
+	bool read(uint32_t* v, Endian endian = Endian::DEFAULT);
+	bool read(int32_t* v, Endian endian = Endian::DEFAULT);
+	bool read(uint64_t* v, Endian endian = Endian::DEFAULT);
+	bool read(int64_t* v, Endian endian = Endian::DEFAULT);
+	bool read(float* v, Endian endian = Endian::DEFAULT);
+	bool read(double* v, Endian endian = Endian::DEFAULT);
+
+	Endian getDefault() { return default_; }
+	void setDefault(Endian endian) { default_ = endian; }
+
+	void seek(size_t newPos);
+	size_t tell();
+	void skip(size_t c);
+	void clear();
+	size_t bytesLeft() { return size() - pos; }
+
+	bool overran();
 
 	void* data() { return data_.data(); }
+	std::vector<uint8_t> vec() { return data_; }
 	size_t size() { return data_.size(); }
 
 private:
+	size_t pos;
+	bool overran_;
+	Endian default_;
 	std::vector<uint8_t> data_;
-};
 
-
-class ByteStreamReader {
-public:
-	ByteStreamReader(const void* data, size_t size); // copy from data
-	ByteStreamReader(size_t size); // reserve space and fill via data()
-	~ByteStreamReader();
-
-	void reset() { iter_ = data_; bytesLeft_ = size_; }
-
-	void* data() { return data_; }
-
-	size_t size() const { return size_; }
-	size_t bytesLeft() const { return bytesLeft_; }
-
-	bool read(uint8_t* v);
-	bool readLE(uint16_t* v);
-	bool readLE(uint32_t* v);
-	bool readLE(int32_t* v);
-	bool readLE(float* v);
-
-private:
-	uint8_t* data_;
-	const uint8_t* iter_;
-	size_t size_;
-	size_t bytesLeft_;
+	static uint8_t typeSize(Type type);
 };
 
 } // namespace narf

@@ -555,7 +555,7 @@ void chat(const std::string& text) {
 
 
 void sendPlayerCommand(const narf::PlayerCommand& cmd) {
-	narf::ByteStreamWriter bs;
+	narf::ByteStream bs;
 	cmd.serialize(bs);
 	auto packet = enet_packet_create(bs.data(), bs.size(), ENET_PACKET_FLAG_RELIABLE);
 	enet_peer_send(server, narf::net::CHAN_PLAYERCMD, packet);
@@ -789,8 +789,8 @@ void processChat(ENetEvent& evt) {
 
 void processPlayerCmd(ENetEvent& evt) {
 	// TODO: for now, this is just what entity the player is controlling/camera is following
-	narf::ByteStreamReader bs(evt.packet->data, evt.packet->dataLength);
-	if (!bs.readLE(&playerEID)) {
+	narf::ByteStream bs(evt.packet->data, evt.packet->dataLength);
+	if (!bs.read(&playerEID, narf::ByteStream::Endian::LITTLE)) {
 		narf::console->println("Player entity ID deserialize error");
 		assert(0);
 	}
@@ -799,13 +799,13 @@ void processPlayerCmd(ENetEvent& evt) {
 }
 
 void processChunk(ENetEvent& evt) {
-	narf::ByteStreamReader bs(evt.packet->data, evt.packet->dataLength);
+	narf::ByteStream bs(evt.packet->data, evt.packet->dataLength);
 	narf::ChunkCoord wcc;
 	world->deserializeChunk(bs, wcc);
 }
 
 void processEntity(ENetEvent& evt) {
-	narf::ByteStreamReader bs(evt.packet->data, evt.packet->dataLength);
+	narf::ByteStream bs(evt.packet->data, evt.packet->dataLength);
 	world->entityManager.deserializeEntityUpdate(bs);
 }
 
@@ -1042,7 +1042,7 @@ void cmdDisconnect(const std::string& args) {
 
 void cmdSave(const std::string& args) {
 	narf::console->println("Serializing world...");
-	narf::ByteStreamWriter s;
+	narf::ByteStream s;
 	world->serialize(s);
 	narf::console->println("Saving world to " + args + "...");
 	FILE* f = fopen(args.c_str(), "wb");
@@ -1067,7 +1067,7 @@ void cmdLoad(const std::string& args) {
 	// TODO: use ftello?
 	auto size = static_cast<size_t>(ftell(f));
 	fseek(f, 0, SEEK_SET);
-	narf::ByteStreamReader s(size);
+	narf::ByteStream s(size);
 	if (s.size() != size) {
 		narf::console->println("Error reserving space for data");
 		fclose(f);

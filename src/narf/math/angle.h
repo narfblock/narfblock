@@ -55,12 +55,12 @@ namespace narf {
 		Angle(T angle) : angle(angle), minimum(0.0), maximum(static_cast<T>(2 * M_PI)) {};
 		Angle(T angle, T minimum, T maximum) : angle(angle), minimum(minimum), maximum(maximum) {};
 
-		Angle(ByteStreamReader& s) {
-			s.readLE(&angle);
+		Angle(ByteStream& s) {
+			s.read(&angle, ByteStream::Endian::LITTLE);
 		}
 
-		void serialize(ByteStreamWriter& s) const {
-			s.writeLE(angle);
+		void serialize(ByteStream& s) const {
+			s.write(angle, ByteStream::Endian::LITTLE);
 		}
 
 		Angle<T> operator+(const T add) const {

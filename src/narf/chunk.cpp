@@ -151,22 +151,22 @@ void narf::Chunk::generate() {
 }
 
 
-void narf::Chunk::serialize(narf::ByteStreamWriter& s) {
+void narf::Chunk::serialize(narf::ByteStream& s) {
 	// TODO: use a CoordIter
 	int32_t numBlocks = size_.x * size_.y * size_.z;
 	for (int32_t i = 0; i < numBlocks; i++) {
 		uint16_t tmp16 = blocks_[i].id;
-		s.writeLE(tmp16);
+		s.write(tmp16, narf::ByteStream::Endian::LITTLE);
 	}
 }
 
 
-void narf::Chunk::deserialize(narf::ByteStreamReader& s) {
+void narf::Chunk::deserialize(narf::ByteStream& s) {
 	// TODO: add optimized array read
 	int32_t numBlocks = size_.x * size_.y * size_.z;
 	for (int32_t i = 0; i < numBlocks; i++) {
 		uint16_t id;
-		if (!s.readLE(&id)) {
+		if (!s.read(&id, narf::ByteStream::Endian::LITTLE)) {
 			// TODO: chunk invalid
 			narf::console->println("Chunk::deserialize: ran out of blocks");
 			assert(0);
