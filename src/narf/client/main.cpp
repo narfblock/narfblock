@@ -38,6 +38,7 @@
 #include "narf/cmd/cmd.h"
 #include "narf/math/math.h"
 #include "narf/net/net.h"
+#include "narf/net/protocol.h"
 #include "narf/util/path.h"
 #include "narf/util/tokenize.h"
 

@@ -10,6 +10,7 @@
 #include "narf/util/path.h"
 #include "narf/util/tokenize.h"
 #include "narf/net/net.h"
+#include "narf/net/protocol.h"
 
 #include <chrono>
 #include <queue>
