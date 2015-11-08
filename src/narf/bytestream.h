@@ -38,6 +38,9 @@
 #include <vector>
 #include <string>
 
+#define LE narf::ByteStream::LITTLE
+#define BE narf::ByteStream::BIG
+
 namespace narf {
 
 class ByteStream {
@@ -53,7 +56,7 @@ public:
 	};
 
 	enum Endian {
-		BIG, LITTLE, DEFAULT
+		LITTLE, BIG, DEFAULT
 	};
 
 	void write(const void* data, Type type, Endian endian = Endian::DEFAULT);

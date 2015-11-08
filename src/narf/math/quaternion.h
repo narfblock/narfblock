@@ -105,17 +105,17 @@ namespace narf {
 				}
 
 				Quaternion(ByteStream& s) {
-					s.read(&w, ByteStream::Endian::LITTLE);
-					s.read(&(v.x), ByteStream::Endian::LITTLE);
-					s.read(&(v.y), ByteStream::Endian::LITTLE);
-					s.read(&(v.z), ByteStream::Endian::LITTLE);
+					s.read(&w, LE);
+					s.read(&(v.x), LE);
+					s.read(&(v.y), LE);
+					s.read(&(v.z), LE);
 				}
 
 				void serialize(ByteStream& s) const {
-					s.write(w, ByteStream::Endian::LITTLE);
-					s.write(v.x, ByteStream::Endian::LITTLE);
-					s.write(v.y, ByteStream::Endian::LITTLE);
-					s.write(v.z, ByteStream::Endian::LITTLE);
+					s.write(w, LE);
+					s.write(v.x, LE);
+					s.write(v.y, LE);
+					s.write(v.z, LE);
 				};
 
 				const Quaternion<T> conjugate() const {

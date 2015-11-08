@@ -165,24 +165,24 @@ bool Entity::update(timediff dt)
 void Entity::serialize(ByteStream& s) const {
 	// TODO this could be much more compactly encoded...
 	// do the dumbest possible encoding that works (for now)
-	s.write(position.x, ByteStream::Endian::LITTLE);
-	s.write(position.y, ByteStream::Endian::LITTLE);
-	s.write(position.z, ByteStream::Endian::LITTLE);
-	s.write(velocity.x, ByteStream::Endian::LITTLE);
-	s.write(velocity.y, ByteStream::Endian::LITTLE);
-	s.write(velocity.z, ByteStream::Endian::LITTLE);
-	s.write((uint8_t)model, ByteStream::Endian::LITTLE);
+	s.write(position.x, LE);
+	s.write(position.y, LE);
+	s.write(position.z, LE);
+	s.write(velocity.x, LE);
+	s.write(velocity.y, LE);
+	s.write(velocity.z, LE);
+	s.write((uint8_t)model, LE);
 }
 
 void Entity::deserialize(ByteStream& s) {
 	uint8_t tmp8;
 
-	if (!s.read(&position.x, ByteStream::Endian::LITTLE) ||
-		!s.read(&position.y, ByteStream::Endian::LITTLE) ||
-		!s.read(&position.z, ByteStream::Endian::LITTLE) ||
-		!s.read(&velocity.x, ByteStream::Endian::LITTLE) ||
-		!s.read(&velocity.y, ByteStream::Endian::LITTLE) ||
-		!s.read(&velocity.z, ByteStream::Endian::LITTLE) ||
+	if (!s.read(&position.x, LE) ||
+		!s.read(&position.y, LE) ||
+		!s.read(&position.z, LE) ||
+		!s.read(&velocity.x, LE) ||
+		!s.read(&velocity.y, LE) ||
+		!s.read(&velocity.z, LE) ||
 		!s.read(&tmp8)) {
 		narf::console->println("entity deserialize error");
 		assert(0);
@@ -300,14 +300,14 @@ void EntityManager::update(timediff dt) {
 
 void EntityManager::serializeEntityFullUpdate(ByteStream& s, const Entity& ent) const {
 	s.write((uint8_t)UpdateType::FullUpdate);
-	s.write(ent.id, ByteStream::Endian::LITTLE);
+	s.write(ent.id, LE);
 	ent.serialize(s);
 }
 
 
 void EntityManager::serializeEntityDelete(ByteStream& s, Entity::ID id) const {
 	s.write((uint8_t)UpdateType::Deleted);
-	s.write(id, ByteStream::Endian::LITTLE);
+	s.write(id, LE);
 }
 
 
@@ -322,7 +322,7 @@ void EntityManager::deserializeEntityUpdate(ByteStream& s) {
 	}
 
 	// for now, all update types have ID next
-	if (!s.read(&id, ByteStream::Endian::LITTLE)) {
+	if (!s.read(&id, LE)) {
 		narf::console->println("entity ID deserialize error");
 		assert(0);
 		return;

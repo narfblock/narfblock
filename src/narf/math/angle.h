@@ -56,11 +56,11 @@ namespace narf {
 		Angle(T angle, T minimum, T maximum) : angle(angle), minimum(minimum), maximum(maximum) {};
 
 		Angle(ByteStream& s) {
-			s.read(&angle, ByteStream::Endian::LITTLE);
+			s.read(&angle, LE);
 		}
 
 		void serialize(ByteStream& s) const {
-			s.write(angle, ByteStream::Endian::LITTLE);
+			s.write(angle, LE);
 		}
 
 		Angle<T> operator+(const T add) const {

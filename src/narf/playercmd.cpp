@@ -43,7 +43,7 @@ narf::PlayerCommand::PlayerCommand(Type type) : type_(type) {
 
 narf::PlayerCommand::PlayerCommand(narf::ByteStream& s) {
 	uint16_t tmp16;
-	if (!s.read(&tmp16, narf::ByteStream::Endian::LITTLE)) {
+	if (!s.read(&tmp16, LE)) {
 		// TODO
 		assert(0);
 	}
@@ -57,9 +57,9 @@ narf::PlayerCommand::PlayerCommand(narf::ByteStream& s) {
 	case Type::PrimaryAction:
 	case Type::SecondaryAction:
 		if (
-			!s.read(&wbc.x, narf::ByteStream::Endian::LITTLE) ||
-			!s.read(&wbc.y, narf::ByteStream::Endian::LITTLE) ||
-			!s.read(&wbc.z, narf::ByteStream::Endian::LITTLE)) {
+			!s.read(&wbc.x, LE) ||
+			!s.read(&wbc.y, LE) ||
+			!s.read(&wbc.z, LE)) {
 			// TODO
 			assert(0);
 		}
@@ -73,15 +73,15 @@ narf::PlayerCommand::PlayerCommand(narf::ByteStream& s) {
 }
 
 void narf::PlayerCommand::serialize(narf::ByteStream& s) const {
-	s.write((uint16_t)type_, narf::ByteStream::Endian::LITTLE);
+	s.write((uint16_t)type_, LE);
 	switch (type_) {
 	case Type::Invalid:
 		break;
 	case Type::PrimaryAction:
 	case Type::SecondaryAction:
-		s.write(wbc.x, narf::ByteStream::Endian::LITTLE);
-		s.write(wbc.y, narf::ByteStream::Endian::LITTLE);
-		s.write(wbc.z, narf::ByteStream::Endian::LITTLE);
+		s.write(wbc.x, LE);
+		s.write(wbc.y, LE);
+		s.write(wbc.z, LE);
 		break;
 	case Type::TernaryAction:
 		position.serialize(s);

@@ -246,7 +246,7 @@ void sendPlayerCameraUpdate(const Client* to, narf::Entity::ID followID) {
 	// TODO: put this somewhere better
 	// TODO: for now, this is the only server->client message on CHAN_PLAYERCMD,
 	// but this should have a message type later.
-	bs.write(followID, narf::ByteStream::Endian::LITTLE);
+	bs.write(followID, LE);
 	auto packet = enet_packet_create(bs.data(), bs.size(), ENET_PACKET_FLAG_RELIABLE);
 	enet_peer_send(to->peer, narf::net::CHAN_PLAYERCMD, packet);
 }

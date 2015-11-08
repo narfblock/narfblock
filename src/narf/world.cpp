@@ -297,23 +297,23 @@ void narf::World::rayTrace(narf::Point3f basePoint, narf::Vector3f direction, st
 
 
 void narf::World::serializeChunk(ByteStream& s, const ChunkCoord& wcc) {
-	s.write(wcc.x, narf::ByteStream::Endian::LITTLE);
-	s.write(wcc.y, narf::ByteStream::Endian::LITTLE);
-	s.write(wcc.z, narf::ByteStream::Endian::LITTLE);
+	s.write(wcc.x, LE);
+	s.write(wcc.y, LE);
+	s.write(wcc.z, LE);
 	getChunk(wcc)->serialize(s);
 }
 
 
 void narf::World::serialize(narf::ByteStream& s) {
-	s.write(sizeX_, narf::ByteStream::Endian::LITTLE);
-	s.write(sizeY_, narf::ByteStream::Endian::LITTLE);
-	s.write(sizeZ_, narf::ByteStream::Endian::LITTLE);
-	s.write(chunkSizeX_, narf::ByteStream::Endian::LITTLE);
-	s.write(chunkSizeY_, narf::ByteStream::Endian::LITTLE);
-	s.write(chunkSizeZ_, narf::ByteStream::Endian::LITTLE);
+	s.write(sizeX_, LE);
+	s.write(sizeY_, LE);
+	s.write(sizeZ_, LE);
+	s.write(chunkSizeX_, LE);
+	s.write(chunkSizeY_, LE);
+	s.write(chunkSizeZ_, LE);
 
 	// number of serialized chunks
-	s.write(chunksX_ * chunksY_ * chunksZ_, narf::ByteStream::Endian::LITTLE);
+	s.write(chunksX_ * chunksY_ * chunksZ_, LE);
 
 	ZYXCoordIter<ChunkCoord> iter({0, 0, 0}, {chunksX_, chunksY_, chunksZ_});
 	for (const auto& wcc : iter) {
@@ -322,9 +322,9 @@ void narf::World::serialize(narf::ByteStream& s) {
 }
 
 void narf::World::deserializeChunk(ByteStream& s, narf::ChunkCoord& wcc) {
-	if (!s.read(&wcc.x, ByteStream::Endian::LITTLE) ||
-		!s.read(&wcc.y, ByteStream::Endian::LITTLE) ||
-		!s.read(&wcc.z, ByteStream::Endian::LITTLE)) {
+	if (!s.read(&wcc.x, LE) ||
+		!s.read(&wcc.y, LE) ||
+		!s.read(&wcc.z, LE)) {
 		// TODO: chunk invalid
 		narf::console->println("Chunk::deserialize: invalid");
 		assert(0);
@@ -338,12 +338,12 @@ void narf::World::deserializeChunk(ByteStream& s, narf::ChunkCoord& wcc) {
 
 
 void narf::World::deserialize(narf::ByteStream& s) {
-	if (!s.read(&sizeX_, ByteStream::Endian::LITTLE) ||
-	    !s.read(&sizeY_, ByteStream::Endian::LITTLE) ||
-	    !s.read(&sizeZ_, ByteStream::Endian::LITTLE) ||
-	    !s.read(&chunkSizeX_, ByteStream::Endian::LITTLE) ||
-	    !s.read(&chunkSizeY_, ByteStream::Endian::LITTLE) ||
-	    !s.read(&chunkSizeZ_, ByteStream::Endian::LITTLE)) {
+	if (!s.read(&sizeX_, LE) ||
+	    !s.read(&sizeY_, LE) ||
+	    !s.read(&sizeZ_, LE) ||
+	    !s.read(&chunkSizeX_, LE) ||
+	    !s.read(&chunkSizeY_, LE) ||
+	    !s.read(&chunkSizeZ_, LE)) {
 		// TODO: world invalid
 		assert(0);
 		return;
@@ -354,7 +354,7 @@ void narf::World::deserialize(narf::ByteStream& s) {
 	// TODO: do other setup from ctor here
 
 	uint32_t numChunks;
-	if (!s.read(&numChunks, narf::ByteStream::Endian::LITTLE)) {
+	if (!s.read(&numChunks, LE)) {
 		assert(0);
 		return;
 	}

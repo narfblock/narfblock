@@ -79,15 +79,15 @@ namespace narf {
 		Vector3(T x, T y, T z) : x(x), y(y), z(z) { }
 
 		Vector3(ByteStream& s) {
-			s.read(&x, ByteStream::Endian::LITTLE);
-			s.read(&y, ByteStream::Endian::LITTLE);
-			s.read(&z, ByteStream::Endian::LITTLE);
+			s.read(&x, LE);
+			s.read(&y, LE);
+			s.read(&z, LE);
 		}
 
 		void serialize(ByteStream& s) const {
-			s.write(x, ByteStream::Endian::LITTLE);
-			s.write(y, ByteStream::Endian::LITTLE);
-			s.write(z, ByteStream::Endian::LITTLE);
+			s.write(x, LE);
+			s.write(y, LE);
+			s.write(z, LE);
 		};
 
 		bool operator==(const Vector3<T>& rhs) const {

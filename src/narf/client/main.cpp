@@ -790,7 +790,7 @@ void processChat(ENetEvent& evt) {
 void processPlayerCmd(ENetEvent& evt) {
 	// TODO: for now, this is just what entity the player is controlling/camera is following
 	narf::ByteStream bs(evt.packet->data, evt.packet->dataLength);
-	if (!bs.read(&playerEID, narf::ByteStream::Endian::LITTLE)) {
+	if (!bs.read(&playerEID, LE)) {
 		narf::console->println("Player entity ID deserialize error");
 		assert(0);
 	}
