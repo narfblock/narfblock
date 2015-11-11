@@ -4,7 +4,7 @@
 #include "narf/gameloop.h"
 #include "narf/cmd/cmd.h"
 #include "narf/util/path.h"
-#include "narf/util/tokenize.h"
+#include "narf/tokenize.h"
 #include "narf/net/net.h"
 #include "narf/net/protocol.h"
 #include "narf/net/server.h"

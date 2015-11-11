@@ -2,9 +2,6 @@
 
 #include "narf/stdioconsole.h"
 
-narf::Console *narf::console;
-
-
 
 narf::StdioConsole::StdioConsole() {
 }

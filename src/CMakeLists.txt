@@ -152,6 +152,7 @@ endif ()
 include_directories (
 	"${ENet_INCLUDE_DIRS}"
 	"${PROJECT_SOURCE_DIR}"
+	"${PROJECT_SOURCE_DIR}/narf/lib/include"
 	"${PROJECT_BINARY_DIR}"
 	)
 
@@ -168,7 +169,7 @@ FUNCTION(EMBED out_var in_f)
 	get_filename_component(src_dir ${src_f_full} PATH)
 	SET(out_f "${PROJECT_BINARY_DIR}/${src_f}.cpp")
 	ADD_CUSTOM_COMMAND(OUTPUT ${out_f}
-		COMMAND ${CMAKE_SOURCE_DIR}/embed.sh ${src_f} ${out_f}
+		COMMAND ${CMAKE_SOURCE_DIR}/narf/lib/embed.sh ${src_f} ${out_f}
 		DEPENDS ${in_f}
 		WORKING_DIRECTORY ${src_dir}
 		COMMENT "Embedding ${src_f}"
@@ -179,31 +180,37 @@ ENDFUNCTION()
 
 EMBED(embed_extra_credits_txt ../extra-credits.txt)
 
+set (NARFBLOCK_LIB_SOURCE_FILES
+	narf/lib/console.cpp
+	narf/lib/embed.cpp
+	narf/lib/file.cpp
+	narf/lib/ini.cpp
+	narf/lib/stdioconsole.cpp
+	narf/lib/tokenize.cpp
+	narf/lib/utf.cpp
+	)
+
 # source files used by both client and server
 set (NARFBLOCK_COMMON_SOURCE_FILES
 	narf/aabb.cpp
 	narf/block.cpp
 	narf/bytestream.cpp
 	narf/chunk.cpp
-	narf/embed.cpp
 	narf/entity.cpp
-	narf/file.cpp
 	narf/gameloop.cpp
-	narf/ini.cpp
 	narf/playercmd.cpp
 	narf/texteditor.cpp
 	narf/time.cpp
-	narf/utf.cpp
 	narf/world.cpp
 	narf/cmd/cmd.cpp
 	narf/math/floats.cpp
 	narf/math/ints.cpp
-	narf/util/tokenize.cpp
 	narf/util/path.cpp
 	narf/net/addr.cpp
 	narf/net/socket.cpp
 	narf/net/server.cpp
 	${embed_extra_credits_txt}
+	${NARFBLOCK_LIB_SOURCE_FILES}
 	)
 
 
@@ -291,7 +298,6 @@ if (TEST)
 	add_executable (narfblock-test
 		${NARFBLOCK_COMMON_SOURCE_FILES}
 		${NARFBLOCK_TEST_SOURCE_FILES}
-		narf/stdioconsole.cpp
 		)
 
 	target_link_libraries (narfblock-test

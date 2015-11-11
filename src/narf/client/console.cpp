@@ -5,9 +5,6 @@
 
 #include "narf/client/console.h"
 
-narf::Console *narf::console;
-
-
 struct narf::ClientConsoleImpl {
 
 	ClientConsoleImpl() : editState() {}

@@ -40,7 +40,7 @@
 #include "narf/net/net.h"
 #include "narf/net/protocol.h"
 #include "narf/util/path.h"
-#include "narf/util/tokenize.h"
+#include "narf/tokenize.h"
 
 #include "narf/client/console.h"
 #include "narf/client/renderer.h"

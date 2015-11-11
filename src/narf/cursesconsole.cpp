@@ -14,9 +14,6 @@
 #endif
 
 
-narf::Console *narf::console;
-
-
 struct narf::CursesConsoleImpl {
 	WINDOW *consoleWin;
 	WINDOW *statusWin;
