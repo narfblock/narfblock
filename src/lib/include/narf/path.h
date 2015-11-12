@@ -18,7 +18,6 @@ namespace narf {
 		bool createDirs(const std::string& path);
 		bool exists(const std::string& path);
 		void rename(const std::string& path, const std::string& newPath);
-		bool isDir(const std::string& path);
 		std::string baseName(const std::string& path);
 	}
 }

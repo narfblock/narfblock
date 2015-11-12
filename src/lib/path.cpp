@@ -18,7 +18,6 @@
 #ifdef _WIN32
 
 #include <windows.h>
-#include <direct.h>
 #include "narf/utf.h"
 
 const std::string narf::util::DirSeparator("\\");
@@ -152,7 +151,7 @@ bool narf::util::createDir(const std::string& path) {
 }
 
 bool narf::util::createDirs(const std::string& path) {
-	if (isDir(path)) {
+	if (dirExists(path)) {
 		return true; // We're already a directory
 	}
 	if (!createDirs(dirName(path))) {
@@ -175,23 +174,6 @@ bool narf::util::exists(const std::string& path) {
 
 void narf::util::rename(const std::string& path, const std::string& newPath) {
 	::rename(path.c_str(), newPath.c_str());
-}
-
-bool narf::util::isDir(const std::string& path) {
-#ifdef _WIN32
-	std::wstring pathW;
-	narf::toUTF16(path, pathW);
-	struct _stat st;
-	if (_wstat(pathW.c_str(), &st) != 0) {
-		return false;
-	}
-#else
-	struct stat st;
-	if (stat(path.c_str(), &st) != 0) {
-		return false;
-	}
-#endif
-	return S_ISDIR(st.st_mode);
 }
 
 // TODO: These will be broken on Windows when given the root directory
