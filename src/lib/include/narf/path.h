@@ -1,12 +1,7 @@
 #ifndef NARF_UTIL_PATH_H
 #define NARF_UTIL_PATH_H
 
-#ifdef __APPLE__
-#include <mach-o/dyld.h>
-#endif
-
 #include <string>
-#include <cstring>
 
 namespace narf {
 	namespace util {

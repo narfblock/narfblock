@@ -1,6 +1,8 @@
 #include "narf/console.h"
 #include "narf/path.h"
 
+#include <cstring>
+
 #include <sys/types.h>
 #include <sys/stat.h>
 
@@ -17,7 +19,6 @@
 
 #include <windows.h>
 #include <direct.h>
-#include <shlobj.h>
 #include "narf/utf.h"
 
 const std::string narf::util::DirSeparator("\\");
