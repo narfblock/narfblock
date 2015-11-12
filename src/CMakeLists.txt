@@ -170,6 +170,7 @@ message("${NARFLIB_INCLUDE_DIRS}")
 
 include_directories (
 	"${ENet_INCLUDE_DIRS}"
+	"${ZLIB_INCLUDE_DIRS}"
 	"${PROJECT_SOURCE_DIR}"
 	"${PROJECT_SOURCE_DIR}/narf/lib/include"
 	"${PROJECT_BINARY_DIR}"

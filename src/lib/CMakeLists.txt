@@ -1,6 +1,8 @@
 cmake_minimum_required (VERSION 2.6)
 project (narflib)
 
+find_package (ZLIB REQUIRED)
+
 set (NARFLIB_SOURCE_FILES
 	console.cpp
 	embed.cpp
@@ -36,6 +38,7 @@ ENDFUNCTION()
 
 include_directories (
 	"${NARFLIB_INCLUDE_DIRS}"
+	"${ZLIB_INCLUDE_DIRS}"
 	)
 
 add_library (narflib STATIC ${NARFLIB_SOURCE_FILES})
