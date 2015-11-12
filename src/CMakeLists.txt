@@ -166,8 +166,6 @@ if (TEST)
 		)
 endif ()
 
-message("${NARFLIB_INCLUDE_DIRS}")
-
 include_directories (
 	"${ENet_INCLUDE_DIRS}"
 	"${ZLIB_INCLUDE_DIRS}"
