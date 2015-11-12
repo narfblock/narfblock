@@ -5,6 +5,11 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <sys/types.h>
+#endif
+
+#ifdef _MSC_VER
+#include <direct.h>
 #endif
 
 #ifdef __APPLE__
@@ -12,6 +17,12 @@
 #endif
 
 #ifdef _WIN32
+
+#include <windows.h>
+#include <direct.h>
+#include <shlobj.h>
+#include "narf/utf.h"
+
 const std::string narf::util::DirSeparator("\\");
 #else
 const std::string narf::util::DirSeparator("/");
@@ -75,28 +86,9 @@ bool narf::util::dirExists(const std::string& path) {
 	return (st.st_mode & S_IFMT) == S_IFDIR;
 }
 
-std::string narf::util::dirName(const std::string& path) {
-	size_t len = path.length();
-	while (len > 0 && path[len - 1] == DirSeparator[0]) {
-		len--;
-	}
-	auto lastSlash = path.rfind(narf::util::DirSeparator, len - 1);
-	if (lastSlash != std::string::npos) {
-		return path.substr(0, lastSlash == 0 ? 1 : lastSlash);
-	}
-	return path;
-}
-
 #endif // unix
 
-
 #ifdef _WIN32
-
-#include <windows.h>
-#include <shlobj.h>
-
-#include "narf/utf.h"
-
 
 std::string narf::util::exeName() {
 	const DWORD len = 32768; // max NT-style name length + terminator
@@ -159,8 +151,10 @@ std::string narf::util::appendPath(const std::string& path, const std::string& a
 }
 
 bool narf::util::createDir(const std::string& path) {
-#ifdef _WIN32
-	return _mkdir(path.c_str()) == 0;
+#ifdef _MSC_VER
+	std::wstring pathW;
+	narf::toUTF16(path, pathW);
+	return _wmkdir(pathW.c_str()) == 0;
 #else
 	return mkdir(path.c_str(), 0755) == 0;
 #endif
@@ -193,7 +187,19 @@ bool narf::util::isDir(const std::string& path) {
 	return S_ISDIR(st.st_mode);
 }
 
-// TODO: This will be broken on Windows when given the root directory
+// TODO: These will be broken on Windows when given the root directory
+std::string narf::util::dirName(const std::string& path) {
+	size_t len = path.length();
+	while (len > 0 && path[len - 1] == DirSeparator[0]) {
+		len--;
+	}
+	auto lastSlash = path.rfind(narf::util::DirSeparator, len - 1);
+	if (lastSlash != std::string::npos) {
+		return path.substr(0, lastSlash == 0 ? 1 : lastSlash);
+	}
+	return path;
+}
+
 std::string narf::util::baseName(const std::string& path) {
 	size_t len = path.length();
 	while (len > 0 && path[len - 1] == DirSeparator[0]) {

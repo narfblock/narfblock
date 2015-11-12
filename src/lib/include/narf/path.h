@@ -6,6 +6,7 @@
 #endif
 
 #include <string>
+#include <cstring>
 
 namespace narf {
 	namespace util {
