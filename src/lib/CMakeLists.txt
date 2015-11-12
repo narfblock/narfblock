@@ -1,6 +1,16 @@
 cmake_minimum_required (VERSION 2.6)
 project (narflib)
 
+option(TEST "Build narflib unit tests" ON)
+option(STATIC "Use static linking when building executables" ON)
+option(STATIC_LIBSTDCXX "Static link libstdc++" OFF)
+option(STATIC_LIBGCC "Static link libgcc" OFF)
+option(PIE "Create position-independent executables" ON)
+
+set (VERSION_MAJOR 0)
+set (VERSION_MINOR 1)
+set (VERSION_RELEASE "")
+
 get_directory_property(hasParent PARENT_DIRECTORY)
 
 find_package (ZLIB REQUIRED)
@@ -8,15 +18,20 @@ find_package (ZLIB REQUIRED)
 set(NARFLIB_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/include)
 set(NARFLIB_SOURCE_DIR ${PROJECT_SOURCE_DIR})
 
+configure_file (
+	"${PROJECT_SOURCE_DIR}/include/narf/version.h.in"
+	"${PROJECT_BINARY_DIR}/include/narf/version.h"
+	)
+
+if (TEST)
+	find_package (GTest REQUIRED)
+endif ()
+
 if (hasParent)
 	set(STATIC ON)
 	set(NARFLIB_INCLUDE_DIRS ${NARFLIB_INCLUDE_DIRS} PARENT_SCOPE)
 	set(NARFLIB_SOURCE_DIR ${NARFLIB_SOURCE_DIR} PARENT_SCOPE)
 else()
-
-	option(STATIC "Use static linking when building executables" OFF)
-	option(STATIC_LIBSTDCXX "Static link libstdc++" OFF)
-	option(STATIC_LIBGCC "Static link libgcc" OFF)
 
 	if (STATIC)
 		set(STATIC_LIBSTDCXX ON)
@@ -26,6 +41,7 @@ else()
 	option(PIE "Create position-independent executables" ON)
 
 	if (PIE AND STATIC)
+		message(STATUS "Building as static, disabling PIE")
 		# PIE + STATIC will result in TEXTRELs unless all libraries have been
 		# built for PIC/PIE, so don't allow it
 		set(PIE OFF)
@@ -42,22 +58,22 @@ else()
 	endif ()
 
 	if (CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_CLANG)
-		SET(CMAKE_C_FLAGS
+		SET(COMMON_C_FLAGS
 			"${CMAKE_C_FLAGS} -Wpointer-arith -Wtype-limits -Wwrite-strings -Wuninitialized -Werror=redundant-decls -Wsign-compare -Wconversion -g -fno-ident")
 
 		# don't export symbols (especially for PIC builds, but it doesn't hurt elsewhere)
-		SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fvisibility=hidden")
+		#SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fvisibility=hidden")
 
 		if (STATIC)
-			SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -static")
+			SET(STATIC_C_FLAGS "-static")
 		endif()
 
 		if (STATIC_LIBGCC)
-			SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -static-libgcc")
+			SET(STATIC_C_FLAGS "${STATIC_C_FLAGS} -static-libgcc")
 		endif()
 
 		if (STATIC_LIBSTDCXX)
-			SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -static-libstdc++")
+			SET(STATIC_C_FLAGS "${STATIC_C_FLAGS} -static-libstdc++")
 		endif()
 
 		if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
@@ -71,7 +87,7 @@ else()
 		endif()
 
 
-		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_C_FLAGS} -std=gnu++0x")
+		SET(COMMON_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${COMMON_C_FLAGS} -std=gnu++0x")
 	endif ()
 
 	if (MSVC)
@@ -106,17 +122,48 @@ set (NARFLIB_SOURCE_FILES
 	stdioconsole.cpp
 	tokenize.cpp
 	utf.cpp
+	path.cpp
 	)
 
 include_directories (
 	"${NARFLIB_INCLUDE_DIRS}"
 	"${ZLIB_INCLUDE_DIRS}"
+	"${PROJECT_BINARY_DIR}/include"
 	)
 
 if(STATIC)
+	if (NOT hasParent)
+		set(CMAKE_C_FLAGS "${COMMON_C_FLAGS} ${STATIC_C_FLAGS}")
+		set(CMAKE_CXX_FLAGS "${COMMON_CXX_FLAGS} ${STATIC_C_FLAGS}")
+	endif()
 	add_library (narflib STATIC ${NARFLIB_SOURCE_FILES})
 else()
+	set(CMAKE_C_FLAGS "${COMMON_C_FLAGS}")
+	set(CMAKE_CXX_FLAGS "${COMMON_CXX_FLAGS}")
 	add_library (narflib SHARED ${NARFLIB_SOURCE_FILES})
 	target_link_libraries (narflib ${ZLIB_LIBRARY})
+endif()
+
+if(TEST)
+	include_directories (
+		"${GTEST_INCLUDE_DIRS}"
+		)
+	# unit test executable
+	file(GLOB_RECURSE NARFLIB_TEST_SOURCE_FILES ${PROJECT_SOURCE_DIR}/test/*.cpp)
+
+	if (NOT hasParent)
+		set(CMAKE_C_FLAGS "${COMMON_C_FLAGS}")
+		set(CMAKE_CXX_FLAGS "${COMMON_CXX_FLAGS}")
+	endif()
+
+	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGTEST_LINKED_AS_SHARED_LIBRARY=1")
+
+	add_executable (narflib-test ${NARFLIB_TEST_SOURCE_FILES})
+
+	target_link_libraries (narflib-test
+		narflib
+		${GTEST_LIBRARIES}
+		${ZLIB_LIBRARY}
+		)
 endif()
 

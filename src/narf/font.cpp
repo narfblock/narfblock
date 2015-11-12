@@ -4,7 +4,7 @@
 #include "narf/embed.h"
 #include "narf/file.h"
 #include "narf/utf.h"
-#include "narf/util/path.h"
+#include "narf/util/paths.h"
 #include <cmath> // Need floor or something
 
 

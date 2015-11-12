@@ -3,7 +3,7 @@
 #include "narf/embed.h"
 #include "narf/gameloop.h"
 #include "narf/cmd/cmd.h"
-#include "narf/util/path.h"
+#include "narf/util/paths.h"
 #include "narf/tokenize.h"
 #include "narf/net/net.h"
 #include "narf/net/protocol.h"

@@ -39,7 +39,7 @@
 #include "narf/math/math.h"
 #include "narf/net/net.h"
 #include "narf/net/protocol.h"
-#include "narf/util/path.h"
+#include "narf/util/paths.h"
 #include "narf/tokenize.h"
 
 #include "narf/client/console.h"

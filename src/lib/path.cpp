@@ -1,5 +1,5 @@
 #include "narf/console.h"
-#include "narf/util/path.h"
+#include "narf/path.h"
 
 #if defined(__unix__) || defined(__APPLE__)
 #include <sys/stat.h>
@@ -67,28 +67,24 @@ std::string narf::util::exeName() {
 
 #if defined(__unix__) || defined(__APPLE__)
 
-std::string narf::util::userConfigDir(const std::string& appName) {
-	// look up home dir and append .config/<appName>
-	char* home;
-	home = getenv("HOME");
-	// TODO: sanitize/validate $HOME?
-	if (!home) {
-		// TODO: fall back to getpwuid() (use getpwuid_r?)
-	}
-
-	if (home) {
-		return std::string(home) + "/.config/" + appName;
-	}
-	return "";
-}
-
-
 bool narf::util::dirExists(const std::string& path) {
 	struct stat st;
 	if (stat(path.c_str(), &st) == -1) {
 		return false;
 	}
 	return (st.st_mode & S_IFMT) == S_IFDIR;
+}
+
+std::string narf::util::dirName(const std::string& path) {
+	size_t len = path.length();
+	while (len > 0 && path[len - 1] == DirSeparator[0]) {
+		len--;
+	}
+	auto lastSlash = path.rfind(narf::util::DirSeparator, len - 1);
+	if (lastSlash != std::string::npos) {
+		return path.substr(0, lastSlash == 0 ? 1 : lastSlash);
+	}
+	return path;
 }
 
 #endif // unix
@@ -117,23 +113,18 @@ std::string narf::util::exeName() {
 }
 
 
-std::string narf::util::userConfigDir(const std::string& appName) {
-	wchar_t buffer[MAX_PATH];
-	HRESULT hr = SHGetFolderPathW(nullptr, CSIDL_APPDATA | CSIDL_FLAG_CREATE, nullptr, SHGFP_TYPE_CURRENT, buffer);
-	if (!SUCCEEDED(hr)) {
-		return ""; // error
-	}
-	std::string result;
-	narf::toUTF8(buffer, result);
-	return result + "\\" + appName;
-}
-
-
 bool narf::util::dirExists(const std::string& path) {
 	std::wstring pathW;
 	narf::toUTF16(path, pathW);
 	DWORD attrs = GetFileAttributesW(pathW.c_str());
 	return (attrs != INVALID_FILE_ATTRIBUTES) && (attrs & FILE_ATTRIBUTE_DIRECTORY);
+}
+
+std::string narf::util::dirName(const std::string& path) {
+	char* s = new char[path.size() + 1];
+	std::strcpy(s, path.c_str());
+	PathRemoveFileSpec(s);
+	return std::string(s);
 }
 
 #endif // _WIN32
@@ -153,19 +144,6 @@ std::string narf::util::exeName() {
 
 #endif // __APPLE__
 
-std::string narf::util::dirName(const std::string& path) {
-	size_t len = path.length();
-	while (len > 0 && path[len - 1] == DirSeparator[0]) {
-		len--;
-	}
-	auto lastSlash = path.rfind(narf::util::DirSeparator, len - 1);
-	// TODO
-	if (lastSlash != std::string::npos) {
-		return path.substr(0, lastSlash);
-	}
-	return path;
-}
-
 
 std::string narf::util::exeDir() {
 	return dirName(exeName());
@@ -180,29 +158,50 @@ std::string narf::util::appendPath(const std::string& path, const std::string& a
 	}
 }
 
+bool narf::util::createDir(const std::string& path) {
+#ifdef _WIN32
+	return _mkdir(path.c_str()) == 0;
+#else
+	return mkdir(path.c_str(), 0755) == 0;
+#endif
+}
 
-std::string narf::util::dataDir() {
-	static std::string cachedDataDir;
-
-	if (cachedDataDir != "") {
-		return cachedDataDir;
+bool narf::util::createDirs(const std::string& path) {
+	if (isDir(path)) {
+		return true; // We're already a directory
 	}
-
-	// walk up the path until data directory is found
-	narf::console->println("Executable Dir: " + narf::util::exeDir());
-
-	for (auto dir = narf::util::exeDir(); ; dir = dirName(dir)) {
-		auto dataDir = appendPath(dir, "data");
-		narf::console->println("Checking " + dataDir);
-		if (dirExists(dataDir)) {
-			narf::console->println("Found data directory: " + dataDir);
-			cachedDataDir = dataDir;
-			return cachedDataDir;
-		}
-		if (dir.compare(dirName(dir)) == 0) {
-			break;
-		}
+	if (!createDirs(dirName(path))) {
+		return false; // Failed to create one of the parent directories
 	}
+	return createDir(path);
+}
 
-	return "";
+bool narf::util::exists(const std::string& path) {
+	struct stat st;
+	return (stat(path.c_str(), &st) == 0);
+}
+
+void narf::util::rename(const std::string& path, const std::string& newPath) {
+	::rename(path.c_str(), newPath.c_str());
+}
+
+bool narf::util::isDir(const std::string& path) {
+	struct stat st;
+	if (stat(path.c_str(), &st) != 0) {
+		return false;
+	}
+	return S_ISDIR(st.st_mode);
+}
+
+// TODO: This will be broken on Windows when given the root directory
+std::string narf::util::baseName(const std::string& path) {
+	size_t len = path.length();
+	while (len > 0 && path[len - 1] == DirSeparator[0]) {
+		len--;
+	}
+	size_t lastSlash = path.rfind(DirSeparator, len - 1);
+	if (len > 1 && lastSlash != std::string::npos) {
+		return path.substr(lastSlash + 1, len - lastSlash - 1);
+	}
+	return path;
 }

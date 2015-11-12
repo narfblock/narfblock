@@ -196,7 +196,7 @@ set (NARFBLOCK_COMMON_SOURCE_FILES
 	narf/cmd/cmd.cpp
 	narf/math/floats.cpp
 	narf/math/ints.cpp
-	narf/util/path.cpp
+	narf/util/paths.cpp
 	narf/net/addr.cpp
 	narf/net/socket.cpp
 	narf/net/server.cpp
