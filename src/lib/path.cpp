@@ -20,8 +20,6 @@
 #include <shlobj.h>
 #include "narf/utf.h"
 
-#define S_ISDIR(mode)  (((mode) & S_IFMT) == S_IFDIR)
-
 const std::string narf::util::DirSeparator("\\");
 #else
 const std::string narf::util::DirSeparator("/");
@@ -163,8 +161,15 @@ bool narf::util::createDirs(const std::string& path) {
 }
 
 bool narf::util::exists(const std::string& path) {
+#ifdef _WIN32
+	std::wstring pathW;
+	narf::toUTF16(path, pathW);
+	struct _stat st;
+	return _wstat(pathW.c_str(), &st) == 0;
+#else
 	struct stat st;
-	return (stat(path.c_str(), &st) == 0);
+	return stat(path.c_str(), &st) == 0;
+#endif
 }
 
 void narf::util::rename(const std::string& path, const std::string& newPath) {
@@ -176,7 +181,7 @@ bool narf::util::isDir(const std::string& path) {
 	std::wstring pathW;
 	narf::toUTF16(path, pathW);
 	struct _stat st;
-	if (_wstat(path.c_str(), &st) != 0) {
+	if (_wstat(pathW.c_str(), &st) != 0) {
 		return false;
 	}
 #else
