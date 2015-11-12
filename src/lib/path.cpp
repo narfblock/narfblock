@@ -1,15 +1,12 @@
 #include "narf/console.h"
 #include "narf/path.h"
 
-#if defined(__unix__) || defined(__APPLE__)
+#include <sys/types.h>
 #include <sys/stat.h>
+
+#if defined(__unix__) || defined(__APPLE__)
 #include <unistd.h>
 #include <stdlib.h>
-#include <sys/types.h>
-#endif
-
-#ifdef _MSC_VER
-#include <direct.h>
 #endif
 
 #ifdef __APPLE__
@@ -22,6 +19,8 @@
 #include <direct.h>
 #include <shlobj.h>
 #include "narf/utf.h"
+
+#define S_ISDIR(mode)  (((mode) & S_IFMT) == S_IFDIR)
 
 const std::string narf::util::DirSeparator("\\");
 #else
@@ -112,13 +111,6 @@ bool narf::util::dirExists(const std::string& path) {
 	return (attrs != INVALID_FILE_ATTRIBUTES) && (attrs & FILE_ATTRIBUTE_DIRECTORY);
 }
 
-std::string narf::util::dirName(const std::string& path) {
-	char* s = new char[path.size() + 1];
-	std::strcpy(s, path.c_str());
-	PathRemoveFileSpec(s);
-	return std::string(s);
-}
-
 #endif // _WIN32
 
 #ifdef __APPLE__
@@ -151,7 +143,7 @@ std::string narf::util::appendPath(const std::string& path, const std::string& a
 }
 
 bool narf::util::createDir(const std::string& path) {
-#ifdef _MSC_VER
+#ifdef _WIN32
 	std::wstring pathW;
 	narf::toUTF16(path, pathW);
 	return _wmkdir(pathW.c_str()) == 0;
@@ -180,10 +172,19 @@ void narf::util::rename(const std::string& path, const std::string& newPath) {
 }
 
 bool narf::util::isDir(const std::string& path) {
+#ifdef _WIN32
+	std::wstring pathW;
+	narf::toUTF16(path, pathW);
+	struct _stat st;
+	if (_wstat(path.c_str(), &st) != 0) {
+		return false;
+	}
+#else
 	struct stat st;
 	if (stat(path.c_str(), &st) != 0) {
 		return false;
 	}
+#endif
 	return S_ISDIR(st.st_mode);
 }
 
