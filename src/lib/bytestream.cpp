@@ -35,7 +35,7 @@
 #include <assert.h>
 #include <stdio.h>
 
-#include "bytestream.h"
+#include "narf/bytestream.h"
 
 narf::ByteStream::ByteStream() : pos(0) { }
 

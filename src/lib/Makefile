@@ -16,6 +16,7 @@ CPPFLAGS += -Iinclude
 DEPFLAGS = -MT $@ -MMD -MP -MF $*.Td
 
 OBJS := \
+	bytestream.o \
 	console.o \
 	embed.o \
 	file.o \

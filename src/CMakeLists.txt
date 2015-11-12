@@ -188,7 +188,6 @@ EMBED(embed_extra_credits_txt ../extra-credits.txt)
 set (NARFBLOCK_COMMON_SOURCE_FILES
 	narf/aabb.cpp
 	narf/block.cpp
-	narf/bytestream.cpp
 	narf/chunk.cpp
 	narf/entity.cpp
 	narf/gameloop.cpp

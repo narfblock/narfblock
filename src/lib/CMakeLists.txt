@@ -4,6 +4,7 @@ project (narflib)
 find_package (ZLIB REQUIRED)
 
 set (NARFLIB_SOURCE_FILES
+	bytestream.cpp
 	console.cpp
 	embed.cpp
 	file.cpp
