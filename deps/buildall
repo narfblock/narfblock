@@ -23,8 +23,10 @@ function check_host() {
 
 check_host i686-w64-mingw32
 check_host x86_64-w64-mingw32
-check_host i486-musl-linux
-check_host x86_64-musl-linux
+check_host i686-pc-linux-gnu
+check_host x86_64-pc-linux-gnu
+#check_host i486-musl-linux
+#check_host x86_64-musl-linux
 
 echo "Detected hosts: $hosts"
 
@@ -44,15 +46,23 @@ for host_triplet in ${hosts}; do
 
 	# TODO: add config flags instead of basing this on OS
 	# for now, hard-coded defaults
-	# can't static link to GL on Linux, so can't build client
+	# can't static link to GL on Linux, so don't want to static link SDL on Linux
+	# but we can build the rest of the deps for static linking
 	case $host_triplet in
 		*mingw*)
 			client=y
 			server=y
+			sdl=y
+			;;
+		*linux-gnu*)
+			client=y
+			server=y
+			sdl=n
 			;;
 		*)
 			client=n
 			server=y
+			sdl=n
 			;;
 	esac
 
@@ -64,7 +74,7 @@ for host_triplet in ${hosts}; do
 	[ $client = y ] && build opus
 	[ $client = y ] && build opusfile
 	[ $client = y ] && build libpng
-	[ $client = y ] && build sdl2
+	[ $client = y ] && [ $sdl = y ] && build sdl2
 	[ $client = y ] && build freetype
 	[ $server = y ] && build ncurses
 
