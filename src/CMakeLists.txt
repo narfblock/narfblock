@@ -203,6 +203,7 @@ set (NARFBLOCK_COMMON_SOURCE_FILES
 	${embed_extra_credits_txt}
 	)
 
+add_library(narfblock-common STATIC ${NARFBLOCK_COMMON_SOURCE_FILES})
 
 if (CLIENT)
 	EMBED(embed_DroidSansMono_ttf ../data/DroidSansMono.ttf)
@@ -239,12 +240,11 @@ if (CLIENT)
 		# Mark as a "windowed" program (rather than console) on Windows
 		# (no effect on other platforms)
 		WIN32
-
-		${NARFBLOCK_COMMON_SOURCE_FILES}
 		${NARFBLOCK_CLIENT_SOURCE_FILES}
 		)
 
 	target_link_libraries (narfblock
+		narfblock-common
 		narflib
 		${FREETYPE_LIBRARY}
 		${FREETYPE_GL_LIBRARY}
@@ -269,13 +269,12 @@ endif ()
 if (SERVER)
 	# server executable
 	add_executable (narfblock-server
-		${NARFBLOCK_COMMON_SOURCE_FILES}
-
 		narf/cursesconsole.cpp
 		narf/server/main.cpp
 		)
 
 	target_link_libraries (narfblock-server
+		narfblock-common
 		narflib
 		${CMAKE_THREAD_LIBS_INIT}
 		${CURSES_LIBRARY}
@@ -288,11 +287,11 @@ if (TEST)
 	# unit test executable
 	file(GLOB_RECURSE NARFBLOCK_TEST_SOURCE_FILES ${PROJECT_SOURCE_DIR}/narf/test/*.cpp)
 	add_executable (narfblock-test
-		${NARFBLOCK_COMMON_SOURCE_FILES}
 		${NARFBLOCK_TEST_SOURCE_FILES}
 		)
 
 	target_link_libraries (narfblock-test
+		narfblock-common
 		narflib
 		${ENet_LIBRARIES}
 		${GTEST_LIBRARIES}
