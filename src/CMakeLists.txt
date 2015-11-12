@@ -6,6 +6,13 @@ option(CLIENT "Build NarfBlock client" ON)
 option(TEST "Build NarfBlock unit tests" ON)
 
 option(STATIC "Use static linking when building executables" OFF)
+option(STATIC_LIBSTDCXX "Static link libstdc++" OFF)
+option(STATIC_LIBGCC "Static link libgcc" OFF)
+
+if (STATIC)
+	set(STATIC_LIBSTDCXX ON)
+	set(STATIC_LIBGCC ON)
+endif()
 
 option(PIE "Create position-independent executables" ON)
 
@@ -79,7 +86,15 @@ if (CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_CLA
 	SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fvisibility=hidden")
 
 	if (STATIC)
-		SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -static -static-libgcc -static-libstdc++")
+		SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -static")
+	endif()
+
+	if (STATIC_LIBGCC)
+		SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -static-libgcc")
+	endif()
+
+	if (STATIC_LIBSTDCXX)
+		SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -static-libstdc++")
 	endif()
 
 	if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
