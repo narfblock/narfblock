@@ -22,6 +22,11 @@ std::string narf::util::userConfigDir(const std::string& appName) {
 
 #ifdef _WIN32
 
+#include <windows.h>
+#include <shlobj.h>
+
+#include "narf/utf.h"
+
 std::string narf::util::userConfigDir(const std::string& appName) {
 	wchar_t buffer[MAX_PATH];
 	HRESULT hr = SHGetFolderPathW(nullptr, CSIDL_APPDATA | CSIDL_FLAG_CREATE, nullptr, SHGFP_TYPE_CURRENT, buffer);
