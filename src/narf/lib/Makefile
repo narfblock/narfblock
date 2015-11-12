@@ -34,7 +34,7 @@ all: libnarf.a
 %.d: ;
 
 libnarf.a: $(OBJS)
-	ar rsc $@ $(OBJS)
+	$(AR) rsc $@ $(OBJS)
 
 clean:
 	rm -f libnarf.a $(OBJS) $(DEPS)
