@@ -130,6 +130,8 @@ if (CURSES_HAVE_NCURSES_CURSES_H)
 	add_definitions( -DHAVE_NCURSES_CURSES_H )
 endif()
 
+add_subdirectory(${CMAKE_SOURCE_DIR}/lib)
+
 if (CLIENT)
 	# add dependencies to SDL libs for static linking
 	if (WIN32)
@@ -164,11 +166,14 @@ if (TEST)
 		)
 endif ()
 
+message("${NARFLIB_INCLUDE_DIRS}")
+
 include_directories (
 	"${ENet_INCLUDE_DIRS}"
 	"${PROJECT_SOURCE_DIR}"
 	"${PROJECT_SOURCE_DIR}/narf/lib/include"
 	"${PROJECT_BINARY_DIR}"
+	"${NARFLIB_INCLUDE_DIRS}"
 	)
 
 configure_file (
@@ -176,34 +181,7 @@ configure_file (
 	"${PROJECT_BINARY_DIR}/narf/version.h"
 	)
 
-# generate C source file from binary to embed
-FUNCTION(EMBED out_var in_f)
-	SET(result)
-	FILE(RELATIVE_PATH src_f_full ${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/${in_f})
-	get_filename_component(src_f ${src_f_full} NAME)
-	get_filename_component(src_dir ${src_f_full} PATH)
-	SET(out_f "${PROJECT_BINARY_DIR}/${src_f}.cpp")
-	ADD_CUSTOM_COMMAND(OUTPUT ${out_f}
-		COMMAND ${CMAKE_SOURCE_DIR}/narf/lib/embed.sh ${src_f} ${out_f}
-		DEPENDS ${in_f}
-		WORKING_DIRECTORY ${src_dir}
-		COMMENT "Embedding ${src_f}"
-		VERBATIM
-		)
-	SET(${out_var} "${out_f}" PARENT_SCOPE)
-ENDFUNCTION()
-
 EMBED(embed_extra_credits_txt ../extra-credits.txt)
-
-set (NARFBLOCK_LIB_SOURCE_FILES
-	narf/lib/console.cpp
-	narf/lib/embed.cpp
-	narf/lib/file.cpp
-	narf/lib/ini.cpp
-	narf/lib/stdioconsole.cpp
-	narf/lib/tokenize.cpp
-	narf/lib/utf.cpp
-	)
 
 # source files used by both client and server
 set (NARFBLOCK_COMMON_SOURCE_FILES
@@ -225,7 +203,6 @@ set (NARFBLOCK_COMMON_SOURCE_FILES
 	narf/net/socket.cpp
 	narf/net/server.cpp
 	${embed_extra_credits_txt}
-	${NARFBLOCK_LIB_SOURCE_FILES}
 	)
 
 
@@ -270,6 +247,7 @@ if (CLIENT)
 		)
 
 	target_link_libraries (narfblock
+		narflib
 		${FREETYPE_LIBRARY}
 		${FREETYPE_GL_LIBRARY}
 		${OPENGL_LIBRARY}
@@ -300,6 +278,7 @@ if (SERVER)
 		)
 
 	target_link_libraries (narfblock-server
+		narflib
 		${CMAKE_THREAD_LIBS_INIT}
 		${CURSES_LIBRARY}
 		${ENet_LIBRARIES}
@@ -316,6 +295,7 @@ if (TEST)
 		)
 
 	target_link_libraries (narfblock-test
+		narflib
 		${ENet_LIBRARIES}
 		${GTEST_LIBRARIES}
 		${CMAKE_THREAD_LIBS_INIT}
