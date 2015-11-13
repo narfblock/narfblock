@@ -17,4 +17,21 @@ TEST(PATH, baseName) {
 	ASSERT_EQ("bar", narf::util::baseName("/foo/bar"));
 }
 
+#elif defined(_WIN32)
+
+TEST(PATH, dirName) {
+	ASSERT_EQ("C:\\", narf::util::dirName("C:\\"));
+	ASSERT_EQ("C:\\", narf::util::dirName("C:\\foo"));
+	ASSERT_EQ("C:\\", narf::util::dirName("C:\\foo\\"));
+	ASSERT_EQ("C:\\foo", narf::util::dirName("C:\\foo\\bar"));
+}
+
+TEST(PATH, baseName) {
+	ASSERT_EQ("C:\\", narf::util::baseName("C:\\"));
+	ASSERT_EQ("foo", narf::util::baseName("foo"));
+	ASSERT_EQ("foo", narf::util::baseName("C:\\foo"));
+	ASSERT_EQ("foo", narf::util::baseName("C:\\foo\\"));
+	ASSERT_EQ("bar", narf::util::baseName("C:\\foo\\bar"));
+}
+
 #endif

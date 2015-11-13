@@ -187,14 +187,13 @@ void narf::util::rename(const std::string& path, const std::string& newPath) {
 }
 
 
-// TODO: These will be broken on Windows when given the root directory
 static size_t pathLastSlash(const std::string& path, size_t* baseNameLen = nullptr) {
 	auto len = path.length();
 	while (len > 0 && path[len - 1] == narf::util::DirSeparator[0]) {
 		len--;
 	}
 	auto lastSlash = path.rfind(narf::util::DirSeparator, len - 1);
-	if (baseNameLen) {
+	if (baseNameLen && lastSlash != std::string::npos) {
 		*baseNameLen = len - lastSlash - 1;
 	}
 	return lastSlash;
@@ -204,7 +203,14 @@ static size_t pathLastSlash(const std::string& path, size_t* baseNameLen = nullp
 std::string narf::util::dirName(const std::string& path) {
 	auto lastSlash = pathLastSlash(path);
 	if (lastSlash != std::string::npos) {
-		return path.substr(0, lastSlash == 0 ? 1 : lastSlash);
+		auto dir = path.substr(0, lastSlash == 0 ? 1 : lastSlash);
+#ifdef _WIN32
+		if (dir.length() == 2 && dir[1] == ':') {
+			// "C:" -> "C:\"
+			dir += DirSeparator;
+		}
+#endif
+		return dir;
 	}
 	return path;
 }
