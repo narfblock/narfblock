@@ -199,10 +199,13 @@ bool narf::util::createDirs(const std::string& path) {
 }
 
 
-static size_t pathLastSlash(const std::string& path, size_t* baseNameLen = nullptr) {
+static size_t pathLastSlash(const std::string& path, size_t* trimmedLen = nullptr, size_t* baseNameLen = nullptr) {
 	auto len = path.length();
 	while (len > 0 && path[len - 1] == narf::util::DirSeparator[0]) {
 		len--;
+	}
+	if (trimmedLen) {
+		*trimmedLen = len;
 	}
 	auto lastSlash = path.rfind(narf::util::DirSeparator, len - 1);
 	if (baseNameLen && lastSlash != std::string::npos) {
@@ -213,13 +216,30 @@ static size_t pathLastSlash(const std::string& path, size_t* baseNameLen = nullp
 
 
 std::string narf::util::dirName(const std::string& path) {
-	auto lastSlash = pathLastSlash(path);
+	size_t trimmedLen;
+	auto lastSlash = pathLastSlash(path, &trimmedLen);
 	if (lastSlash != std::string::npos) {
 		auto dir = path.substr(0, lastSlash == 0 ? 1 : lastSlash);
 #ifdef _WIN32
 		if (dir.length() == 2 && dir[1] == ':') {
 			// "C:" -> "C:\"
 			dir += DirSeparator;
+		}
+		if (dir[0] == '\\' && dir[1] == '\\') {
+			// UNC path "\\server\share"
+			int slashCount = 0;
+			for (size_t i = 0; i <= dir.length(); i++) {
+				if (dir[i] == '\\') {
+					slashCount++;
+					if (slashCount >= 3) {
+						return dir;
+					}
+				}
+			}
+
+			// less than 3 backslashes found (missing share)
+			// return original path with trailing slashes trimmed
+			return path.substr(0, trimmedLen);
 		}
 #endif
 		return dir;
@@ -230,7 +250,7 @@ std::string narf::util::dirName(const std::string& path) {
 
 std::string narf::util::baseName(const std::string& path) {
 	size_t baseNameLen;
-	auto lastSlash = pathLastSlash(path, &baseNameLen);
+	auto lastSlash = pathLastSlash(path, nullptr, &baseNameLen);
 	if (path.length() > 1 && lastSlash != std::string::npos) {
 		return path.substr(lastSlash + 1, baseNameLen);
 	}

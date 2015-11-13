@@ -24,6 +24,11 @@ TEST(PATH, dirName) {
 	ASSERT_EQ("C:\\", narf::util::dirName("C:\\foo"));
 	ASSERT_EQ("C:\\", narf::util::dirName("C:\\foo\\"));
 	ASSERT_EQ("C:\\foo", narf::util::dirName("C:\\foo\\bar"));
+	ASSERT_EQ("\\\\server\\share", narf::util::dirName("\\\\server\\share"));
+	ASSERT_EQ("\\\\server\\share", narf::util::dirName("\\\\server\\share\\"));
+	ASSERT_EQ("\\\\server\\share", narf::util::dirName("\\\\server\\share\\dir"));
+	ASSERT_EQ("\\\\server\\share", narf::util::dirName("\\\\server\\share\\dir\\"));
+	ASSERT_EQ("\\\\server\\share\\dir", narf::util::dirName("\\\\server\\share\\dir\\dir2"));
 }
 
 TEST(PATH, baseName) {
