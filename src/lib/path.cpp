@@ -83,6 +83,15 @@ bool narf::util::dirExists(const std::string& path) {
 	return (st.st_mode & S_IFMT) == S_IFDIR;
 }
 
+
+bool narf::util::fileExists(const std::string& path) {
+	struct stat st;
+	if (stat(path.c_str(), &st) == -1) {
+		return false;
+	}
+	return (st.st_mode & S_IFMT) == S_IFREG;
+}
+
 #endif // unix
 
 #ifdef _WIN32
@@ -107,6 +116,14 @@ bool narf::util::dirExists(const std::string& path) {
 	narf::toUTF16(path, pathW);
 	DWORD attrs = GetFileAttributesW(pathW.c_str());
 	return (attrs != INVALID_FILE_ATTRIBUTES) && (attrs & FILE_ATTRIBUTE_DIRECTORY);
+}
+
+
+bool narf::util::fileExists(const std::string& path) {
+	std::wstring pathW;
+	narf::toUTF16(path, pathW);
+	DWORD attrs = GetFileAttributesW(pathW.c_str());
+	return (attrs != INVALID_FILE_ATTRIBUTES) && !(attrs & FILE_ATTRIBUTE_DIRECTORY);
 }
 
 #endif // _WIN32
@@ -158,18 +175,6 @@ bool narf::util::createDirs(const std::string& path) {
 		return false; // Failed to create one of the parent directories
 	}
 	return createDir(path);
-}
-
-bool narf::util::exists(const std::string& path) {
-#ifdef _WIN32
-	std::wstring pathW;
-	narf::toUTF16(path, pathW);
-	struct _stat st;
-	return _wstat(pathW.c_str(), &st) == 0;
-#else
-	struct stat st;
-	return stat(path.c_str(), &st) == 0;
-#endif
 }
 
 void narf::util::rename(const std::string& path, const std::string& newPath) {
