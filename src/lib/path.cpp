@@ -186,27 +186,35 @@ void narf::util::rename(const std::string& path, const std::string& newPath) {
 	::rename(path.c_str(), newPath.c_str());
 }
 
+
 // TODO: These will be broken on Windows when given the root directory
-std::string narf::util::dirName(const std::string& path) {
-	size_t len = path.length();
-	while (len > 0 && path[len - 1] == DirSeparator[0]) {
+static size_t pathLastSlash(const std::string& path, size_t* baseNameLen = nullptr) {
+	auto len = path.length();
+	while (len > 0 && path[len - 1] == narf::util::DirSeparator[0]) {
 		len--;
 	}
 	auto lastSlash = path.rfind(narf::util::DirSeparator, len - 1);
+	if (baseNameLen) {
+		*baseNameLen = len - lastSlash - 1;
+	}
+	return lastSlash;
+}
+
+
+std::string narf::util::dirName(const std::string& path) {
+	auto lastSlash = pathLastSlash(path);
 	if (lastSlash != std::string::npos) {
 		return path.substr(0, lastSlash == 0 ? 1 : lastSlash);
 	}
 	return path;
 }
 
+
 std::string narf::util::baseName(const std::string& path) {
-	size_t len = path.length();
-	while (len > 0 && path[len - 1] == DirSeparator[0]) {
-		len--;
-	}
-	size_t lastSlash = path.rfind(DirSeparator, len - 1);
-	if (len > 1 && lastSlash != std::string::npos) {
-		return path.substr(lastSlash + 1, len - lastSlash - 1);
+	size_t baseNameLen;
+	auto lastSlash = pathLastSlash(path, &baseNameLen);
+	if (path.length() > 1 && lastSlash != std::string::npos) {
+		return path.substr(lastSlash + 1, baseNameLen);
 	}
 	return path;
 }
