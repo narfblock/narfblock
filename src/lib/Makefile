@@ -21,6 +21,8 @@ OBJS := \
 	embed.o \
 	file.o \
 	ini.o \
+	path.o \
+	stdioconsole.o \
 	tokenize.o \
 	utf.o \
 
