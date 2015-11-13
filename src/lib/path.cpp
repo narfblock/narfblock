@@ -75,21 +75,23 @@ std::string narf::util::exeName() {
 
 #if defined(__unix__) || defined(__APPLE__)
 
-bool narf::util::dirExists(const std::string& path) {
+static mode_t getPathStatMode(const std::string& path) {
 	struct stat st;
 	if (stat(path.c_str(), &st) == -1) {
-		return false;
+		return 0;
 	}
-	return (st.st_mode & S_IFMT) == S_IFDIR;
+	return st.st_mode;
+}
+
+bool narf::util::dirExists(const std::string& path) {
+	auto mode = getPathStatMode(path);
+	return mode != 0 && (mode & S_IFMT) == S_IFDIR;
 }
 
 
 bool narf::util::fileExists(const std::string& path) {
-	struct stat st;
-	if (stat(path.c_str(), &st) == -1) {
-		return false;
-	}
-	return (st.st_mode & S_IFMT) == S_IFREG;
+	auto mode = getPathStatMode(path);
+	return mode != 0 && (mode & S_IFMT) == S_IFREG;
 }
 
 #endif // unix
@@ -111,18 +113,21 @@ std::string narf::util::exeName() {
 }
 
 
-bool narf::util::dirExists(const std::string& path) {
+static DWORD getPathAttrs(const std::string& path) {
 	std::wstring pathW;
 	narf::toUTF16(path, pathW);
-	DWORD attrs = GetFileAttributesW(pathW.c_str());
+	return GetFileAttributesW(pathW.c_str());
+}
+
+
+bool narf::util::dirExists(const std::string& path) {
+	auto attrs = getPathAttrs(path);
 	return (attrs != INVALID_FILE_ATTRIBUTES) && (attrs & FILE_ATTRIBUTE_DIRECTORY);
 }
 
 
 bool narf::util::fileExists(const std::string& path) {
-	std::wstring pathW;
-	narf::toUTF16(path, pathW);
-	DWORD attrs = GetFileAttributesW(pathW.c_str());
+	auto attrs = getPathAttrs(path);
 	return (attrs != INVALID_FILE_ATTRIBUTES) && !(attrs & FILE_ATTRIBUTE_DIRECTORY);
 }
 
