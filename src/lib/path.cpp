@@ -99,6 +99,11 @@ void narf::util::rename(const std::string& path, const std::string& newPath) {
 	::rename(path.c_str(), newPath.c_str());
 }
 
+
+bool narf::util::createDir(const std::string& path) {
+	return ::mkdir(path.c_str(), 0755) == 0;
+}
+
 #endif // unix
 
 #ifdef _WIN32
@@ -144,6 +149,13 @@ void narf::util::rename(const std::string& path, const std::string& newPath) {
 	MoveFileW(pathW.c_str(), newPathW.c_str());
 }
 
+
+bool narf::util::createDir(const std::string& path) {
+	std::wstring pathW;
+	narf::toUTF16(path, pathW);
+	return ::CreateDirectoryW(pathW.c_str(), nullptr) == 0;
+}
+
 #endif // _WIN32
 
 #ifdef __APPLE__
@@ -175,15 +187,6 @@ std::string narf::util::appendPath(const std::string& path, const std::string& a
 	}
 }
 
-bool narf::util::createDir(const std::string& path) {
-#ifdef _WIN32
-	std::wstring pathW;
-	narf::toUTF16(path, pathW);
-	return _wmkdir(pathW.c_str()) == 0;
-#else
-	return mkdir(path.c_str(), 0755) == 0;
-#endif
-}
 
 bool narf::util::createDirs(const std::string& path) {
 	if (dirExists(path)) {
