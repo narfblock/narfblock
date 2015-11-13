@@ -17,6 +17,7 @@ script:
     - cd build
     - cmake ../src -DCMAKE_C_FLAGS="-I/usr/include/freetype2"
     - make VERBOSE=1
+    - ./lib/narflib-test
     - ./narfblock-test
 
 before_install:
