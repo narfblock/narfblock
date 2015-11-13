@@ -13,7 +13,7 @@ set (VERSION_RELEASE "")
 
 get_directory_property(hasParent PARENT_DIRECTORY)
 
-find_package (ZLIB REQUIRED)
+find_package (ZLIB)
 
 set(NARFLIB_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/include)
 set(NARFLIB_SOURCE_DIR ${PROJECT_SOURCE_DIR})
@@ -23,8 +23,10 @@ configure_file (
 	"${PROJECT_BINARY_DIR}/include/narf/version.h"
 	)
 
-if (TEST)
-	find_package (GTest REQUIRED)
+find_package (GTest)
+if (NOT GTest_FOUND AND TEST)
+	message(STATUS "GTest not found, disabling building of tests")
+	set(TEST OFF)
 endif ()
 
 if (hasParent)
@@ -99,12 +101,12 @@ endif()
 # generate C source file from binary to embed
 FUNCTION(EMBED out_var in_f)
 	SET(result)
-	FILE(RELATIVE_PATH src_f_full ${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/${in_f})
+	SET(src_f_full ${CMAKE_CURRENT_SOURCE_DIR}/${in_f})
 	get_filename_component(src_f ${src_f_full} NAME)
 	get_filename_component(src_dir ${src_f_full} PATH)
 	SET(out_f "${PROJECT_BINARY_DIR}/${src_f}.cpp")
 	ADD_CUSTOM_COMMAND(OUTPUT ${out_f}
-		COMMAND ${NARFLIB_SOURCE_DIR}/embed.sh ${src_f} ${out_f}
+		COMMAND ${NARFLIB_SOURCE_DIR}/embed.sh ${src_f} ${out_f} ${ZLIB_FOUND}
 		DEPENDS ${in_f}
 		WORKING_DIRECTORY ${src_dir}
 		COMMENT "Embedding ${src_f}"
@@ -127,9 +129,12 @@ set (NARFLIB_SOURCE_FILES
 
 include_directories (
 	"${NARFLIB_INCLUDE_DIRS}"
-	"${ZLIB_INCLUDE_DIRS}"
 	"${PROJECT_BINARY_DIR}/include"
 	)
+
+if (ZLIB_FOUND)
+	include_directories ("${ZLIB_INCLUDE_DIRS}")
+endif()
 
 if(STATIC)
 	if (NOT hasParent)
@@ -141,15 +146,21 @@ else()
 	set(CMAKE_C_FLAGS "${COMMON_C_FLAGS}")
 	set(CMAKE_CXX_FLAGS "${COMMON_CXX_FLAGS}")
 	add_library (narflib SHARED ${NARFLIB_SOURCE_FILES})
-	target_link_libraries (narflib ${ZLIB_LIBRARY})
+	if (ZLIB_FOUND)
+		target_link_libraries (narflib ${ZLIB_LIBRARY})
+	endif()
 endif()
 
 if(TEST)
+
 	include_directories (
 		"${GTEST_INCLUDE_DIRS}"
 		)
 	# unit test executable
 	file(GLOB_RECURSE NARFLIB_TEST_SOURCE_FILES ${PROJECT_SOURCE_DIR}/test/*.cpp)
+
+	EMBED(embed_bar_txt test/bar.txt)
+	list(APPEND NARFLIB_TEST_SOURCE_FILES ${embed_bar_txt})
 
 	if (NOT hasParent)
 		set(CMAKE_C_FLAGS "${COMMON_C_FLAGS}")
@@ -163,7 +174,9 @@ if(TEST)
 	target_link_libraries (narflib-test
 		narflib
 		${GTEST_LIBRARIES}
-		${ZLIB_LIBRARY}
 		)
+	if (ZLIB_FOUND)
+		target_link_libraries (narflib-test ${ZLIB_LIBRARY})
+	endif()
 endif()
 

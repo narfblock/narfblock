@@ -10,8 +10,8 @@ See the [NarfBlock source](https://github.com/narfblock/narfblock/tree/master/sr
 ## Prerequisites
 
 - CMake 2.6 or newer
-- zlib development libraries
-- GoogleTest (gtest) development libraries
+- zlib development libraries (optional, used for compressing files to embed)
+- GoogleTest (gtest) development libraries (optional, used for unit tests)
 
 ## Build Commands
 

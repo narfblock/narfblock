@@ -3,6 +3,7 @@
 
 in="$1"
 out="$2"
+zlib="$3"
 
 if [ "x$1" = "x" -o "x$2" = "x" ]; then
 	echo "usage: $0 <in.data> <out.cpp>"
@@ -25,19 +26,21 @@ varbase="${varbase//-/_}"
 # This avoids to avoid two copies of this script
 # appending to the same file.
 tmp=$(mktemp /tmp/tmp.XXXXXXXXXX)
-
-ingz=$(mktemp /tmp/tmp.XXXXXXXXXX.gz)
-
-gzip -9 -n -c "$in" > "$ingz"
-
 rawsize=$(size "$in")
-gzsize=$(size "$ingz")
-
 echo "raw size: $rawsize"
-echo "gz size:  $gzsize"
 
-# TODO: if gz is not smaller than uncompressed, use raw?
-# Probably not worth the trouble; gzip header is only a few bytes of overhead.
+if [ "x$zlib" = "xTRUE" ]; then
+
+	ingz=$(mktemp /tmp/tmp.XXXXXXXXXX.gz)
+
+	gzip -9 -n -c "$in" > "$ingz"
+
+	gzsize=$(size "$ingz")
+
+	echo "gz size:  $gzsize"
+
+	# TODO: if gz is not smaller than uncompressed, use raw?
+	# Probably not worth the trouble; gzip header is only a few bytes of overhead.
 
 cat > "$tmp" << EOF
 #include <assert.h>
@@ -75,6 +78,31 @@ extern ${varbase}_ctor ${varbase}_inst;
 ${varbase}_ctor ${varbase}_inst;
 }}
 EOF
+
+else # ZLIB not found, don't compress
+
+cat > "$tmp" << EOF
+#include <assert.h>
+#include <stdio.h>
+#include <stdint.h>
+namespace narf { namespace embed {
+
+extern const uint8_t ${varbase}_data[];
+const uint8_t ${varbase}_data[] = {
+EOF
+
+xxd -i < "$in" >> "$tmp"
+
+cat >> "$tmp" << EOF
+};
+
+extern const size_t ${varbase}_size;
+const size_t ${varbase}_size = $rawsize;
+
+}}
+EOF
+
+fi
 
 mv "$tmp" "$out"
 rm -f "$ingz"
