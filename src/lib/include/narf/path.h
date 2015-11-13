@@ -9,6 +9,7 @@ namespace narf {
 
 		std::string exeName();
 		std::string exeDir();
+		std::string userConfigDir(const std::string& appName);
 
 		std::string appendPath(const std::string& path, const std::string& append);
 		bool dirExists(const std::string& path);

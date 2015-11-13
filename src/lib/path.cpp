@@ -18,6 +18,7 @@
 #ifdef _WIN32
 
 #include <windows.h>
+#include <shlobj.h>
 #include "narf/utf.h"
 
 const std::string narf::util::DirSeparator("\\");
@@ -75,6 +76,22 @@ std::string narf::util::exeName() {
 
 #if defined(__unix__) || defined(__APPLE__)
 
+std::string narf::util::userConfigDir(const std::string& appName) {
+	// look up home dir and append .config/<appName>
+	char* home;
+	home = getenv("HOME");
+	// TODO: sanitize/validate $HOME?
+	if (!home) {
+		// TODO: fall back to getpwuid() (use getpwuid_r?)
+	}
+
+	if (home) {
+		return std::string(home) + "/.config/" + appName;
+	}
+	return "";
+}
+
+
 static mode_t getPathStatMode(const std::string& path) {
 	struct stat st;
 	if (stat(path.c_str(), &st) == -1) {
@@ -82,6 +99,7 @@ static mode_t getPathStatMode(const std::string& path) {
 	}
 	return st.st_mode;
 }
+
 
 bool narf::util::dirExists(const std::string& path) {
 	auto mode = getPathStatMode(path);
@@ -120,6 +138,18 @@ std::string narf::util::exeName() {
 	std::string result;
 	narf::toUTF8(buffer, result);
 	return result;
+}
+
+
+std::string narf::util::userConfigDir(const std::string& appName) {
+	wchar_t buffer[MAX_PATH];
+	HRESULT hr = SHGetFolderPathW(nullptr, CSIDL_APPDATA | CSIDL_FLAG_CREATE, nullptr, SHGFP_TYPE_CURRENT, buffer);
+	if (!SUCCEEDED(hr)) {
+		return ""; // error
+	}
+	std::string result;
+	narf::toUTF8(buffer, result);
+	return result + "\\" + appName;
 }
 
 
