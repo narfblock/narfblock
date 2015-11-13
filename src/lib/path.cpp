@@ -94,6 +94,11 @@ bool narf::util::fileExists(const std::string& path) {
 	return mode != 0 && (mode & S_IFMT) == S_IFREG;
 }
 
+
+void narf::util::rename(const std::string& path, const std::string& newPath) {
+	::rename(path.c_str(), newPath.c_str());
+}
+
 #endif // unix
 
 #ifdef _WIN32
@@ -129,6 +134,14 @@ bool narf::util::dirExists(const std::string& path) {
 bool narf::util::fileExists(const std::string& path) {
 	auto attrs = getPathAttrs(path);
 	return (attrs != INVALID_FILE_ATTRIBUTES) && !(attrs & FILE_ATTRIBUTE_DIRECTORY);
+}
+
+
+void narf::util::rename(const std::string& path, const std::string& newPath) {
+	std::wstring pathW, newPathW;
+	narf::toUTF16(path, pathW);
+	narf::toUTF16(newPath, newPathW);
+	MoveFileW(pathW.c_str(), newPathW.c_str());
 }
 
 #endif // _WIN32
@@ -180,10 +193,6 @@ bool narf::util::createDirs(const std::string& path) {
 		return false; // Failed to create one of the parent directories
 	}
 	return createDir(path);
-}
-
-void narf::util::rename(const std::string& path, const std::string& newPath) {
-	::rename(path.c_str(), newPath.c_str());
 }
 
 
