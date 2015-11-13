@@ -179,10 +179,10 @@ void narf::UTF8Iter::decode() {
 	// fall through for 5-byte/6-byte sequence (invalid)
 invalid:
 	// resync to next 0xxxxxxx or 11xxxxxx
-	c0 = s_[i_ + curLen_ - 1];
-	while (!isUTF8StartByte(c0)) {
+	auto c = s_[i_ + curLen_ - 1];
+	while (!isUTF8StartByte(c)) {
 		curLen_++;
-		c0 = s_[i_ + curLen_ - 1];
+		c = s_[i_ + curLen_ - 1];
 	}
 	cur_ = 0xFFFDu;
 }
@@ -257,5 +257,5 @@ int narf::UTF8PrevCharSize(const char* utf8, size_t offset) {
 			break;
 		}
 	}
-	return origOffset - offset;
+	return (int)(origOffset - offset);
 }
