@@ -42,8 +42,10 @@ echo "gz size:  $gzsize"
 cat > "$tmp" << EOF
 #include <assert.h>
 #include <stdio.h>
-#include "narf/embed.h"
+#include <stdint.h>
 namespace narf { namespace embed {
+bool uncompress(void* dst, size_t dstSize, const void* src, size_t srcSize);
+
 static const uint8_t ${varbase}_gz[] = {
 EOF
 

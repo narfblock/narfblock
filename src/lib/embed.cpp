@@ -35,8 +35,10 @@
 #include <zlib.h>
 #include <stdio.h>
 
+namespace narf {
+namespace embed {
 
-bool narf::embed::uncompress(void* dst, size_t dstSize, const void* src, size_t srcSize) {
+bool uncompress(void* dst, size_t dstSize, const void* src, size_t srcSize) {
 	z_stream st;
 
 	st.next_in = static_cast<Bytef*>(const_cast<void*>(src));
@@ -62,3 +64,5 @@ bool narf::embed::uncompress(void* dst, size_t dstSize, const void* src, size_t 
 
 	return true;
 }
+
+}} // namespace narf::embed

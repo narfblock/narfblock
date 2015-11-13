@@ -36,12 +36,6 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-namespace narf {
-namespace embed {
-	bool uncompress(void* dst, size_t dstSize, const void* src, size_t srcSize);
-}
-}
-
 #define DECLARE_EMBED(name) \
 	namespace narf { namespace embed { \
 		extern uint8_t name##_data[]; \
