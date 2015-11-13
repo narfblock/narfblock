@@ -24,7 +24,7 @@ configure_file (
 	)
 
 find_package (GTest)
-if (NOT GTest_FOUND AND TEST)
+if (NOT GTEST_FOUND AND TEST)
 	message(STATUS "GTest not found, disabling building of tests")
 	set(TEST OFF)
 endif ()
