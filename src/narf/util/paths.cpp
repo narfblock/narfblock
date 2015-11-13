@@ -50,13 +50,9 @@ std::string narf::util::dataDir() {
 	}
 
 	// walk up the path until data directory is found
-	narf::console->println("Executable Dir: " + narf::util::exeDir());
-
 	for (auto dir = narf::util::exeDir(); ; dir = dirName(dir)) {
 		auto dataDir = appendPath(dir, "data");
-		narf::console->println("Checking " + dataDir);
 		if (dirExists(dataDir)) {
-			narf::console->println("Found data directory: " + dataDir);
 			cachedDataDir = dataDir;
 			return cachedDataDir;
 		}
