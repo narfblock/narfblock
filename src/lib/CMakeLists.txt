@@ -125,6 +125,7 @@ set (NARFLIB_SOURCE_FILES
 	tokenize.cpp
 	utf.cpp
 	path.cpp
+	format.cpp
 	)
 
 include_directories (
