@@ -43,6 +43,9 @@ narf::ByteStream::ByteStream(size_t size) : pos(0) {
 	data_.resize(size);
 }
 
+narf::ByteStream::ByteStream(std::string data) : ByteStream(data.c_str(), data.size()) {
+}
+
 narf::ByteStream::ByteStream(const void* data, size_t size) : pos(0) {
 	if (data != nullptr) {
 		auto v = static_cast<const uint8_t*>(data);
@@ -67,6 +70,23 @@ uint8_t narf::ByteStream::typeSize(ByteStream::Type type) {
 		return 8;
 	}
 	return 1;
+}
+
+void narf::ByteStream::write(const std::vector<uint8_t> data) {
+	write(data.data(), data.size());
+}
+
+void narf::ByteStream::write(const std::string data) {
+	write(data.data(), data.size());
+}
+
+void narf::ByteStream::write(const void* data, size_t size) {
+	if (pos + size > data_.size()) {
+		data_.resize(pos + size, 0);
+	}
+
+	memcpy(&data_[pos], data, size);
+	pos += size;
 }
 
 void narf::ByteStream::write(const void* data, Type type, Endian endian /*= Endian::DEFAULT*/) {
@@ -132,6 +152,15 @@ void narf::ByteStream::write(double v, Endian endian /*= Endian::DEFAULT*/) {
 	write(&v, ByteStream::Type::DOUBLE, endian);
 }
 
+void narf::ByteStream::writeString(const std::string data, Type type, Endian endian /*= Endian::DEFAULT*/) {
+	writeString((const void*)data.c_str(), data.size(), type, endian);
+}
+
+void narf::ByteStream::writeString(const void* data, size_t size, Type type, Endian endian /*= Endian::DEFAULT*/) {
+	write(&size, type, endian);
+	write(data, size);
+}
+
 bool narf::ByteStream::read(void* v, narf::ByteStream::Type type, Endian endian) {
 	assert(v != nullptr);
 	uint8_t size = typeSize(type);
@@ -153,6 +182,11 @@ bool narf::ByteStream::read(void* v, narf::ByteStream::Type type, Endian endian)
 	return true;
 }
 
+bool narf::ByteStream::read(void* v, size_t c) {
+	memcpy(v, (const void*)read(c).data(), c);
+	return !overran_;
+}
+
 std::vector<uint8_t> narf::ByteStream::read(size_t c) {
 	if (overran_ || pos + c > size()) {
 		overran_ = true;
@@ -160,7 +194,9 @@ std::vector<uint8_t> narf::ByteStream::read(size_t c) {
 	} else {
 		overran_ = false;
 	}
-	return std::vector<uint8_t>(data_.begin() + pos, data_.begin() + pos + c);
+	auto vec = std::vector<uint8_t>(data_.begin() + pos, data_.begin() + pos + c);
+	pos += c;
+	return vec;
 }
 
 std::vector<uint8_t> narf::ByteStream::readString(Type type /*= Type::U16*/, Endian endian /*= Endian::DEFAULT*/) {
@@ -177,6 +213,10 @@ uint8_t narf::ByteStream::readU8() {
 	uint8_t v = 0;
 	read(&v, Type::U8);
 	return v;
+}
+
+bool narf::ByteStream::read(int8_t* v) {
+	return read(v, Type::I8);
 }
 
 int8_t narf::ByteStream::readI8() {

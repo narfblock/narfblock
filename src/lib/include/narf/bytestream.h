@@ -47,6 +47,7 @@ class ByteStream {
 public:
 	ByteStream();
 	ByteStream(size_t size);
+	ByteStream(std::string data);
 	ByteStream(const void* data, size_t size);
 
 	~ByteStream();
@@ -59,6 +60,9 @@ public:
 		LITTLE, BIG, DEFAULT
 	};
 
+	void write(const std::vector<uint8_t> data);
+	void write(const std::string data);
+	void write(const void* data, size_t size);
 	void write(const void* data, Type type, Endian endian = Endian::DEFAULT);
 	void write(uint8_t v);
 	void write(int8_t v);
@@ -70,10 +74,14 @@ public:
 	void write(int64_t v, Endian endian = Endian::DEFAULT);
 	void write(float v, Endian endian = Endian::DEFAULT);
 	void write(double v, Endian endian = Endian::DEFAULT);
+	void writeString(const std::string data, Type type, Endian endian = Endian::DEFAULT);
+	void writeString(const void* data, size_t size, Type type, Endian endian = Endian::DEFAULT);
 
 	bool read(void* v, Type type, Endian endian = Endian::DEFAULT);
 	std::vector<uint8_t> read(size_t c);
+	bool read(void* v, size_t c);
 	std::vector<uint8_t> readString(Type type = Type::U16, Endian endian = Endian::DEFAULT);
+	bool read(int8_t* v);
 	bool read(uint8_t* v);
 	uint8_t readU8();
 	int8_t readI8();
@@ -107,6 +115,7 @@ public:
 
 	void* data() { return data_.data(); }
 	std::vector<uint8_t> vec() { return data_; }
+	std::string str() { return std::string(data_.begin(), data_.end()); }
 	size_t size() { return data_.size(); }
 
 private:
