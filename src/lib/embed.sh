@@ -27,21 +27,24 @@ varbase="${varbase//-/_}"
 # appending to the same file.
 tmp=$(mktemp /tmp/tmp.XXXXXXXXXX)
 rawsize=$(size "$in")
-echo "raw size: $rawsize"
 
+usegz=0
+gzsize="n/a"
 if [ "x$zlib" = "xTRUE" ]; then
-
 	ingz=$(mktemp /tmp/tmp.XXXXXXXXXX.gz)
-
 	gzip -9 -n -c "$in" > "$ingz"
-
 	gzsize=$(size "$ingz")
+	if [ $gzsize -lt $rawsize ]; then
+		usegz=1;
+	fi
+fi
 
-	echo "gz size:  $gzsize"
+[ $usegz -eq 0 ] && echo -n "* " || echo -n "  "
+echo "raw: $rawsize"
+[ $usegz -eq 1 ] && echo -n "* " || echo -n "  "
+echo "gz : $gzsize"
 
-	# TODO: if gz is not smaller than uncompressed, use raw?
-	# Probably not worth the trouble; gzip header is only a few bytes of overhead.
-
+if [ $usegz -eq 1 ]; then
 cat > "$tmp" << EOF
 #include <assert.h>
 #include <stdio.h>
