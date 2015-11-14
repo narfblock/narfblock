@@ -70,13 +70,13 @@ TEST(ByteStream, I32) {
 
 TEST(ByteStream, U64) {
 	narf::ByteStream bs;
-	bs.write((uint64_t)0xa0b1c2d3e4f50617ul, LE);
-	bs.write((uint64_t)0x0102030405060708ul, BE);
+	bs.write((uint64_t)0xa0b1c2d3e4f50617, LE);
+	bs.write((uint64_t)0x0102030405060708, BE);
 	bs.seek(0);
-	ASSERT_EQ(0x1706f5e4d3c2b1a0ul, bs.readU64(BE));
+	ASSERT_EQ((uint64_t)0x1706f5e4d3c2b1a0, bs.readU64(BE));
 	uint64_t t;
 	bs.read(&t, LE);
-	ASSERT_EQ(0x0807060504030201ul, t);
+	ASSERT_EQ((uint64_t)0x0807060504030201, t);
 }
 
 TEST(ByteStream, I64) {
@@ -84,10 +84,10 @@ TEST(ByteStream, I64) {
 	bs.write((int64_t)-1234567890, LE);
 	bs.write((int64_t)0x01020304050607ff, BE);
 	bs.seek(0);
-	ASSERT_EQ(3385978729552412671l, bs.readI64(BE));
+	ASSERT_EQ((int64_t)3385978729552412671, bs.readI64(BE));
 	int64_t t;
 	bs.read(&t, LE);
-	ASSERT_EQ(-70080650589044223l, t);
+	ASSERT_EQ((int64_t)-70080650589044223, t);
 }
 
 TEST(ByteStream, Float) {
@@ -106,7 +106,7 @@ TEST(ByteStream, Double) {
 	bs.write(-123456.78901, LE);
 	bs.write(1234.5, LE);
 	bs.seek(0);
-	ASSERT_EQ(0x23f3c89f0c24fec0ul, bs.readU64(BE));
+	ASSERT_EQ((uint64_t)0x23f3c89f0c24fec0, bs.readU64(BE));
 	double t;
 	bs.read(&t, LE);
 	ASSERT_DOUBLE_EQ(1234.5, t);
@@ -126,7 +126,7 @@ TEST(ByteStream, writeVec) {
 
 TEST(ByteStream, readVec) {
 	narf::ByteStream bs;
-	bs.write(0x0102030405060708ul, LE);
+	bs.write((uint64_t)0x0102030405060708, LE);
 	bs.write(0x090a0b0c, LE);
 	bs.seek(0);
 	auto vec = bs.read(8);
