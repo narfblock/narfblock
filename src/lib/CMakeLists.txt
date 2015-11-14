@@ -106,7 +106,7 @@ FUNCTION(EMBED out_var in_f)
 	get_filename_component(src_dir ${src_f_full} PATH)
 	SET(out_f "${PROJECT_BINARY_DIR}/${src_f}.cpp")
 	ADD_CUSTOM_COMMAND(OUTPUT ${out_f}
-		COMMAND ${NARFLIB_SOURCE_DIR}/embed.sh ${src_f} ${out_f} ${ZLIB_FOUND}
+		COMMAND ${NARFLIB_SOURCE_DIR}/embed.sh ${src_f} ${out_f} #${ZLIB_FOUND}
 		DEPENDS ${in_f}
 		WORKING_DIRECTORY ${src_dir}
 		COMMENT "Embedding ${src_f}"
