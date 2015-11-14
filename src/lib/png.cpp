@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "narf/png.h"
+#include "narf/image.h"
 
 #include "narf/console.h"
 

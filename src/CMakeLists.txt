@@ -216,7 +216,6 @@ if (CLIENT)
 		narf/gl/texture.cpp
 		narf/gl/textureatlas.cpp
 		narf/font.cpp
-		narf/png.cpp
 		narf/texture-font.cpp
 
 		narf/client/main.cpp

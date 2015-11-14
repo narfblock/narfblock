@@ -3,7 +3,7 @@
 
 #include "narf/gl/gl.h"
 
-#include "narf/png.h"
+#include "narf/image.h"
 
 namespace narf {
 namespace gl {

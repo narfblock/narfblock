@@ -14,6 +14,7 @@ set (VERSION_RELEASE "")
 get_directory_property(hasParent PARENT_DIRECTORY)
 
 find_package (ZLIB)
+find_package (PNG)
 
 set(NARFLIB_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/include)
 set(NARFLIB_SOURCE_DIR ${PROJECT_SOURCE_DIR})
@@ -88,6 +89,9 @@ else()
 			SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--as-needed")
 		endif()
 
+		if (NOT STATIC)
+			SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
+		endif()
 
 		SET(COMMON_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${COMMON_C_FLAGS} -std=gnu++0x")
 	endif ()
@@ -128,6 +132,10 @@ set (NARFLIB_SOURCE_FILES
 	format.cpp
 	)
 
+if (PNG_FOUND)
+	list(APPEND NARFLIB_SOURCE_FILES png.cpp)
+endif()
+
 include_directories (
 	"${NARFLIB_INCLUDE_DIRS}"
 	"${PROJECT_BINARY_DIR}/include"
@@ -150,6 +158,9 @@ else()
 	if (ZLIB_FOUND)
 		target_link_libraries (narflib ${ZLIB_LIBRARY})
 	endif()
+	if (PNG_FOUND)
+		target_link_libraries (narflib ${PNG_LIBRARIES})
+	endif()
 endif()
 
 if(TEST)
@@ -166,6 +177,11 @@ if(TEST)
 	if (NOT hasParent)
 		set(CMAKE_C_FLAGS "${COMMON_C_FLAGS}")
 		set(CMAKE_CXX_FLAGS "${COMMON_CXX_FLAGS}")
+
+		if (NOT STATIC)
+			SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
+			SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
+		endif()
 	endif()
 
 	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGTEST_LINKED_AS_SHARED_LIBRARY=1")
@@ -180,4 +196,3 @@ if(TEST)
 		target_link_libraries (narflib-test ${ZLIB_LIBRARY})
 	endif()
 endif()
-
