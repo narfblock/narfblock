@@ -2,8 +2,8 @@
 
 source "${deps}/pkg/common"
 
-src=libpng-1.6.18.tar.xz
-sha1=c6e06510d30beba08c96c468ab269fafb2bb256f
+src=libpng-1.6.19.tar.xz
+sha1=483d72ced11c9258f9d1119105273d9af9ff151c
 url="http://download.sourceforge.net/libpng/${src}"
 
 fetch $src $sha1 $url

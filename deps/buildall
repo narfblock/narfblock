@@ -23,8 +23,8 @@ function check_host() {
 
 check_host i686-w64-mingw32
 check_host x86_64-w64-mingw32
-check_host i686-pc-linux-gnu
-check_host x86_64-pc-linux-gnu
+#check_host i686-pc-linux-gnu
+#check_host x86_64-pc-linux-gnu
 #check_host i486-musl-linux
 #check_host x86_64-musl-linux
 
