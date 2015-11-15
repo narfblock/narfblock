@@ -130,6 +130,8 @@ set (NARFLIB_SOURCE_FILES
 	texteditor.cpp
 	tokenize.cpp
 	utf.cpp
+	net/addr.cpp
+	net/socket.cpp
 	path.cpp
 	)
 
@@ -195,5 +197,8 @@ if(TEST)
 		)
 	if (ZLIB_FOUND)
 		target_link_libraries (narflib-test ${ZLIB_LIBRARY})
+	endif()
+	if (WIN32)
+		target_link_libraries (narflib-test ws2_32)
 	endif()
 endif()

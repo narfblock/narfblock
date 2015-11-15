@@ -37,8 +37,9 @@
 #include "narf/time.h"
 #include "narf/cmd/cmd.h"
 #include "narf/math/math.h"
-#include "narf/net/net.h"
+#include "narf/net.h"
 #include "narf/net/protocol.h"
+#include "narf/net/server.h"
 #include "narf/util/paths.h"
 #include "narf/tokenize.h"
 

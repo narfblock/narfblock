@@ -3,14 +3,21 @@
 #include "narf/net/protocol.h"
 #include "narf/net/server.h"
 
-#include <enet/enet.h>
-
 // TODO: move these
 #define WORLD_X_MAX 64
 #define WORLD_Y_MAX 64
 #define WORLD_Z_MAX 64
 
 using namespace narf;
+
+
+std::string net::to_string(const ENetAddress& address) {
+	char buf[3 * 4 + 3 + 1 + 5 + 1]; // 3-digit octet * 4 octets + 3 dots + colon + 5-digit port + terminator
+	uint32_t host = ntohl(address.host);
+	snprintf(buf, sizeof(buf), "%u.%u.%u.%u:%u", host >> 24, (host >> 16) & 0xFF, (host >> 8) & 0xFF, host & 0xFF, address.port);
+	return buf;
+}
+
 
 net::Server::Server(size_t maxClients, uint16_t port) : maxClients(maxClients) {
 	if (enet_initialize() != 0) {

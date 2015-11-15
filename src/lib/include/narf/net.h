@@ -4,8 +4,6 @@
 #include <stdint.h>
 #include <string>
 
-#include <enet/enet.h>
-
 #include <unistd.h>
 
 #ifdef _WIN32
@@ -31,8 +29,6 @@ namespace narf {
 
 		// split net address into host and (optional) port
 		bool splitHostPort(const std::string &addr, std::string &host, uint16_t &port);
-
-		std::string to_string(const ENetAddress& address);
 
 		class Address {
 		public:

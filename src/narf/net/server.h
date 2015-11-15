@@ -4,12 +4,17 @@
 #include "narf/chunkcache.h"
 #include "narf/entity.h"
 #include "narf/world.h"
-#include "narf/net/net.h"
+#include "narf/net.h"
 
 #include <queue>
 
+#include <enet/enet.h>
+
 namespace narf {
 	namespace net {
+		// TODO: this doesn't really belong here, but oh well
+		std::string to_string(const ENetAddress& address);
+
 		// server-side representation of a connected client
 		class Client {
 		public:

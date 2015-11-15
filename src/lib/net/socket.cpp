@@ -1,4 +1,4 @@
-#include "narf/net/net.h"
+#include "narf/net.h"
 
 #include <assert.h>
 #include <stdlib.h>
