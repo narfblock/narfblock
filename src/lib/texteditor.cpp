@@ -1,7 +1,6 @@
 #include "narf/texteditor.h"
 #include "narf/console.h"
 #include "narf/utf.h"
-#include "narf/math/math.h"
 #include <chrono>
 #include <cstdlib>
 #include <assert.h>

@@ -124,12 +124,13 @@ set (NARFLIB_SOURCE_FILES
 	console.cpp
 	embed.cpp
 	file.cpp
+	format.cpp
 	ini.cpp
 	stdioconsole.cpp
+	texteditor.cpp
 	tokenize.cpp
 	utf.cpp
 	path.cpp
-	format.cpp
 	)
 
 if (PNG_FOUND)
