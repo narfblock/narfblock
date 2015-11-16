@@ -47,10 +47,15 @@ public:
 	bool read(const char* filename);
 	bool read(const std::string& filename) { return read(filename.c_str()); }
 
-	bool write(const char* filename);
-	bool write(const std::string& filename) { return write(filename.c_str()); }
+	bool write(const char* filename) const;
+	bool write(const std::string& filename) const { return write(filename.c_str()); }
 
 	bool resize(size_t newSize);
+
+	bool setData(const void* data, size_t size);
+	bool setData(const std::string data) { return setData(data.c_str(), data.size()); }
+
+	std::string str() const { return std::string((const char*)data, size); }
 
 	void* data;
 	size_t size;

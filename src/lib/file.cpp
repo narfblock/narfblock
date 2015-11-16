@@ -75,6 +75,23 @@ bool narf::MemoryFile::resize(size_t newSize) {
 	return true;
 }
 
+bool narf::MemoryFile::setData(const void* newData, size_t newSize) {
+	if (data) {
+		free(data);
+	}
+	if (newSize == 0) {
+		data = nullptr;
+		size = 0;
+		return true;
+	}
+	data = malloc(size);
+	if (data == nullptr) {
+		return false;
+	}
+	memcpy(data, newData, size);
+	size = newSize;
+	return true;
+}
 
 bool narf::MemoryFile::read(const char* filename) {
 	FILE* fp = fopenUTF8(filename, "rb");
@@ -114,7 +131,16 @@ bool narf::MemoryFile::read(const char* filename) {
 }
 
 
-bool narf::MemoryFile::write(const char* filename) {
-	// TODO
-	return false;
+bool narf::MemoryFile::write(const char* filename) const {
+	FILE* fp = fopenUTF8(filename, "wb");
+	if (!fp) {
+		return false;
+	}
+	size_t written = fwrite(data, sizeof(char), size, fp);
+	if (written != size) {
+		fclose(fp);
+		return false;
+	}
+	fclose(fp);
+	return true;
 }
