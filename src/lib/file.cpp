@@ -78,17 +78,17 @@ bool narf::MemoryFile::resize(size_t newSize) {
 bool narf::MemoryFile::setData(const void* newData, size_t newSize) {
 	if (data) {
 		free(data);
+		size = 0;
 	}
 	if (newSize == 0) {
 		data = nullptr;
-		size = 0;
 		return true;
 	}
-	data = malloc(size);
+	data = malloc(newSize);
 	if (data == nullptr) {
 		return false;
 	}
-	memcpy(data, newData, size);
+	memcpy(data, newData, newSize);
 	size = newSize;
 	return true;
 }
@@ -114,7 +114,6 @@ bool narf::MemoryFile::read(const char* filename) {
 		fclose(fp);
 		return false;
 	}
-
 
 	if (fread(newData, 1, fileSizeSzT, fp) != fileSizeSzT) {
 		fclose(fp);
