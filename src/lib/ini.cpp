@@ -107,7 +107,8 @@ std::string narf::INI::Line::setValue(std::string newValue) {
 			value += c;
 		}
 	}
-	raw = raw.substr(0, valueStartPos) + value + raw.substr(valueStartPos + valueLength, std::string::npos);
+	raw = raw.substr(0, valueStartPos) + value + raw.substr(valueStartPos + valueLength);
+	valueLength = value.size();
 	return oldValue;
 }
 
@@ -222,8 +223,10 @@ void narf::INI::Line::parse() {
 					if (isSpace(c)) {
 						// eat whitespace between = and value
 					} else {
+						valueEnd = nullptr;
 						valueStart = d;
 						valueStartPos = i;
+						valueLength = 0;
 						i--;
 					}
 				} else if (c == '\0' || isNewLine(c) || quoteState == QuoteState::Done || (c == ';' && quoteState != QuoteState::Inside && escapeState == EscapeState::None)) {
