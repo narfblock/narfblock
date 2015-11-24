@@ -44,6 +44,7 @@ public:
 		toggleFog_(false),
 		toggleFullscreen_(false),
 		togglePause_(false),
+		screenshot_(false),
 		lookRel_(0.0f, 0.0f) { }
 
 	void reset();
