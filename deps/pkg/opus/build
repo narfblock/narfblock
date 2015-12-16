@@ -2,8 +2,8 @@
 
 source "${deps}/pkg/common"
 
-src=opus-1.1.tar.gz
-sha1=35005f5549e2583f5770590135984dcfce6f3d58
+src=opus-1.1.1.tar.gz
+sha1=33f83cdccc36e875fea378425003bba448b15b8b
 url="http://downloads.xiph.org/releases/opus/${src}"
 
 fetch $src $sha1 $url
@@ -24,6 +24,8 @@ sed -i -e "s/__declspec(dllexport)//" include/opus_defines.h
 	--disable-doc \
 	--disable-extra-programs \
 	--disable-silent-rules \
+	--enable-intrinsics \
+	--enable-rtcd \
 	LDFLAGS="-L${prefix}/lib ${LDFLAGS}" \
 	CPPFLAGS="-I${prefix}/include"
 
