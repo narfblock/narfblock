@@ -6,6 +6,8 @@ option(STATIC "Use static linking when building executables" ON)
 option(STATIC_LIBSTDCXX "Static link libstdc++" OFF)
 option(STATIC_LIBGCC "Static link libgcc" OFF)
 option(PIE "Create position-independent executables" ON)
+option(USEZLIB "Use zlib" ON)
+option(USEPNG "Use libpng" ON)
 
 set (VERSION_MAJOR 0)
 set (VERSION_MINOR 1)
@@ -13,8 +15,12 @@ set (VERSION_RELEASE "")
 
 get_directory_property(hasParent PARENT_DIRECTORY)
 
-find_package (ZLIB)
-find_package (PNG)
+if (USEZLIB)
+	find_package (ZLIB)
+endif ()
+if (USEPNG)
+	find_package (PNG)
+endif ()
 
 set(NARFLIB_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/include)
 set(NARFLIB_SOURCE_DIR ${PROJECT_SOURCE_DIR})
