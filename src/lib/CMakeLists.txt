@@ -15,6 +15,11 @@ set (VERSION_RELEASE "")
 
 get_directory_property(hasParent PARENT_DIRECTORY)
 
+if (NOT USEZLIB AND USEPNG)
+	message(STATUS "Note: libpng requires zlib")
+	set(USEZLIB ON)
+endif ()
+
 if (USEZLIB)
 	find_package (ZLIB)
 endif ()
@@ -128,7 +133,6 @@ ENDFUNCTION()
 set (NARFLIB_SOURCE_FILES
 	bytestream.cpp
 	console.cpp
-	embed.cpp
 	file.cpp
 	format.cpp
 	ini.cpp
@@ -152,6 +156,7 @@ include_directories (
 
 if (ZLIB_FOUND)
 	include_directories ("${ZLIB_INCLUDE_DIRS}")
+	list(APPEND NARFLIB_SOURCE_FILES embed.cpp)
 endif()
 
 if(STATIC)
