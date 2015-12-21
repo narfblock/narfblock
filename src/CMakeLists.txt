@@ -3,7 +3,7 @@ project (NarfBlock)
 
 option(SERVER "Build NarfBlock server" ON)
 option(CLIENT "Build NarfBlock client" ON)
-option(TEST "Build NarfBlock unit tests" ON)
+option(TESTS "Build NarfBlock unit tests" ON)
 
 option(STATIC "Use static linking when building executables" OFF)
 option(STATIC_LIBSTDCXX "Static link libstdc++" OFF)
@@ -62,7 +62,7 @@ if (CLIENT)
 	find_package (LibOgg REQUIRED)
 endif ()
 
-if (TEST)
+if (TESTS)
 	find_package (GTest REQUIRED)
 endif ()
 
@@ -160,7 +160,7 @@ if (SERVER)
 		)
 endif ()
 
-if (TEST)
+if (TESTS)
 	include_directories (
 		"${GTEST_INCLUDE_DIRS}"
 		)
@@ -279,7 +279,7 @@ if (SERVER)
 		)
 endif ()
 
-if (TEST)
+if (TESTS)
 	# unit test executable
 	file(GLOB_RECURSE NARFBLOCK_TEST_SOURCE_FILES ${PROJECT_SOURCE_DIR}/narf/test/*.cpp)
 	add_executable (narfblock-test

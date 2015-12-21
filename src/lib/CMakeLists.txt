@@ -1,7 +1,7 @@
 cmake_minimum_required (VERSION 2.6)
 project (narflib)
 
-option(TEST "Build narflib unit tests" ON)
+option(TESTS "Build narflib unit tests" ON)
 option(STATIC "Use static linking when building executables" ON)
 option(STATIC_LIBSTDCXX "Static link libstdc++" OFF)
 option(STATIC_LIBGCC "Static link libgcc" OFF)
@@ -36,9 +36,9 @@ configure_file (
 	)
 
 find_package (GTest)
-if (NOT GTEST_FOUND AND TEST)
+if (NOT GTEST_FOUND AND TESTS)
 	message(STATUS "GTest not found, disabling building of tests")
-	set(TEST OFF)
+	set(TESTS OFF)
 endif ()
 
 if (hasParent)
@@ -180,7 +180,7 @@ else()
 	endif()
 endif()
 
-if(TEST)
+if(TESTS)
 
 	include_directories (
 		"${GTEST_INCLUDE_DIRS}"
