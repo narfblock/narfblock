@@ -30,7 +30,7 @@ void narf::TextEditor::addString(const std::string &s) {
 
 void narf::TextEditor::setString(const std::string &s) {
 	str_ = s;
-	cursor = static_cast<uint32_t>(str_.size());
+	cursor = str_.size();
 	updated();
 }
 
@@ -91,6 +91,6 @@ void narf::TextEditor::homeCursor() {
 }
 
 void narf::TextEditor::endCursor() {
-	cursor = static_cast<uint32_t>(str_.size());
+	cursor = str_.size();
 	updated();
 }
