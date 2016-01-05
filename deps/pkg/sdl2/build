@@ -2,8 +2,8 @@
 
 source "${deps}/pkg/common"
 
-src=SDL2-2.0.3.tar.gz
-sha1=21c45586a4e94d7622e371340edec5da40d06ecc
+src=SDL2-2.0.4.tar.gz
+sha1=470a23dfc4b6220c687925ebbe5fe96287f8fb08
 url="http://libsdl.org/release/${src}"
 
 fetch $src $sha1 $url
@@ -12,11 +12,6 @@ mkdir ${work}
 cd ${work}
 tar xf "${files}/${src}"
 cd SDL2-*
-
-# remove libtool junk from EXTRA_LDFLAGS
-sed \
-    -e 's/-XCClinker //' \
-    -i configure
 
 # do not mark functions for DLL export in static library build
 sed \
@@ -31,12 +26,10 @@ sed \
 ./configure --host=${host_triplet} --prefix=${prefix} \
     --disable-render \
     --disable-render-d3d \
-    --disable-haptic \
     --disable-diskaudio \
     --enable-static --disable-shared
 
 # TODO: disable directx video driver?
-#    --disable-threads \
 
 make ${MAKEFLAGS} install
 
