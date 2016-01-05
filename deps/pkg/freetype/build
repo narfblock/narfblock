@@ -2,8 +2,8 @@
 
 source "${deps}/pkg/common"
 
-src=freetype-2.6.1.tar.bz2
-sha1=393447fbf64c107b20a1ccc9e9a9a52f39786ae0
+src=freetype-2.6.2.tar.bz2
+sha1=29c22b85b77cb22cf95c13e7062e21f39fe6b17a
 url="http://download.sourceforge.net/freetype/${src}"
 
 fetch $src $sha1 $url
