@@ -48,12 +48,24 @@ void narf::Input::processNormalEvent(const SDL_Event *event) {
 		case SDLK_PAGEDOWN:
 			clientConsole->pageDown();
 			return;
+
+		case SDLK_KP_7:
+			if (event->key.keysym.mod & KMOD_NUM) {
+				break;
+			}
+			// fallthrough
 		case SDLK_HOME:
 			if (event->key.keysym.mod & KMOD_CTRL) {
 				clientConsole->scrollHome();
 				return;
 			}
 			break;
+
+		case SDLK_KP_1:
+			if (event->key.keysym.mod & KMOD_NUM) {
+				break;
+			}
+			// fallthrough
 		case SDLK_END:
 			if (event->key.keysym.mod & KMOD_CTRL) {
 				clientConsole->scrollEnd();
@@ -67,12 +79,14 @@ void narf::Input::processNormalEvent(const SDL_Event *event) {
 		}
 
 		switch (event->key.keysym.sym) {
+		case SDLK_KP_ENTER:
 		case SDLK_RETURN:
 			if (event->key.keysym.mod & KMOD_ALT) {
 				toggleFullscreen_ = true;
 				break;
 			}
-			// fall through
+			// fallthrough
+		case SDLK_KP_DIVIDE:
 		case SDLK_SLASH:
 			state_ = InputStateText;
 			break;
@@ -193,37 +207,76 @@ void narf::Input::processTextEvent(const SDL_Event *event) {
 	switch (event->type) {
 	case SDL_KEYDOWN:
 		switch (event->key.keysym.sym) {
+		case SDLK_KP_ENTER:
 		case SDLK_RETURN:
 			// return the entered text and go back to normal mode
 			text_ += textEditor.getString();
-			// fall through
+			// fallthrough
 		case SDLK_ESCAPE: // go back to normal state but do not return any text
 			state_ = InputStateNormal;
 			textEditor.clear();
 			return;
+
 		case SDLK_BACKSPACE:
 			textEditor.delAtCursor(-1);
 			return;
+
+		case SDLK_KP_PERIOD:
+			if (event->key.keysym.mod & KMOD_NUM) {
+				return;
+			}
+			// fallthrough
 		case SDLK_DELETE:
 			textEditor.delAtCursor(1);
 			return;
+
+		case SDLK_KP_4:
+			if (event->key.keysym.mod & KMOD_NUM) {
+				return;
+			}
+			// fallthrough
 		case SDLK_LEFT:
 			textEditor.moveCursorLeft();
 			return;
+
+		case SDLK_KP_6:
+			if (event->key.keysym.mod & KMOD_NUM) {
+				return;
+			}
+			// fallthrough
 		case SDLK_RIGHT:
 			textEditor.moveCursorRight();
 			return;
+
+		case SDLK_KP_7:
+			if (event->key.keysym.mod & KMOD_NUM) {
+				return;
+			}
+			// fallthrough
 		case SDLK_HOME:
 			textEditor.homeCursor();
 			return;
+
+		case SDLK_KP_1:
+			if (event->key.keysym.mod & KMOD_NUM) {
+				return;
+			}
+			// fallthrough
 		case SDLK_END:
 			textEditor.endCursor();
 			return;
+
 		case SDLK_v:
 			if (event->key.keysym.mod & KMOD_CTRL) {
 				paste();
 			}
 			return;
+
+		case SDLK_KP_0:
+			if (event->key.keysym.mod & KMOD_NUM) {
+				return;
+			}
+			// fallthrough
 		case SDLK_INSERT:
 			if (event->key.keysym.mod & KMOD_SHIFT) {
 				paste();
