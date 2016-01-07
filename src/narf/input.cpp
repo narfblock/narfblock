@@ -1,6 +1,7 @@
 #include <SDL.h>
 
 #include <stdlib.h>
+#include <assert.h>
 
 #include "narf/input.h"
 #include "narf/client/console.h"
@@ -93,22 +94,51 @@ void narf::Input::processNormalEvent(const SDL_Event *event) {
 		case SDLK_ESCAPE:
 			exit_ = true;
 			break;
+
+		case SDLK_KP_8:
+			if (event->key.keysym.mod & KMOD_NUM) {
+				break;
+			}
+			// fallthrough
+		case SDLK_UP:
 		case SDLK_w:
-			moveForward_ = true;
+			moveForward_++;
 			lastMove_ = LastMoveForward;
 			break;
+
+		case SDLK_KP_2:
+			if (event->key.keysym.mod & KMOD_NUM) {
+				break;
+			}
+			// fallthrough
+		case SDLK_DOWN:
 		case SDLK_s:
-			moveBackward_ = true;
+			moveBackward_++;
 			lastMove_ = LastMoveBackward;
 			break;
+
+		case SDLK_KP_4:
+			if (event->key.keysym.mod & KMOD_NUM) {
+				break;
+			}
+			// fallthrough
+		case SDLK_LEFT:
 		case SDLK_a:
-			strafeLeft_ = true;
+			strafeLeft_++;
 			lastStrafe_ = LastStrafeLeft;
 			break;
+
+		case SDLK_KP_6:
+			if (event->key.keysym.mod & KMOD_NUM) {
+				break;
+			}
+			// fallthrough
+		case SDLK_RIGHT:
 		case SDLK_d:
-			strafeRight_ = true;
+			strafeRight_++;
 			lastStrafe_ = LastStrafeRight;
 			break;
+
 		case SDLK_q:
 			actionTernaryBegin_ = !actionTernary_;
 			actionTernary_ = true;
@@ -139,18 +169,50 @@ void narf::Input::processNormalEvent(const SDL_Event *event) {
 
 	case SDL_KEYUP:
 		switch (event->key.keysym.sym) {
+		case SDLK_KP_8:
+			if (event->key.keysym.mod & KMOD_NUM) {
+				break;
+			}
+			// fallthrough
+		case SDLK_UP:
 		case SDLK_w:
-			moveForward_ = false;
+			moveForward_--;
+			assert(moveForward_ >= 0);
 			break;
+
+		case SDLK_KP_2:
+			if (event->key.keysym.mod & KMOD_NUM) {
+				break;
+			}
+			// fallthrough
+		case SDLK_DOWN:
 		case SDLK_s:
-			moveBackward_ = false;
+			moveBackward_--;
+			assert(moveBackward_ >= 0);
 			break;
+
+		case SDLK_KP_4:
+			if (event->key.keysym.mod & KMOD_NUM) {
+				break;
+			}
+			// fallthrough
+		case SDLK_LEFT:
 		case SDLK_a:
-			strafeLeft_ = false;
+			strafeLeft_--;
+			assert(strafeLeft_ >= 0);
 			break;
+
+		case SDLK_KP_6:
+			if (event->key.keysym.mod & KMOD_NUM) {
+				break;
+			}
+			// fallthrough
+		case SDLK_RIGHT:
 		case SDLK_d:
-			strafeRight_ = false;
+			strafeRight_--;
+			assert(strafeRight_ >= 0);
 			break;
+
 		case SDLK_q:
 			actionTernary_ = false;
 			actionTernaryEnd_ = true;

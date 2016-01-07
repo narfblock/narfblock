@@ -21,11 +21,11 @@ public:
 		state_(InputStateNormal),
 		lookSensitivityX_(lookSensitivityX),
 		lookSensitivityY_(lookSensitivityY),
-		moveForward_(false),
-		moveBackward_(false),
+		moveForward_(0),
+		moveBackward_(0),
 		lastMove_(LastMoveNeither),
-		strafeLeft_(false),
-		strafeRight_(false),
+		strafeLeft_(0),
+		strafeRight_(0),
 		lastStrafe_(LastStrafeNeither),
 		jump_(false),
 		run_(false),
@@ -99,12 +99,12 @@ private:
 	float lookSensitivityX_;
 	float lookSensitivityY_;
 
-	bool moveForward_;
-	bool moveBackward_;
+	int moveForward_;
+	int moveBackward_;
 	enum { LastMoveNeither, LastMoveForward, LastMoveBackward } lastMove_;
 
-	bool strafeLeft_;
-	bool strafeRight_;
+	int strafeLeft_;
+	int strafeRight_;
 	enum { LastStrafeNeither, LastStrafeLeft, LastStrafeRight } lastStrafe_;
 
 	bool jump_;
