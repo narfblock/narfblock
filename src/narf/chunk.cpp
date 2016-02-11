@@ -139,6 +139,9 @@ void narf::Chunk::generate() {
 				}
 			}
 		}
+	} else if (pos_ == ChunkCoord{4, 3, 3}) {
+		// generate a one-block layer in the air for collision detection tests
+		fillRectPrism({0, 0, 4}, {16, 16, 5}, 7);
 	} else if (pos_.z == 2) {
 		fillRectPrism({0, 0, 0}, {size_.x, size_.y, size_.z - 1}, 2); // dirt
 		fillXYPlane(size_.z - 1, 3); // dirt with grass

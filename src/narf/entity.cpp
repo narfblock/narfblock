@@ -94,6 +94,10 @@ bool Entity::update(timediff dt)
 	Vector3f halfSize(0.375f, 0.375f, 0.375f);
 	AABB entAABB(center, halfSize);
 
+	// Z coord of the bottom of this entity
+	float bottomZ = position.z;
+	float prevBottomZ = prevPosition.z;
+
 	// check against all blocks that could potentially intersect
 	BlockCoord c(
 			(int32_t)(position.x - halfSize.x),
@@ -135,12 +139,16 @@ bool Entity::update(timediff dt)
 					bounced = true; // only apply bounce once...
 				}
 			} else {
-				// TODO: there shouldn't be any difference between these two cases
-				if (bc.z < ceilf(position.z)) {
-					// hit a block below us; just zero out vertical velocity and push up
-					position.z = ceilf(position.z);
-					velocity.z = 0.0f;
-					onGround = true;
+				if (bottomZ < bc.z + 1 && prevBottomZ >= bc.z + 1) {
+					// moving down
+					// and the bottom of the ent is within the block below us
+					// and the bottom of the ent was above the block below us in the previous tick
+					if (velocity.z < 0.0f) {
+						// hit a block below us while falling; zero out vertical velocity and push up
+						position.z = (float)bc.z + 1.0f;
+						velocity.z = 0.0f;
+						onGround = true;
+					}
 				} else {
 					collided = true;
 				}
