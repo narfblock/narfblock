@@ -349,6 +349,10 @@ void narf::Input::processTextEvent(const SDL_Event *event) {
 		}
 		break;
 
+	case SDL_KEYUP:
+		// eat key up events - actual text entry happens in SDL_TEXTINPUT
+		return;
+
 	case SDL_TEXTINPUT:
 		textEditor.addString(event->text.text);
 		return;
