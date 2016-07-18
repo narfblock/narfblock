@@ -2,8 +2,8 @@
 
 source "${deps}/pkg/common"
 
-src=opusfile-0.6.tar.gz
-sha1=2422e3c7bf6105a832226850b19053ec5ac41293
+src=opusfile-0.7.tar.gz
+sha1=69dfca2092172f0837bb8b54dacfcb44fec6bd6f
 url="http://downloads.xiph.org/releases/opus/${src}"
 
 fetch $src $sha1 $url

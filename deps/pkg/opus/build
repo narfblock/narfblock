@@ -2,8 +2,8 @@
 
 source "${deps}/pkg/common"
 
-src=opus-1.1.1.tar.gz
-sha1=33f83cdccc36e875fea378425003bba448b15b8b
+src=opus-1.1.3.tar.gz
+sha1=7cb1bef20975afbf14a8a43308aed9cb41629f37
 url="http://downloads.xiph.org/releases/opus/${src}"
 
 fetch $src $sha1 $url
@@ -12,10 +12,6 @@ mkdir ${work}
 cd ${work}
 tar xf "${files}/${src}"
 cd opus-*
-
-# libopus symbols get exported from the executable with static linking
-# fix that junk
-sed -i -e "s/__declspec(dllexport)//" include/opus_defines.h
 
 ./configure \
 	--prefix=${prefix} \
