@@ -120,26 +120,6 @@ bool narf::gl::Context::setDisplayMode(const char *title, int32_t width, int32_t
 		return false;
 	}
 
-	// set window icon
-#ifdef _WIN32
-	SDL_SysWMinfo info;
-	SDL_VERSION(&info.version);
-	if (SDL_GetWindowWMInfo(window_, &info)) {
-		HWND hwnd = info.info.win.window;
-		HINSTANCE inst = GetModuleHandle(NULL);
-		HANDLE bigIcon   = LoadImage(inst, MAKEINTRESOURCE(1), IMAGE_ICON, 0, 0, LR_DEFAULTSIZE);
-		HANDLE smallIcon = LoadImage(inst, MAKEINTRESOURCE(1), IMAGE_ICON, GetSystemMetrics(SM_CXSMICON), GetSystemMetrics(SM_CYSMICON), LR_DEFAULTCOLOR);
-		if (bigIcon) {
-			SendMessage(hwnd, WM_SETICON, ICON_BIG, (LPARAM)bigIcon);
-		}
-		if (smallIcon) {
-			SendMessage(hwnd, WM_SETICON, ICON_SMALL, (LPARAM)smallIcon);
-		}
-	}
-#else
-	// TODO use SDL_SetWindowIcon
-#endif
-
 	return true;
 }
 
