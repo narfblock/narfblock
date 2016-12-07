@@ -207,6 +207,10 @@ void Renderer::renderChunk(const ChunkCoord& cc)
 		// TODO: render placeholder chunk?
 		// for now, insert the chunk VBO and render it anyway
 		// could do some kind of background processing so it is ready next frame?
+		if (chunkRebuildCount_ > chunkRebuildLimit_) {
+			return;
+		}
+		chunkRebuildCount_++;
 		vboCache_.put(cc, ChunkVBO(gl, cc));
 		chunkVBO = getChunkVBO(cc);
 		chunkVBO->render(world_);
@@ -360,6 +364,7 @@ void Renderer::render(gl::Context& context, const Camera& cam, float stateBlend,
 	glBindTexture(gl::TEXTURE_2D, tilesTex_);
 
 	// draw chunks
+	chunkRebuildCount_ = 0;
 	if (cxMin < cxMax && cyMin < cyMax) {
 		for (int32_t cy = cyMin; cy < cyMax; cy++) {
 			for (int32_t cx = cxMin; cx < cxMax; cx++) {

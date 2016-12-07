@@ -94,6 +94,8 @@ private:
 	gl::Texture* tilesTex_;
 	ChunkCache<ChunkCoord, ChunkVBO> vboCache_;
 	gl::Buffer<BlockVertex> entityVbo_; // TODO: for now, entities are just rendered as cubes too
+	int chunkRebuildCount_;
+	static const int chunkRebuildLimit_ = 1; // max chunk VBOs to build/upload per frame
 
 	void renderChunk(const ChunkCoord& cc);
 	ChunkVBO* getChunkVBO(const ChunkCoord& cc);
