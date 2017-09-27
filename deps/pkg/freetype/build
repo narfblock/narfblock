@@ -2,8 +2,8 @@
 
 source "${deps}/pkg/common"
 
-src=freetype-2.6.5.tar.bz2
-sha1=5db38ae2308c5a2c519c8e071e98b70d61585201
+src=freetype-2.8.1.tar.bz2
+sha1=417bb3747c4ac95b6f2652024a53fad45581fa1c
 url="http://download.savannah.gnu.org/releases/freetype/${src}"
 
 fetch $src $sha1 $url
