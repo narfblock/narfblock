@@ -62,10 +62,6 @@ if (CLIENT)
 	find_package (LibOgg REQUIRED)
 endif ()
 
-if (TESTS)
-	find_package (GTest REQUIRED)
-endif ()
-
 find_package (Threads REQUIRED)
 find_package (ZLIB REQUIRED)
 find_package (ENet REQUIRED)
@@ -161,6 +157,15 @@ if (SERVER)
 endif ()
 
 if (TESTS)
+	set (GTEST_INCLUDE_DIRS
+		"${PROJECT_SOURCE_DIR}/lib/googletest/googletest/include"
+		"${PROJECT_SOURCE_DIR}/lib/googletest/googletest"
+		)
+
+	set (GTEST_SOURCE_FILES
+		"${PROJECT_SOURCE_DIR}/lib/googletest/googletest/src/gtest-all.cc"
+		)
+
 	include_directories (
 		"${GTEST_INCLUDE_DIRS}"
 		)
@@ -284,13 +289,13 @@ if (TESTS)
 	file(GLOB_RECURSE NARFBLOCK_TEST_SOURCE_FILES ${PROJECT_SOURCE_DIR}/narf/test/*.cpp)
 	add_executable (narfblock-test
 		${NARFBLOCK_TEST_SOURCE_FILES}
+		${GTEST_SOURCE_FILES}
 		)
 
 	target_link_libraries (narfblock-test
 		narfblock-common
 		narflib
 		${ENet_LIBRARIES}
-		${GTEST_LIBRARIES}
 		${CMAKE_THREAD_LIBS_INIT}
 		${ZLIB_LIBRARY}
 		)

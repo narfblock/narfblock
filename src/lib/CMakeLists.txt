@@ -35,12 +35,6 @@ configure_file (
 	"${PROJECT_BINARY_DIR}/include/narf/version.h"
 	)
 
-find_package (GTest)
-if (NOT GTEST_FOUND AND TESTS)
-	message(STATUS "GTest not found, disabling building of tests")
-	set(TESTS OFF)
-endif ()
-
 if (hasParent)
 	set(STATIC ON)
 	set(NARFLIB_INCLUDE_DIRS ${NARFLIB_INCLUDE_DIRS} PARENT_SCOPE)
@@ -182,6 +176,15 @@ endif()
 
 if(TESTS)
 
+	set (GTEST_INCLUDE_DIRS
+		"${PROJECT_SOURCE_DIR}/googletest/googletest/include"
+		"${PROJECT_SOURCE_DIR}/googletest/googletest"
+		)
+
+	set (GTEST_SOURCE_FILES
+		"${PROJECT_SOURCE_DIR}/googletest/googletest/src/gtest-all.cc"
+		)
+
 	include_directories (
 		"${GTEST_INCLUDE_DIRS}"
 		)
@@ -203,11 +206,14 @@ if(TESTS)
 
 	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGTEST_LINKED_AS_SHARED_LIBRARY=1")
 
-	add_executable (narflib-test ${NARFLIB_TEST_SOURCE_FILES})
+	add_executable (narflib-test
+		${NARFLIB_TEST_SOURCE_FILES}
+		${GTEST_SOURCE_FILES}
+		)
 
 	target_link_libraries (narflib-test
 		narflib
-		${GTEST_LIBRARIES}
+		${CMAKE_THREAD_LIBS_INIT}
 		)
 	if (ZLIB_FOUND)
 		target_link_libraries (narflib-test ${ZLIB_LIBRARY})
