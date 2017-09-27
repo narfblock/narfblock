@@ -1,8 +1,26 @@
 language: cpp
 
+dist: trusty
+sudo: false
+
 compiler:
     - gcc
     - clang
+
+addons:
+    apt:
+        packages:
+            - cmake
+            - libsdl2-dev
+            - libpng12-dev
+            - zlib1g-dev
+            - libfreetype6-dev
+            - libncurses5-dev
+            - libenet-dev
+            - libogg-dev
+            - libopus-dev
+            - libopusfile-dev
+            - libgtest-dev
 
 os:
     - linux
@@ -23,7 +41,6 @@ script:
     - ./narfblock-test
 
 before_install:
-    - "if [ $(uname) = Linux ]; then sudo travis/setup-linux.sh; fi"
     - "if [ $(uname) = Darwin ]; then travis/setup-osx.sh; fi"
 
 notifications:
