@@ -2,8 +2,8 @@
 
 source "${deps}/pkg/common"
 
-src=SDL2-2.0.5.tar.gz
-sha1=c4f87580630387796df4ac87c362b4f9a721457e
+src=SDL2-2.0.6.tar.gz
+sha1=9382b0b5a88767283dca8481bfddf23c75b3db1b
 url="http://libsdl.org/release/${src}"
 
 fetch $src $sha1 $url
