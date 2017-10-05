@@ -1304,8 +1304,9 @@ extern "C" int main(int argc, char **argv)
 
 	auto w = mode.w;
 	auto h = mode.h;
+	auto refresh_rate = mode.refresh_rate;
 
-	narf::console->println("Current video mode is " + std::to_string(w) + "x" + std::to_string(h));
+	narf::console->println("Current video mode is " + std::to_string(w) + "x" + std::to_string(h) + " @ " + std::to_string(refresh_rate) + " Hz");
 
 	// TODO: convert these to be modifiable at runtime and use config.init*
 	bool fullscreen = config.getBool("video.fullscreen", true);
