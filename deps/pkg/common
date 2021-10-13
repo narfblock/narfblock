@@ -2,6 +2,8 @@
 
 source "${deps}/host/${host_triplet}"
 
+build_triplet="$(gcc -dumpmachine)"
+
 pkg="$(basename $(dirname $0))"
 files="${deps}/files"
 

@@ -2,9 +2,9 @@
 
 source "${deps}/pkg/common"
 
-src=opusfile-0.9.tar.gz
-sha1=7aefeb6a2255899d8ff02cc25295837bf47e4c02
-url="https://archive.mozilla.org/pub/opus/${src}"
+src=opusfile-0.12.tar.gz
+sha1=3e86971fef28292f982a32730632b1d531059ed5
+url="https://downloads.xiph.org/releases/opus/${src}"
 
 fetch $src $sha1 $url
 
@@ -19,6 +19,7 @@ cd opusfile-*
 	--disable-http \
 	--disable-shared \
 	--disable-doc \
+	--disable-examples \
 	--disable-silent-rules \
 	LDFLAGS="-L${prefix}/lib ${LDFLAGS}" \
 	CPPFLAGS="-I${prefix}/include" \

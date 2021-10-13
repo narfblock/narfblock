@@ -2,9 +2,9 @@
 
 source "${deps}/pkg/common"
 
-src=ncurses-6.0-20170923.tgz
-sha1=7100897c4dc7cb56a85d2903cda40fe78532f1d9
-url="ftp://ftp.invisible-island.net/ncurses/current/${src}"
+src=ncurses-6.2.tar.gz
+sha1=56e410fb77f2b5501a0b2f6a995376f3cefe1097
+url="ftp://ftp.invisible-island.net/ncurses/${src}"
 
 fetch $src $sha1 $url
 
@@ -39,8 +39,13 @@ esac
 
 ./configure \
 	--prefix=${prefix} \
+	--build=${build_triplet} \
 	--host=${host_triplet} \
 	--without-shared \
+	--with-normal \
+	--without-debug \
+	--without-ada \
+	--without-manpages \
 	${extra_config} \
 	LDFLAGS="-L${prefix}/lib ${LDFLAGS}" \
 	CPPFLAGS="-I${prefix}/include"

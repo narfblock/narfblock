@@ -2,8 +2,8 @@
 
 source "${deps}/pkg/common"
 
-src=SDL2-2.0.8.tar.gz
-sha1=959ec6ded277821995d2e3cafd973f6ab9f48ab7
+src=SDL2-2.0.16.tar.gz
+sha1=57825428174adb2ac947e4014080c262505aa972
 url="http://libsdl.org/release/${src}"
 
 fetch $src $sha1 $url
@@ -27,6 +27,7 @@ sed \
     --disable-render \
     --disable-render-d3d \
     --disable-diskaudio \
+    --disable-hidapi \
     --enable-static --disable-shared
 
 # TODO: disable directx video driver?
