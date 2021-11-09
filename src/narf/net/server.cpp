@@ -307,6 +307,7 @@ void net::Server::processNetEvent(ENetEvent& evt) {
 		break;
 	case ENET_EVENT_TYPE_RECEIVE:
 		processReceive(evt);
+		enet_packet_destroy(evt.packet);
 		break;
 	case ENET_EVENT_TYPE_NONE:
 		// make the compiler shut up about unhandled enum value

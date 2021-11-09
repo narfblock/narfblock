@@ -850,6 +850,7 @@ void pollNet()
 
 		case ENET_EVENT_TYPE_RECEIVE:
 			processReceive(evt);
+			enet_packet_destroy(evt.packet);
 			break;
 
 		case ENET_EVENT_TYPE_NONE:
