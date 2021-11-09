@@ -37,6 +37,10 @@ case "${host_triplet}" in
 		;;
 esac
 
+# Fix the GCC version check - MKlib_gen.sh parses $CC -dumpversion output, which includes
+# a trailing -win32 suffix in the version of mingw-w64 shipped by Debian (e.g. "10-win32").
+patch -p1 < "${deps}"/pkg/ncurses/libgen-version-check-fix.patch
+
 ./configure \
 	--prefix=${prefix} \
 	--build=${build_triplet} \

@@ -1,0 +1,11 @@
+--- a/ncurses/base/MKlib_gen.sh	2021-11-08 19:06:57.708930860 -0800
++++ b/ncurses/base/MKlib_gen.sh	2021-11-08 19:11:10.979908399 -0800
+@@ -76,7 +76,7 @@
+ PRG=`echo "$1" | $AWK '{ sub(/^[ 	]*/,""); sub(/[ 	].*$/, ""); print; }' || exit 0`
+ FSF=`"$PRG" --version 2>/dev/null || exit 0 | fgrep "Free Software Foundation" | head -n 1`
+ ALL=`"$PRG" -dumpversion 2>/dev/null || exit 0`
+-ONE=`echo "$ALL" | sed -e 's/\..*$//'`
++ONE=`echo "$ALL" | sed -e 's/\..*$//' -e 's/-.*$//'`
+ if test -n "$FSF" && test -n "$ALL" && test -n "$ONE" ; then
+ 	if test $ONE -ge 5 ; then
+ 		echo ".. adding -P option to work around $PRG $ALL" >&2
