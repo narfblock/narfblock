@@ -838,7 +838,8 @@ void pollNet()
 
 	// wait for the connection to succeed
 	ENetEvent evt;
-	if (enet_host_service(client, &evt, 0) > 0) {
+	// TODO: put a cap on number of events per tick?
+	while (enet_host_service(client, &evt, 0) > 0) {
 		switch (evt.type) {
 		case ENET_EVENT_TYPE_CONNECT:
 			processConnect(evt);

@@ -318,7 +318,8 @@ void net::Server::processNetEvent(ENetEvent& evt) {
 
 void net::Server::tick(timediff dt) {
 	ENetEvent evt;
-	if (enet_host_service(server, &evt, 0) > 0) {
+	// TODO: put a cap on number of events per tick?
+	while (enet_host_service(server, &evt, 0) > 0) {
 		processNetEvent(evt);
 	}
 
